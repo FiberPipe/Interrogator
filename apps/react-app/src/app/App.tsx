@@ -1,14 +1,21 @@
-import { Link, BrowserRouter as Router } from "react-router-dom";
+"use client";
+
 import { AppRouter } from "./providers/router/AppRouter";
+import { Footer, Header } from "../widgets";
+import { NextUIProvider } from "@nextui-org/react";
+import { useNavigate } from "react-router-dom";
+import "./styles/globals.css";
 
 const App = () => {
+  const navigate = useNavigate();
   return (
-    <Router basename={"/"}>
-      <Link to="/">Home</Link>
-      <Link to="/charts">Charts</Link>
-      <Link to="/sensors">Sensors</Link>
-      <AppRouter />
-    </Router>
+    <>
+      <NextUIProvider navigate={navigate}>
+        <Header />
+        <AppRouter />
+        <Footer />
+      </NextUIProvider>
+    </>
   );
 };
 
