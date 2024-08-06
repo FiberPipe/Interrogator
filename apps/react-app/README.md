@@ -27,3 +27,14 @@ Preview the production build locally:
 ```bash
 pnpm preview
 ```
+
+
+### For development
+
+- web: `npm run dev:web`
+- electron: `npm run dev:electron`
+
+### For production
+
+- web: `npm run build:web`
+- electron: `npm run build:electron`
