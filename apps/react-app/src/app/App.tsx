@@ -5,6 +5,7 @@ import { Footer, Header } from "../widgets";
 import { NextUIProvider } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
 import "./styles/globals.css";
+import { PageContainer } from "../shared/ui";
 
 const App = () => {
   const navigate = useNavigate();
@@ -12,7 +13,9 @@ const App = () => {
     <>
       <NextUIProvider navigate={navigate}>
         <Header />
-        <AppRouter />
+        <PageContainer>
+          <AppRouter />
+        </PageContainer>
         <Footer />
       </NextUIProvider>
     </>
