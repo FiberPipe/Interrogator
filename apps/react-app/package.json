@@ -1,5 +1,5 @@
 {
-  "name": "www",
+  "name": "@interrogator/app",
   "private": true,
   "version": "1.0.0",
   "scripts": {
@@ -16,7 +16,7 @@
     "@rsbuild/plugin-react": "1.0.1-beta.5",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "electron": "^31.3.0",
+    "electron": "31.3.0",
     "electron-builder": "24.13.3",
     "typescript": "^5.5.2"
   }
