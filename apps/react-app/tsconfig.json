@@ -13,5 +13,5 @@
     "useDefineForClassFields": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["src"]
+  "include": ["src", "global.d.ts", "postcss.config.js", "tailwind.config.js"]
 }
