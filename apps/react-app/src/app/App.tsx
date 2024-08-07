@@ -1,21 +1,11 @@
-"use client";
-
-import { AppRouter } from "./providers/router/AppRouter";
-import { Footer, Header } from "../widgets";
-import { NextUIProvider } from "@nextui-org/react";
-import { useNavigate } from "react-router-dom";
-import "./styles/globals.css";
+import './App.css';
 
 const App = () => {
-  const navigate = useNavigate();
   return (
-    <>
-      <NextUIProvider navigate={navigate}>
-        <Header />
-        <AppRouter />
-        <Footer />
-      </NextUIProvider>
-    </>
+    <div className="content">
+      <h1>Rsbuild with React</h1>
+      <p>Start building amazing things with Rsbuild.</p>
+    </div>
   );
 };
 
