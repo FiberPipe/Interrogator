@@ -1,13 +1,24 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
+import { createRoot } from 'react-dom/client'
 
-const rootEl = document.getElementById('root');
-if (rootEl) {
-  const root = ReactDOM.createRoot(rootEl);
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-  );
+// @ts-ignore
+if (typeof window.electron === 'undefined') {
+ // @ts-ignore Polyfill to run UI in the browser.
+ window.electron = {
+	versions: {
+	 chrome: 'web',
+	 node: 'web',
+	 electron: 'web',
+	},
+	register: () => false,
+ }
 }
+
+document.body.style.margin = '0'
+
+createRoot(document.body).render(
+ <div>
+	<main>
+	 <h1>Interrogator Web</h1>
+	</main>
+ </div>,
+)
