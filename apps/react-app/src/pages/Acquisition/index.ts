@@ -1,1 +1,1 @@
-export * from './AcquisitionPage'
+export * from "./AcquisitionPage";

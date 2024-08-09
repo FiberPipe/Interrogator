@@ -10,8 +10,14 @@ import {
   Brush,
 } from "recharts";
 import { lineColorDict } from "./const";
+import { TTransformedData } from "../../types";
 
-export const LineGraph: React.FC<any> = ({ names = [], data }) => {
+type Props = {
+  names: string[] | number[];
+  data: TTransformedData[];
+};
+
+export const LineGraph: React.FC<Props> = ({ names = [], data }) => {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart
@@ -31,12 +37,12 @@ export const LineGraph: React.FC<any> = ({ names = [], data }) => {
         <Tooltip />
         <Legend />
         <Brush dataKey="name" height={30} stroke="#8884d8" />
-        {names.map((line: any) => (
+        {names.map((line: string | number) => (
           <Line
             key={line}
             type="monotone"
             dataKey={line}
-            stroke={lineColorDict[line % 20]}
+            stroke={lineColorDict[Number(line) % 20]}
             strokeWidth={2}
             activeDot={{ r: 8 }}
           />

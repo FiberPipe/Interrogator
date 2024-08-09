@@ -29,9 +29,9 @@ export const Footer: React.FC = () => {
       <Button color="primary" onClick={toggleScript}>
         {isRunning ? "Stop" : "Start"}
       </Button>
-      <Button color="secondary" onClick={takeScreenshot}>
+      {/* <Button color="secondary" onClick={takeScreenshot}>
         Screenshot
-      </Button>
+      </Button> */}
     </footer>
   );
 };

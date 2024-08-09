@@ -8,20 +8,19 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { TBarGraphTransformedData } from "../../types";
 
-export const BarGraph: React.FC<any> = ({ data }) => {
-  const modifiedData = data.map((d: any) => {
-    const result = { name: d.id, value: d.potPin1 / d.potPin2 };
-    return result;
-  });
+type Props = {
+  data: TBarGraphTransformedData[];
+};
 
-  console.log("peter", modifiedData);
+export const BarGraph: React.FC<Props> = ({ data }) => {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart
         width={500}
         height={300}
-        data={modifiedData}
+        data={data}
         margin={{
           top: 5,
           right: 30,

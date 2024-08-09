@@ -2,9 +2,8 @@ import { useNavigate } from "react-router-dom";
 import "./styles/global.css";
 import { NextUIProvider } from "@nextui-org/react";
 import { AppRouter } from "./providers/router/AppRouter";
-import { PageContainer } from "../shared/ui/PageContainer/PageContainer";
-import { Footer } from "../widgets/Footer/Footer";
-import { Header } from "../widgets/Header";
+import { Footer, Header } from "../widgets";
+import { PageContainer } from "../shared";
 
 const App = () => {
   const navigate = useNavigate();

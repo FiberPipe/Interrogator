@@ -1,6 +1,6 @@
 import React from "react";
-import { ChartsWidget } from "../../widgets/ChartsWidget/ChartsWidget";
+import { LineGraphDataBuilder } from "../../features";
 
 export const ChartsPage: React.FC = () => {
-  return <ChartsWidget />;
+  return <LineGraphDataBuilder />;
 };

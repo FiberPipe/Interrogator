@@ -1,6 +1,5 @@
 import { RouteProps } from "react-router-dom";
-import { AcquisitionPage, SensorsPage } from "../../../pages";
-import { ChartsPage } from "../../../pages/Charts/ChartsPage";
+import { AcquisitionPage, ChartsPage, SensorsPage } from "../../../pages";
 
 type CustomRouteProps = {
   indexPage?: JSX.Element;
