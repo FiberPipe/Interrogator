@@ -11,11 +11,13 @@ const App = () => {
   return (
     <>
       <NextUIProvider navigate={navigate}>
-        <Header />
-        <PageContainer>
-          <AppRouter />
-        </PageContainer>
-        <Footer />
+        <div className={"page"}>
+          <Header />
+          <PageContainer>
+            <AppRouter />
+          </PageContainer>
+          <Footer />
+        </div>
       </NextUIProvider>
     </>
   );

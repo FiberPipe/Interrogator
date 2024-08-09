@@ -1,42 +1,26 @@
-import { useEffect, useState } from "react";
-
-interface BarGraphProps {
-  data: { name: string; uv: number; pv: number }[];
-}
+import React from "react";
+import { BarGraph } from "../../shared/ui/BarGraph";
 
 export const BarGraphBuilder: React.FC = () => {
-  const [data, setData] = useState<any[]>([]);
+  const data: any = [
+    {
+      id: 1,
+      time: "00:00:07.359",
+      wavelength: 1558.728,
+      displacement: -7.5e-5,
+      potPin1: 0.220919,
+      potPin2: 0.151515,
+    },
+    {
+      id: 2,
+      time: "00:00:07.359",
+      wavelength: 1558.725,
+      displacement: -7.5e-5,
+      potPin1: 0.220919,
+      potPin2: 0.151515,
+    },
+  ];
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(
-          "../../../../../packages/data-generator/data.json"
-        );
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const jsonData: any[] = await response.json();
-        console.log("Response Text:", response);
-        // setData(jsonData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
 
-    fetchData(); // Изначально загрузить данные
-
-    const interval = setInterval(() => {
-      fetchData(); // Обновлять данные каждую секунду
-    }, 1000);
-
-    return () => clearInterval(interval); // Очищаем интервал при размонтировании компонента
-  }, []);
-
-  return (
-    <div>
-      <h3>Последние строки файла:</h3>
-      <pre>{data}</pre>
-    </div>
-  );
+  return <BarGraph data={data} />;
 };
