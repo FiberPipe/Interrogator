@@ -2,16 +2,11 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./app/App";
 import { BrowserRouter as Router } from "react-router-dom";
-// @ts-ignore
+
 if (typeof window.electron === "undefined") {
-  // @ts-ignore Polyfill to run UI in the browser.
   window.electron = {
-    versions: {
-      chrome: "web",
-      node: "web",
-      electron: "web",
-    },
-    register: () => false,
+    send: ()=> {},
+    subscribe: ()=> {}
   };
 }
 

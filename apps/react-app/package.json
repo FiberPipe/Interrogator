@@ -2,15 +2,14 @@
   "name": "@interrogator/app",
   "private": true,
   "version": "1.0.0",
-  "main": "./src/main.js",
-  "type": "module",
+  "main": "build/src/app/electron/main.js",
   "scripts": {
     "dev:react": "rsbuild dev --port 3000",
     "dev:web": "npm run dev:react -- --open",
-    "dev:electron": "npm run dev:react & npx electronmon .",
+    "dev:electron": "concurrently \"pnpm dev:react\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ -w\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ && electron .\"",
     "dev": "npm run dev:web",
     "build:web": "rsbuild build",
-    "build:electron": "npm run build:web && electron-builder"
+    "build:electron": "npm run build:web && tsc -p ./src/app/electron/ && electron-builder"
   },
   "dependencies": {
     "@emotion/react": "^11.13.0",
@@ -30,6 +29,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.19",
+    "concurrently": "8.2.2",
     "electron": "31.3.0",
     "electron-builder": "24.13.3",
     "electronmon": "2.0.3",
@@ -37,6 +37,16 @@
     "postcss": "^8.4.40",
     "postcss-loader": "^8.1.1",
     "tailwindcss": "^3.4.7",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.2",
+    "wait-on": "7.2.0"
+  },
+  "build": {
+    "extends": null,
+    "files": [
+      "build/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
   }
 }
