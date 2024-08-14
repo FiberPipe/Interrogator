@@ -11,7 +11,9 @@
     "resolveJsonModule": true,
     "moduleResolution": "bundler",
     "useDefineForClassFields": true,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src", "global.d.ts", "postcss.config.js", "tailwind.config.js"]
 }

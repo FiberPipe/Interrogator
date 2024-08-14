@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import {
   Input,
   Table,
@@ -7,8 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
-import { TData, useInputStore } from "../../shared";
+import { TData } from "../../shared";
 import { groupDataById, GroupedItem, WL_HEADER_CELL_NAMES } from "./utils";
+import { useInputStore } from "../../shared";
 
 type Props = {
   body: TData[];
@@ -16,42 +18,52 @@ type Props = {
 
 export const WLDataTable: React.FC<Props> = ({ body }) => {
   const groupedData = groupDataById(body);
-  const { inputValues, updateInputValue } = useInputStore();
+  const { inputValues, updateInputValue, initializeInputValues } = useInputStore();
 
-  const handleInputChange = (key: string, value: string) => {
+  // Load initial input values
+  useEffect(() => {
+    const fetchInputs = async () => {
+      const inputData = await window.electron.getInputs();
+      const initialValues = inputData.reduce((acc: { [key: string]: string }, item: { key: string, value: string }) => {
+        acc[item.key] = item.value;
+        return acc;
+      }, {});
+      initializeInputValues(initialValues);
+    };
+    fetchInputs();
+  }, [initializeInputValues]);
+
+  const handleInputChange = async (key: string, value: string) => {
     updateInputValue(key, value);
+    await window.electron.insertInput(key, value);
   };
 
   return (
     <Table aria-label="Example static collection table" style={{ width: 400 }}>
       <TableHeader>
-        {WL_HEADER_CELL_NAMES.map((header: string) => (
+        {WL_HEADER_CELL_NAMES.map((header) => (
           <TableColumn key={header}>{header}</TableColumn>
         ))}
       </TableHeader>
       <TableBody>
         {groupedData.map((d: GroupedItem) => (
           <TableRow key={`WL_${d.id}`}>
-            <TableCell>{`${d.id}_WL`}</TableCell>
+            <TableCell>{`WL_${d.id}`}</TableCell>
             <TableCell>mE</TableCell>
             <TableCell>{d.rangeMax}</TableCell>
             <TableCell>
               <Input
                 type="text"
-                value={inputValues[`wl_${d.id}_min`] || ""}
-                onChange={(e) =>
-                  handleInputChange(`wl_${d.id}_min`, e.target.value)
-                }
+                value={inputValues[`wl_${d.id}_min`] || ''}
+                onChange={(e) => handleInputChange(`wl_${d.id}_min`, e.target.value)}
               />
             </TableCell>
             <TableCell>{d.wavelength}</TableCell>
             <TableCell>
               <Input
                 type="text"
-                value={inputValues[`wl_${d.id}_max`] || ""}
-                onChange={(e) =>
-                  handleInputChange(`wl_${d.id}_max`, e.target.value)
-                }
+                value={inputValues[`wl_${d.id}_max`] || ''}
+                onChange={(e) => handleInputChange(`wl_${d.id}_max`, e.target.value)}
               />
             </TableCell>
             <TableCell>{d.rangeMin}</TableCell>

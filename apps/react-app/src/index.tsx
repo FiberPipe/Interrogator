@@ -4,10 +4,14 @@ import App from "./app/App";
 import { BrowserRouter as Router } from "react-router-dom";
 
 if (typeof window.electron === "undefined") {
-  window.electron = {
-    send: ()=> {},
-    subscribe: ()=> {}
-  };
+  if (typeof window.electron === "undefined") {
+    window.electron = {
+      send: () => {},
+      subscribe: () => {},
+      getInputs: async () => [],
+      insertInput: async () => false,
+    };
+  }
 }
 
 document.body.style.margin = "0";
