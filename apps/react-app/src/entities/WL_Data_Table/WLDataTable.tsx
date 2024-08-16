@@ -23,21 +23,26 @@ export const WLDataTable: React.FC<Props> = ({ body }) => {
   // Load initial input values
   useEffect(() => {
     const fetchInputs = async () => {
-      const inputData = await window.electron.getInputs();
-      const initialValues = inputData.reduce((acc: { [key: string]: string }, item: { key: string, value: string }) => {
-        acc[item.key] = item.value;
-        return acc;
-      }, {});
-      initializeInputValues(initialValues);
+      try {
+        console.log("Fetching input data...");
+        const inputData = await window.electron.getInputs();
+        console.log("Fetched input data:", inputData);
+        
+        initializeInputValues(inputData);
+      } catch (error) {
+        console.error("Error fetching input data:", error);
+      }
     };
+
     fetchInputs();
-  }, [initializeInputValues]);
+  }, [initializeInputValues]); // Убедитесь, что зависимость правильная
 
   const handleInputChange = async (key: string, value: string) => {
     updateInputValue(key, value);
     await window.electron.insertInput(key, value);
   };
 
+  console.log("Current input values:", inputValues); // Добавим отладочный вывод
   return (
     <Table aria-label="Example static collection table" style={{ width: 400 }}>
       <TableHeader>
@@ -63,7 +68,10 @@ export const WLDataTable: React.FC<Props> = ({ body }) => {
               <Input
                 type="text"
                 value={inputValues[`wl_${d.id}_max`] || ''}
-                onChange={(e) => handleInputChange(`wl_${d.id}_max`, e.target.value)}
+                onChange={(e) => handleInputChange(`wl_${d.id}_max`,
+
+
+                  e.target.value)}
               />
             </TableCell>
             <TableCell>{d.rangeMin}</TableCell>

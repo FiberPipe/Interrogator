@@ -12,5 +12,8 @@ export const useInputStore = create<InputStore>((set) => ({
     set((state) => ({
       inputValues: { ...state.inputValues, [key]: value },
     })),
-  initializeInputValues: (initialValues) => set({ inputValues: initialValues }),
+  initializeInputValues: (initialValues) => {
+    console.log("Initial values:", initialValues); // Добавим отладочный вывод
+    set({ inputValues: initialValues });
+  },
 }));

@@ -1,9 +1,9 @@
-import { BrowserWindow, app, ipcMain } from "electron";
+import { BrowserWindow, app, ipcMain, globalShortcut } from "electron";
 import { join } from "node:path";
 import { ApiService } from "./api";
 import * as fs from "fs";
 
-const dataFilePath = join(__dirname, "inputData.json");
+const dataFilePath = join("./inputData.json");
 
 async function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -13,6 +13,11 @@ async function createWindow() {
       preload: join(app.getAppPath(), "build/src/app/electron/bridge.js"),
     },
   });
+
+  globalShortcut.register('F12', () => {
+    mainWindow.webContents.toggleDevTools();
+  });
+
 
   const env = process.env.NODE_ENV || "development";
 
@@ -29,7 +34,7 @@ function readDataFile(): Record<string, string> {
   if (fs.existsSync(dataFilePath)) {
     const rawData = fs.readFileSync(dataFilePath, "utf-8");
 
-    console.log(rawData);
+    console.log(1111, rawData);
     return JSON.parse(rawData);
   }
   return {};
@@ -40,6 +45,7 @@ function writeDataFile(data: Record<string, string>): void {
 }
 
 ipcMain.handle("getInputs", async () => {
+  console.log(222, readDataFile())
   return readDataFile();
 });
 
