@@ -9,6 +9,7 @@ import {
 } from "@nextui-org/react";
 import { TData, useInputStore } from "../../shared";
 import { FBG_HEADER_CELL_NAMES, groupDataById, GroupedItem } from "./utils";
+import { useEffect } from "react";
 
 type Props = {
   body: TData[];
@@ -16,12 +17,30 @@ type Props = {
 export const FBGDataTable: React.FC<Props> = ({ body }) => {
   const groupedData = groupDataById(body);
 
-  const { inputValues, updateInputValue } = useInputStore();
+  const { inputValues, updateInputValue, initializeInputValues } = useInputStore();
 
-  const handleInputChange = (key: string, value: string) => {
+  useEffect(() => {
+    const fetchInputs = async () => {
+      try {
+        console.log("Fetching input data...");
+        const inputData = await window.electron.getInputs();
+        console.log("Fetched input data:", inputData);
+
+        initializeInputValues(inputData);
+      } catch (error) {
+        console.error("Error fetching input data:", error);
+      }
+    };
+
+    fetchInputs();
+  }, [initializeInputValues]); // Убедитесь, что зависимость правильная
+
+  const handleInputChange = async (key: string, value: string) => {
     updateInputValue(key, value);
+    await window.electron.insertInput(key, value);
   };
 
+  console.log("Current input values:", inputValues); // Добавим отладочный вывод
   return (
     <Table aria-label="Example static collection table" style={{ width: 400 }}>
       <TableHeader>
@@ -36,9 +55,9 @@ export const FBGDataTable: React.FC<Props> = ({ body }) => {
             <TableCell>200</TableCell>
             <TableCell>
               <Input
-                value={inputValues[`fbg_${d.id}_min`] || ""}
+                value={inputValues[`FBG_${d.id}_min`] || ""}
                 onChange={(e) =>
-                  handleInputChange(`fbg_${d.id}_min`, e.target.value)
+                  handleInputChange(`FBG_${d.id}_min`, e.target.value)
                 }
               />
             </TableCell>
@@ -46,9 +65,9 @@ export const FBGDataTable: React.FC<Props> = ({ body }) => {
             <TableCell>
               <Input
                 type="text"
-                value={inputValues[`fbg_${d.id}_max`] || ""}
+                value={inputValues[`FBG_${d.id}_max`] || ""}
                 onChange={(e) =>
-                  handleInputChange(`fbg_${d.id}_max`, e.target.value)
+                  handleInputChange(`FBG_${d.id}_max`, e.target.value)
                 }
               />
             </TableCell>

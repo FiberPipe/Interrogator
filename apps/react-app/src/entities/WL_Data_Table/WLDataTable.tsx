@@ -20,14 +20,13 @@ export const WLDataTable: React.FC<Props> = ({ body }) => {
   const groupedData = groupDataById(body);
   const { inputValues, updateInputValue, initializeInputValues } = useInputStore();
 
-  // Load initial input values
   useEffect(() => {
     const fetchInputs = async () => {
       try {
         console.log("Fetching input data...");
         const inputData = await window.electron.getInputs();
         console.log("Fetched input data:", inputData);
-        
+
         initializeInputValues(inputData);
       } catch (error) {
         console.error("Error fetching input data:", error);

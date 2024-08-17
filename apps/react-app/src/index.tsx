@@ -6,9 +6,10 @@ import { BrowserRouter as Router } from "react-router-dom";
 if (typeof window.electron === "undefined") {
   if (typeof window.electron === "undefined") {
     window.electron = {
-      send: () => {},
-      subscribe: () => {},
+      send: () => { },
+      subscribe: () => { },
       getInputs: async () => [],
+      getSensorData: async () => [],
       insertInput: async () => false,
     };
   }

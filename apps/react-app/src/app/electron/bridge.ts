@@ -14,6 +14,8 @@ const electron = {
   },
   getInputs: (): Promise<Record<string, string>> =>
     ipcRenderer.invoke("getInputs"),
+  getSensorsData: (): Promise<Record<string, string>> =>
+    ipcRenderer.invoke("getSensorsData"),
   insertInput: (key: string, value: string): Promise<void> =>
     ipcRenderer.invoke("insertInput", key, value),
 };

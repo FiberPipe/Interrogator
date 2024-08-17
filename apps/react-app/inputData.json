@@ -1,5 +1,12 @@
 {
-  "wl_1_min": "2222",
-  "wl_2_min": "sdfsd",
-  "wl_2_max": "1111"
+  "wl_1_min": "",
+  "wl_2_min": "",
+  "wl_2_max": "",
+  "wl_3_min": "",
+  "wl_3_max": "",
+  "FBG_1_min": "",
+  "FBG_2_max": "",
+  "FBG_3_max": "",
+  "FBG_3_min": "",
+  "FBG_1_max": ""
 }

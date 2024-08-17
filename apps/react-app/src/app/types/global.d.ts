@@ -10,6 +10,7 @@ export declare global {
     electron: {
       send: (channel: string, text: string) => void;
       subscribe: (channel: string, listener: Listener) => void;
+      getSensorsData: () => Promise<{ [key: string]: string }>;
       getInputs: () => Promise<{ [key: string]: string }>;
       insertInput: (key: string, value: string) => Promise<boolean>;
     };
