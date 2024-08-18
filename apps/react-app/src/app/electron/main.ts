@@ -3,9 +3,6 @@ import { join } from "node:path";
 import { ApiService } from "./api";
 import * as fs from "fs";
 
-const dataFilePath = join("inputData.json");
-const sensorDataFilePath = join("data.json");
-
 async function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1080,
@@ -31,9 +28,9 @@ async function createWindow() {
   return mainWindow;
 }
 
-function readDataFile(): Record<string, string> {
-  if (fs.existsSync(dataFilePath)) {
-    const rawData = fs.readFileSync(dataFilePath, "utf-8");
+function readDataFile(path: string): Record<string, string> {
+  if (fs.existsSync(path)) {
+    const rawData = fs.readFileSync(path, "utf-8");
 
     return JSON.parse(rawData);
   }
@@ -41,9 +38,9 @@ function readDataFile(): Record<string, string> {
   return {};
 }
 
-function readSensorsDataFile(): Record<string, string> {
-  if (fs.existsSync(sensorDataFilePath)) {
-    const rawData = fs.readFileSync(sensorDataFilePath, "utf-8");
+function readSensorsDataFile(path: string): Record<string, string> {
+  if (fs.existsSync(path)) {
+    const rawData = fs.readFileSync(path, "utf-8");
 
     return JSON.parse(rawData);
   }
@@ -52,26 +49,26 @@ function readSensorsDataFile(): Record<string, string> {
 }
 
 
-function writeDataFile(data: Record<string, string>): void {
-  fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
+function writeDataFile(path: string, data: Record<string, string>): void {
+  fs.writeFileSync(path, JSON.stringify(data, null, 2));
 }
 
-ipcMain.handle("getInputs", async () => {
-  return readDataFile();
+ipcMain.handle("getInputs", async (_e: unknown, path: string) => {
+  return readDataFile(path);
 });
 
-ipcMain.handle("getSensorData", async () => {
-  return readSensorsDataFile();
+ipcMain.handle("getSensorData", async (_e: unknown, path: string) => {
+  return readSensorsDataFile(path);
 });
 
 ipcMain.handle(
   "insertInput",
-  async (event: any, key: string, value: string) => {
-    const data = readDataFile();
+  async (event: any, key: string, value: string, path: string) => {
+    const data = readDataFile(path);
     data[key] = value;
 
     console.log(app.getPath("userData"));
-    writeDataFile(data);
+    writeDataFile(path, data);
   }
 );
 
