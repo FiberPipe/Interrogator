@@ -22,7 +22,8 @@ async function createWindow() {
   if (env === "production") {
     await mainWindow.loadFile("build/index.html");
   } else {
-    await mainWindow.loadURL("http://localhost:3000/");
+    // todo: поправить чтение переменных окружения, прокинуть их в package.json и поправить здесь сборку
+    await mainWindow.loadFile("build/index.html");
   }
 
   return mainWindow;
