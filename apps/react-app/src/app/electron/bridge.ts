@@ -12,12 +12,14 @@ const electron = {
       listener(value);
     });
   },
-  getInputs: (): Promise<Record<string, string>> =>
-    ipcRenderer.invoke("getInputs"),
-  getSensorsData: (): Promise<Record<string, string>> =>
-    ipcRenderer.invoke("getSensorsData"),
-  insertInput: (key: string, value: string): Promise<void> =>
-    ipcRenderer.invoke("insertInput", key, value),
+  getInputs: (path: string): Promise<Record<string, string>> =>
+    ipcRenderer.invoke("getInputs", path),
+  getSensorsData: (path: string): Promise<Record<string, string>> =>
+    ipcRenderer.invoke("getSensorsData", path),
+  insertInput: (key: string, value: string, path: string): Promise<void> =>
+    ipcRenderer.invoke("insertInput", key, value, path),
+  selectFile: (): Promise<void> =>
+      ipcRenderer.invoke("selectFile"),
 };
 
 contextBridge.exposeInMainWorld("electron", electron);

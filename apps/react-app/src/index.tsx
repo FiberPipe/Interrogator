@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./app/App";
-import { BrowserRouter as Router } from "react-router-dom";
+import {HashRouter} from "react-router-dom";
 
 if (typeof window.electron === "undefined") {
   if (typeof window.electron === "undefined") {
@@ -22,9 +22,9 @@ if (rootEl) {
   const root = ReactDOM.createRoot(rootEl);
   root.render(
     <React.StrictMode>
-      <Router basename="/">
+      <HashRouter basename="/">
         <App />
-      </Router>
+      </HashRouter>
     </React.StrictMode>
   );
 }

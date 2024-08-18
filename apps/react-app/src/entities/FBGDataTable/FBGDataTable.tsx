@@ -17,13 +17,15 @@ type Props = {
 export const FBGDataTable: React.FC<Props> = ({ body }) => {
   const groupedData = groupDataById(body);
 
-  const { inputValues, updateInputValue, initializeInputValues } = useInputStore();
+  const { inputValues, updateInputValue, initializeInputValues, filePaths } = useInputStore();
+
+  const {dataFilePath = ''} = filePaths ?? {}
 
   useEffect(() => {
     const fetchInputs = async () => {
       try {
         console.log("Fetching input data...");
-        const inputData = await window.electron.getInputs();
+        const inputData = await window.electron.getInputs(dataFilePath);
         console.log("Fetched input data:", inputData);
 
         initializeInputValues(inputData);
@@ -33,11 +35,11 @@ export const FBGDataTable: React.FC<Props> = ({ body }) => {
     };
 
     fetchInputs();
-  }, [initializeInputValues]); // Убедитесь, что зависимость правильная
+  }, [initializeInputValues, dataFilePath]); // Убедитесь, что зависимость правильная
 
   const handleInputChange = async (key: string, value: string) => {
     updateInputValue(key, value);
-    await window.electron.insertInput(key, value);
+    await window.electron.insertInput(key, value, dataFilePath);
   };
 
   console.log("Current input values:", inputValues); // Добавим отладочный вывод
