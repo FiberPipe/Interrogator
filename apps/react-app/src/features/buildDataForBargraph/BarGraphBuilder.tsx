@@ -31,7 +31,7 @@ export const BarGraphBuilder: React.FC = () => {
     return () => {
       clearInterval(intervalId);
     };
-  }, []);
+  }, [sensorDataFilePath]);
 
   return <BarGraph data={transformedData} />;
 };

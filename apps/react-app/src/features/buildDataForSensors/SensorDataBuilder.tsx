@@ -25,7 +25,7 @@ export const SensorDataBuilder = () => {
     return () => {
       clearInterval(intervalId);
     };
-  }, []);
+  }, [sensorDataFilePath]);
 
   return (
     <>

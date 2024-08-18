@@ -35,7 +35,7 @@ export const WLDataTable: React.FC<Props> = ({ body }) => {
     };
 
     fetchInputs();
-  }, [initializeInputValues]); // Убедитесь, что зависимость правильная
+  }, [initializeInputValues, dataFilePath]); // Убедитесь, что зависимость правильная
 
   const handleInputChange = async (key: string, value: string) => {
     updateInputValue(key, value);

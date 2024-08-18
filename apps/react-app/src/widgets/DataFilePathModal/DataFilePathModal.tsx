@@ -13,6 +13,18 @@ export const DataFilePathModal: React.FC = () => {
 
  const onSubmit = () => dataFilePath && sensorDataFilePath && setFilePaths({dataFilePath, sensorDataFilePath})
 
+ const selectDataFilePath = async (e: React.MouseEvent) => {
+	 e.preventDefault();
+	 const path = await window.electron.selectFile();
+	 setDataFilePath(path);
+ }
+
+ const selectSensorsDataFilePath = async (e: React.MouseEvent) => {
+ 	e.preventDefault();
+ 	const path = await window.electron.selectFile();
+	setSensorDataFilePath(path);
+ }
+
  return (
 	<Modal isOpen={filePaths===undefined} isDismissable={false} hideCloseButton>
 	 <ModalContent>
@@ -23,13 +35,13 @@ export const DataFilePathModal: React.FC = () => {
 		 <Card>
 			<CardHeader>Укажите путь до файла в данными</CardHeader>
 			<CardBody>
-			 <Input type={'file'} title={"Data File Path"} onChange={(e)=>setDataFilePath(e.target.value)} />
+			 <Input onClick={selectDataFilePath} placeholder={"Data File Path"} value={dataFilePath} />
 			</CardBody>
 		 </Card>
 		 <Card>
 			<CardHeader>Укажите путь до файла c данными сенсоров</CardHeader>
 			<CardBody>
-			 <Input type={'file'} title={"Sensor Data File Path"} onChange={(e) => setSensorDataFilePath(e.target.value)}/>
+				<Input onClick={selectSensorsDataFilePath} placeholder={"Sensors Data File Path"} value={sensorDataFilePath} />
 			</CardBody>
 		 </Card>
 		</ModalBody>

@@ -13,6 +13,7 @@ export declare global {
       getSensorsData: (path: string) => Promise<{ [key: string]: string }>;
       getInputs: (path: string) => Promise<{ [key: string]: string }>;
       insertInput: (key: string, value: string, path: string) => Promise<boolean>;
+      selectFile: () => Promise<string>;
     };
   }
 }

@@ -28,7 +28,7 @@ export const LineGraphDataBuilder: React.FC = () => {
     return () => {
       clearInterval(intervalId);
     };
-  }, []);
+  }, [sensorDataFilePath]);
 
 
 
