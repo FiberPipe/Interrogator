@@ -1,5 +1,5 @@
 Interrogator software
 
-`pnpm install` - 1
+`pnpm install` - Для установки всех зависимостей
 
 `pnpm project` - 2

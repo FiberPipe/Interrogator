@@ -5,9 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "project:build": "npx nx run-many --target=build --projects=electron-app,react-app",
-    "project:start": "npx nx run-many --target=start --projects=electron-app,react-app",
-    "project": "pnpm project:build && pnpm project:start"
+    "project:build": "npx nx build:electron @interrogator/app",
+    "project": "npx nx build:web @interrogator/app"
   },
   "keywords": [],
   "author": "",

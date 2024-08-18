@@ -3,7 +3,7 @@ import { LineGraphWithCheckbox } from "../../entities";
 import { transformData } from "./utils";
 
 export const LineGraphDataBuilder: React.FC = () => {
-  const [transformedData, setTransformedData] = useState<any>([]);
+  const [transformedData, setTransformedData] = useState<any>({uniqueIds: [], resultData: []});
 
 
   useEffect(() => {

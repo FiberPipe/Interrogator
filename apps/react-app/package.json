@@ -7,7 +7,6 @@
     "dev:react": "rsbuild dev --port 3000",
     "dev:web": "npm run dev:react -- --open",
     "dev:electron": "concurrently \"pnpm dev:react\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ -w\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ && electron .\"",
-    "dev:python": "python ../../../../packages/arduino-parser/Script_to_save_json.py",
     "dev": "npm run dev:web",
     "build:web": "rsbuild build",
     "build:electron": "npm run build:web && tsc -p ./src/app/electron/ && electron-builder"
@@ -26,7 +25,6 @@
   "devDependencies": {
     "@rsbuild/core": "1.0.1-beta.5",
     "@rsbuild/plugin-react": "1.0.1-beta.5",
-    "@types/electron": "1.6.10",
     "@types/node": "22.1.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
