@@ -19,13 +19,12 @@ export const FBGDataTable: React.FC<Props> = ({ body }) => {
 
   const { inputValues, updateInputValue, initializeInputValues, filePaths } = useInputStore();
 
-  const {dataFilePath = ''} = filePaths ?? {}
 
   useEffect(() => {
     const fetchInputs = async () => {
       try {
         console.log("Fetching input data...");
-        const inputData = await window.electron.getInputs(dataFilePath);
+        const inputData = await window.electron.getInputs();
         console.log("Fetched input data:", inputData);
 
         initializeInputValues(inputData);
@@ -35,11 +34,11 @@ export const FBGDataTable: React.FC<Props> = ({ body }) => {
     };
 
     fetchInputs();
-  }, [initializeInputValues, dataFilePath]); // Убедитесь, что зависимость правильная
+  }, [initializeInputValues]); // Убедитесь, что зависимость правильная
 
   const handleInputChange = async (key: string, value: string) => {
     updateInputValue(key, value);
-    await window.electron.insertInput(key, value, dataFilePath);
+    await window.electron.insertInput(key, value);
   };
 
   console.log("Current input values:", inputValues); // Добавим отладочный вывод
