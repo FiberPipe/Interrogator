@@ -25,6 +25,17 @@ export class FileWatcherService {
 	this.#send(content);
  }
 
+//    // Читаем последние 200 строк из файла
+//    async #watch(filePath: string): Promise<void> {
+//     try {
+//       const lines = await readLastLines.read(filePath, 200);
+//       this.#send(lines);
+//     } catch (error) {
+//       console.error(Error reading file: ${error});
+//     }
+//   }
+
+
  #send(text: string): void {
 	this.#window.webContents.send(this.#channel, text);
  }
