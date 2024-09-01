@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BarGraph } from "../../shared/ui/BarGraph";
-import {TBarGraphTransformedData, TData, useInputStore} from "../../shared";
+import {convertDataToJSON, TBarGraphTransformedData, TData, useInputStore} from "../../shared";
 
 export const BarGraphBuilder: React.FC = () => {
 
@@ -12,7 +12,8 @@ export const BarGraphBuilder: React.FC = () => {
     const fetchInputs = async () => {
       try {
         const inputData = await window.electron.getSensorsData(sensorDataFilePath);
-        const modifiedData = (inputData as any).map((d: TData): TBarGraphTransformedData => {
+        const parsedData = convertDataToJSON(inputData as any);
+        const modifiedData = (parsedData as any).map((d: TData): TBarGraphTransformedData => {
           return { name: d.id, value: d.potPin1 / d.potPin2 };
         });
 

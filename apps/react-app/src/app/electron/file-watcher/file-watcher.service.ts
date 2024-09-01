@@ -1,5 +1,5 @@
 import * as fs from "node:fs";
-import {BrowserWindow, ipcMain } from 'electron'
+import {BrowserWindow } from 'electron'
 
 export class FileWatcherService {
  #channel: string;
