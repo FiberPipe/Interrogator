@@ -13,9 +13,10 @@ export const DataFilePathModal: React.FC = () => {
  const onSubmit = () => sensorDataFilePath && setFilePaths({sensorDataFilePath})
 
  const selectSensorsDataFilePath = async (e: React.MouseEvent) => {
- 	e.preventDefault();
- 	const path = await window.electron.selectFile();
-	setSensorDataFilePath(path);
+ 		e.preventDefault();
+	 	e.stopPropagation();
+ 		const path = await window.electron.selectFile();
+		setSensorDataFilePath(path);
  }
 
  return (
@@ -27,8 +28,8 @@ export const DataFilePathModal: React.FC = () => {
 		<ModalBody>
 		 <Card>
 			<CardHeader>Укажите путь до файла c данными сенсоров</CardHeader>
-			<CardBody>
-				<Input onClick={selectSensorsDataFilePath} placeholder={"Sensors Data File Path"} value={sensorDataFilePath} />
+			<CardBody onClick={selectSensorsDataFilePath}>
+				<Input placeholder={"Sensors Data File Path"} value={sensorDataFilePath} />
 			</CardBody>
 		 </Card>
 		</ModalBody>
