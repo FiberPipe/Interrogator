@@ -1,6 +1,6 @@
 import create from "zustand";
 
-type IFilePaths = {dataFilePath:string, sensorDataFilePath: string};
+type IFilePaths = {sensorDataFilePath: string};
 
 type InputStore = {
   inputValues: { [key: string]: string };
@@ -21,9 +21,9 @@ export const useInputStore = create<InputStore>((set) => ({
     console.log("Initial values:", initialValues); // Добавим отладочный вывод
     set({ inputValues: initialValues });
   },
-  setFilePaths: ({dataFilePath, sensorDataFilePath}) => {
+  setFilePaths: ({sensorDataFilePath}) => {
     set(()=>({
-      filePaths: {dataFilePath, sensorDataFilePath}
+      filePaths: {sensorDataFilePath}
     }))
   }
 }));

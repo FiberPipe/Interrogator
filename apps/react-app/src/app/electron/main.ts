@@ -2,6 +2,10 @@ import { BrowserWindow, app, ipcMain, globalShortcut, dialog } from "electron";
 import { join } from "node:path";
 import { ApiService } from "./api";
 import * as fs from "fs";
+import * as path from "node:path";
+import * as os from "node:os";
+
+const DEFAULT_INPUTS_PATH = path.join(os.homedir(), 'Documents', 'Interrogator', 'inputs.json');
 
 async function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -23,8 +27,8 @@ async function createWindow() {
     await mainWindow.loadFile("build/index.html");
   } else {
     // todo: поправить чтение переменных окружения, прокинуть их в package.json и поправить здесь сборку
-    await mainWindow.loadFile("build/index.html");
-    // await mainWindow.loadURL("http://localhost:3000/");
+    // await mainWindow.loadFile("build/index.html");
+    await mainWindow.loadURL("http://localhost:3000/");
   }
 
   ipcMain.handle("selectFile", async () => {
@@ -42,36 +46,45 @@ async function createWindow() {
   return mainWindow;
 }
 
-function readDataFile(path: string): Record<string, string> {
+function readDataFile<T extends Record<string, string> | string>(path: string, defaultValue = {}): T {
   if (fs.existsSync(path)) {
     const rawData = fs.readFileSync(path, "utf-8");
 
-    return JSON.parse(rawData);
+    try{
+      return JSON.parse(rawData);
+    } catch(err){
+      return rawData as T
+    }
   }
 
-  return {};
+  return defaultValue as T;
 }
 
-function writeDataFile(path: string, data: Record<string, string>): void {
-  fs.writeFileSync(path, JSON.stringify(data, null, 2));
+function writeDataFile(filePath: string, data: Record<string, string>): void {
+  if(!fs.existsSync(filePath)) {
+    fs.mkdirSync(path.dirname(filePath), {recursive: true});
+  }
+
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
-ipcMain.handle("getInputs", async (_e: unknown, path: string) => {
-  return readDataFile(path);
+ipcMain.handle("getInputs", async (_e: unknown) => {
+  return readDataFile(DEFAULT_INPUTS_PATH, []);
 });
 
 ipcMain.handle("getSensorsData", async (_e: unknown, path: string) => {
-  return readDataFile(path);
+  console.log({path})
+  return readDataFile(path, []);
 });
 
 ipcMain.handle(
   "insertInput",
-  async (event: any, key: string, value: string, path: string) => {
-    const data = readDataFile(path);
+  async (event: any, key: string, value: string) => {
+    const data = readDataFile<Record<string, string>>(DEFAULT_INPUTS_PATH);
     data[key] = value;
 
     console.log(app.getPath("userData"));
-    writeDataFile(path, data);
+    writeDataFile(DEFAULT_INPUTS_PATH, data);
   }
 );
 

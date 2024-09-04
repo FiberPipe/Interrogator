@@ -11,8 +11,8 @@ export declare global {
       send: (channel: string, text: string) => void;
       subscribe: (channel: string, listener: Listener) => void;
       getSensorsData: (path: string) => Promise<{ [key: string]: string }>;
-      getInputs: (path: string) => Promise<{ [key: string]: string }>;
-      insertInput: (key: string, value: string, path: string) => Promise<boolean>;
+      getInputs: () => Promise<{ [key: string]: string }>;
+      insertInput: (key: string, value: string) => Promise<boolean>;
       selectFile: () => Promise<string>;
     };
   }
