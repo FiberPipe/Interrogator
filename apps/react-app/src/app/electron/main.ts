@@ -27,8 +27,8 @@ async function createWindow() {
     await mainWindow.loadFile("build/index.html");
   } else {
     // todo: поправить чтение переменных окружения, прокинуть их в package.json и поправить здесь сборку
-    // await mainWindow.loadFile("build/index.html");
-    await mainWindow.loadURL("http://localhost:3000/");
+    await mainWindow.loadFile("build/index.html");
+    // await mainWindow.loadURL("http://localhost:3000/");
   }
 
   ipcMain.handle("selectFile", async () => {
