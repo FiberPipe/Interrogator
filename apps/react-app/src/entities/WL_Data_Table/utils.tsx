@@ -20,13 +20,13 @@ export type GroupedItem = {
 export const groupDataById = (data: TData[]): GroupedItem[] => {
   const groupedData = data.reduce(
     (acc: Record<number, number[]>, item: TData) => {
-      const { id, wavelength } = item;
+      const { id_sensor, wavelength } = item;
 
-      if (!acc[id]) {
-        acc[id] = [];
+      if (!acc[id_sensor]) {
+        acc[id_sensor] = [];
       }
 
-      acc[id].push(wavelength);
+      acc[id_sensor].push(wavelength);
 
       return acc;
     },

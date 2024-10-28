@@ -16,6 +16,8 @@ const electron = {
     ipcRenderer.invoke("getInputs", path),
   getSensorsData: (path: string): Promise<Record<string, string>> =>
     ipcRenderer.invoke("getSensorsData", path),
+  getSensorsDataTable: (path: string): Promise<Record<string, string>> =>
+    ipcRenderer.invoke("getSensorsDataTable", path),
   insertInput: (key: string, value: string, path: string): Promise<void> =>
     ipcRenderer.invoke("insertInput", key, value, path),
   selectFile: (): Promise<void> =>

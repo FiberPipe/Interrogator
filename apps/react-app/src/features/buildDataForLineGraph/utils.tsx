@@ -10,7 +10,7 @@ export const processSensorData = (data: TData[]): ProcessedData => {
 
   data.forEach(record => {
     const time = record.time;
-    const id = record.id;
+    const id = record.id_sensor;
     const value = record.wavelength;
 
     uniqueIdsSet.add(id);

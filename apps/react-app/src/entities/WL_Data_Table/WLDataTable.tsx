@@ -18,7 +18,8 @@ type Props = {
 
 export const WLDataTable: React.FC<Props> = ({ body }) => {
   const groupedData = groupDataById(body);
-  const { inputValues, updateInputValue, initializeInputValues, filePaths } = useInputStore();
+  const { inputValues, updateInputValue, initializeInputValues, filePaths } =
+    useInputStore();
 
   useEffect(() => {
     const fetchInputs = async () => {
@@ -58,19 +59,24 @@ export const WLDataTable: React.FC<Props> = ({ body }) => {
             <TableCell>
               <Input
                 type="text"
-                value={inputValues[`wl_${d.id}_min`] || ''}
-                onChange={(e) => handleInputChange(`wl_${d.id}_min`, e.target.value)}
+                value={inputValues[`wl_${d}_min`] || ""}
+                onChange={(e) =>
+                  handleInputChange(`wl_${d.id}_min`, e.target.value)
+                }
               />
             </TableCell>
             <TableCell>{d.wavelength}</TableCell>
             <TableCell>
               <Input
                 type="text"
-                value={inputValues[`wl_${d.id}_max`] || ''}
-                onChange={(e) => handleInputChange(`wl_${d.id}_max`,
+                value={inputValues[`wl_${d.id}_max`] || ""}
+                onChange={(e) =>
+                  handleInputChange(
+                    `wl_${d.id}_max`,
 
-
-                  e.target.value)}
+                    e.target.value
+                  )
+                }
               />
             </TableCell>
             <TableCell>{d.rangeMin}</TableCell>

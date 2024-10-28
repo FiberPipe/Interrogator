@@ -5,7 +5,37 @@ import * as fs from "fs";
 import * as path from "node:path";
 import * as os from "node:os";
 
-const DEFAULT_INPUTS_PATH = path.join(os.homedir(), 'Documents', 'Interrogator', 'inputs.json');
+const DEFAULT_INPUTS_PATH = path.join(
+  os.homedir(),
+  "Documents",
+  "Interrogator",
+  "inputs.json"
+);
+
+const convertDataToJSON = (lastLines: string) => {
+  if (!lastLines) return [];
+
+  const DEFAULT_EOL = /,\s*[\r\n]+/;
+  const lines = String(lastLines).trim().split(DEFAULT_EOL);
+
+  console.log("parsedLinesToArray", lines);
+
+  const processedLines = lines.map((line: string) => {
+    try {
+      const parsedLine = JSON.parse(line);
+      console.log("Parsed successfully:", parsedLine);
+      return parsedLine;
+    } catch (error) {
+      console.error("Error parsing JSON line:", line);
+      console.error("Error message:", error);
+      return null;
+    }
+  });
+
+  console.log("processedLinesToJSONObj", processedLines);
+
+  return processedLines.filter((row) => row !== null).slice(-200);
+};
 
 async function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -16,10 +46,9 @@ async function createWindow() {
     },
   });
 
-  globalShortcut.register('F12', () => {
+  globalShortcut.register("F12", () => {
     mainWindow.webContents.toggleDevTools();
   });
-
 
   const env = process.env.NODE_ENV || "development";
 
@@ -32,28 +61,32 @@ async function createWindow() {
   }
 
   ipcMain.handle("selectFile", async () => {
-    return new Promise((res)=>{
+    return new Promise((res) => {
       const k = dialog.showOpenDialogSync(mainWindow, {
-        properties: ['openFile']
+        properties: ["openFile"],
       });
 
       const result = Array.isArray(k) ? k[0] : k;
 
-      res(result)
-    })
+      res(result);
+    });
   });
 
   return mainWindow;
 }
 
-function readDataFile<T extends Record<string, string> | string>(path: string, defaultValue = {}): T {
+function readDataFile<T extends Record<string, string> | string>(
+  path: string,
+  defaultValue = {}
+): T {
   if (fs.existsSync(path)) {
     const rawData = fs.readFileSync(path, "utf-8");
+    const parsedData = convertDataToJSON(rawData);
 
-    try{
-      return JSON.parse(rawData);
-    } catch(err){
-      return rawData as T
+    try {
+      return parsedData as any;
+    } catch (err) {
+      return rawData as T;
     }
   }
 
@@ -61,8 +94,8 @@ function readDataFile<T extends Record<string, string> | string>(path: string, d
 }
 
 function writeDataFile(filePath: string, data: Record<string, string>): void {
-  if(!fs.existsSync(filePath)) {
-    fs.mkdirSync(path.dirname(filePath), {recursive: true});
+  if (!fs.existsSync(filePath)) {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
   }
 
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
@@ -73,7 +106,12 @@ ipcMain.handle("getInputs", async (_e: unknown) => {
 });
 
 ipcMain.handle("getSensorsData", async (_e: unknown, path: string) => {
-  console.log({path})
+  console.log({ path });
+  return readDataFile(path, []);
+});
+
+ipcMain.handle("getSensorsDataTable", async (_e: unknown, path: string) => {
+  console.log(123456);
   return readDataFile(path, []);
 });
 

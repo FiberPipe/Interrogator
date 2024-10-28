@@ -33,7 +33,7 @@ export const LineGraph: React.FC<Props> = ({ names = [], data }) => {
       >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
-        <YAxis domain={["auto", "auto"]} />
+        <YAxis domain={["auto", "auto"]} tick={{ fontSize: 12 }} />
         <Tooltip />
         <Legend />
         <Brush dataKey="name" height={30} stroke="#8884d8" />

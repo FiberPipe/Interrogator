@@ -1,25 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { BarGraph } from "../../shared/ui/BarGraph";
-import {convertDataToJSON, TBarGraphTransformedData, TData, useInputStore} from "../../shared";
+import { TBarGraphTransformedData, TData, useInputStore } from "../../shared";
 
 export const BarGraphBuilder: React.FC = () => {
-
   const [transformedData, setTransformedData] = useState<any>([]);
-  const {filePaths} = useInputStore();
-  const {sensorDataFilePath = ''} = filePaths ?? {};
+  const { filePaths } = useInputStore();
+  const { sensorDataFilePath = "" } = filePaths ?? {};
 
   useEffect(() => {
     const fetchInputs = async () => {
       try {
-        const inputData = await window.electron.getSensorsData(sensorDataFilePath);
-        const parsedData = convertDataToJSON(inputData as any);
-        const modifiedData = (parsedData as any).map((d: TData): TBarGraphTransformedData => {
-          return { name: d.id, value: d.potPin1 / d.potPin2 };
-        });
+        const inputData = await window.electron.getSensorsData(
+          sensorDataFilePath
+        );
 
-        setTransformedData(modifiedData)
+        console.log("fetchedData", inputData);
 
+        const lastEntriesBySensor: TData[] = Object.values(
+          inputData.reduce((acc, entry) => {
+            acc[entry.id_sensor] = entry; // Сохраняем последнюю запись для каждого уникального id_sensor
+            return acc;
+          }, {})
+        ) ;
 
+        const modifiedData = lastEntriesBySensor
+          .map((d: TData): TBarGraphTransformedData => {
+            console.log("counter", d.Pn / d.Pn_plus_1);
+            return { name: d.id_sensor, value: d.Pn / d.Pn_plus_1 };
+          });
+
+        setTransformedData(modifiedData);
       } catch (error) {
         console.error("Error fetching input data:", error);
       }

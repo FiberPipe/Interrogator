@@ -1,10 +1,11 @@
 export type TData = {
-  id: number;
+  id_record: number;
+  id_sensor: number;
   time: string;
   wavelength: number;
   displacement: number;
-  potPin1: number;
-  potPin2: number;
+  Pn: number;
+  Pn_plus_1: number;
 };
 
 export type TTransformedData = {

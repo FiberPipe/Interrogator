@@ -10,7 +10,8 @@ export declare global {
     electron: {
       send: (channel: string, text: string) => void;
       subscribe: (channel: string, listener: Listener) => void;
-      getSensorsData: (path: string) => Promise<{ [key: string]: string }>;
+      getSensorsData: (path: string) => Promise<TData[]>;
+      getSensorsDataTable: (path: string) => Promise<string>;
       getInputs: () => Promise<{ [key: string]: string }>;
       insertInput: (key: string, value: string) => Promise<boolean>;
       selectFile: () => Promise<string>;

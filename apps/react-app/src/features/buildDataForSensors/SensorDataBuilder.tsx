@@ -1,10 +1,10 @@
 import { FBGDataTable, WLDataTable } from "../../entities";
 import { Tab, Tabs } from "@nextui-org/react";
 import { useEffect, useState } from "react";
-import {convertDataToJSON, useInputStore} from "../../shared";
+import {TData, useInputStore} from "../../shared";
 
 export const SensorDataBuilder = () => {
-  const [transformedData, setTransformedData] = useState<any>([]);
+  const [transformedData, setTransformedData] = useState<TData[]>([]);
   const {filePaths} = useInputStore();
   const {sensorDataFilePath = ''} = filePaths ?? {};
 
@@ -12,7 +12,7 @@ export const SensorDataBuilder = () => {
     const fetchInputs = async () => {
       try {
         const inputData = await window.electron.getSensorsData(sensorDataFilePath);
-        setTransformedData(convertDataToJSON(inputData as any));
+        setTransformedData(inputData);
       } catch (error) {
         console.error("Error fetching input data:", error);
       }

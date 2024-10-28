@@ -1,21 +1,29 @@
 import { useEffect, useState } from "react";
 import { LineGraphWithCheckbox } from "../../entities";
-import { convertDataToJSON, useInputStore } from "../../shared";
+import { useInputStore } from "../../shared";
 import { processSensorData } from "./utils";
 
 export const LineGraphDataBuilder: React.FC = () => {
-  const [transformedData, setTransformedData] = useState<any>({ uniqueIds: [], resultData: [] });
+  const [transformedData, setTransformedData] = useState<any>({
+    uniqueIds: [],
+    resultData: [],
+  });
   const { filePaths } = useInputStore();
-  const { sensorDataFilePath = '' } = filePaths ?? {};
+  const { sensorDataFilePath = "" } = filePaths ?? {};
 
   useEffect(() => {
     const fetchInputs = async () => {
       try {
-        const inputData = await window.electron.getSensorsData(sensorDataFilePath);
-        const parsedData = convertDataToJSON(inputData as any);
-        const processedData = processSensorData(parsedData);
+        const inputData = await window.electron.getSensorsData(
+          sensorDataFilePath
+        );
 
-        setTransformedData(processedData)
+        console.log(12345, inputData);
+        const processedData = processSensorData(
+          inputData.filter((row) => row !== null)
+        );
+
+        setTransformedData(processedData);
       } catch (error) {
         console.error("Error fetching input data:", error);
       }
@@ -30,7 +38,10 @@ export const LineGraphDataBuilder: React.FC = () => {
     };
   }, [sensorDataFilePath]);
 
-
-
-  return <LineGraphWithCheckbox names={transformedData.uniqueIds} data={transformedData.resultData} />;
+  return (
+    <LineGraphWithCheckbox
+      names={transformedData.uniqueIds}
+      data={transformedData.resultData}
+    />
+  );
 };

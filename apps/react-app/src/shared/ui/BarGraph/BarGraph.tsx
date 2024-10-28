@@ -29,12 +29,19 @@ export const BarGraph: React.FC<Props> = ({ data }) => {
         }}
         barSize={20}
       >
-        <XAxis dataKey="name" scale="point" padding={{ left: 10, right: 10 }} />
-        <YAxis domain={[1, 1.2]} />
+        <XAxis
+          dataKey="name"
+          scale="point"
+          padding={{ left: 10, right: 10 }}
+          tick={{ fontSize: 12 }}
+          angle={-45}
+          textAnchor="end"
+        />
+        <YAxis tick={{ fontSize: 12 }}/>
         <Tooltip />
         <Legend />
         <CartesianGrid strokeDasharray="3 3" />
-        <Bar dataKey="value" fill="#8884d8" background={{ fill: "#eee" }} />
+        <Bar dataKey="value" fill="#8884d8" />
       </BarChart>
     </ResponsiveContainer>
   );
