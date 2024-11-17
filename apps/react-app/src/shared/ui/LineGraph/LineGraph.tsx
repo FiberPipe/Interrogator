@@ -47,6 +47,17 @@ export const LineGraph: React.FC<Props> = ({ names = [], data }) => {
             activeDot={{ r: 8 }}
           />
         ))}
+           {/* {selectedSensorId !== null && (
+          <Line
+            key={sensor-${selectedSensorId}}
+            type="monotone"
+            dataKey={sensor-${selectedSensorId}}
+            stroke="red"
+            strokeWidth={2}
+            strokeDasharray="5 5"
+            activeDot={{ r: 8 }}
+          />
+        )} */}
       </LineChart>
     </ResponsiveContainer>
   );

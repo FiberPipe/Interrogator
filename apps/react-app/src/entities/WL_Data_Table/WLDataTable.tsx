@@ -18,7 +18,7 @@ type Props = {
 
 export const WLDataTable: React.FC<Props> = ({ body }) => {
   const groupedData = groupDataById(body);
-  const { inputValues, updateInputValue, initializeInputValues, filePaths } =
+  const { inputValues, updateInputValue, initializeInputValues } =
     useInputStore();
 
   useEffect(() => {
@@ -35,14 +35,13 @@ export const WLDataTable: React.FC<Props> = ({ body }) => {
     };
 
     fetchInputs();
-  }, [initializeInputValues]); // Убедитесь, что зависимость правильная
+  }, [initializeInputValues]);
 
   const handleInputChange = async (key: string, value: string) => {
     updateInputValue(key, value);
     await window.electron.insertInput(key, value);
   };
 
-  console.log("Current input values:", inputValues); // Добавим отладочный вывод
   return (
     <Table aria-label="Example static collection table" style={{ width: 400 }}>
       <TableHeader>
@@ -51,37 +50,39 @@ export const WLDataTable: React.FC<Props> = ({ body }) => {
         ))}
       </TableHeader>
       <TableBody>
-        {groupedData.map((d: GroupedItem) => (
-          <TableRow key={`WL_${d.id}`}>
-            <TableCell>{`WL_${d.id}`}</TableCell>
-            <TableCell>mE</TableCell>
-            <TableCell>{d.rangeMax}</TableCell>
-            <TableCell>
-              <Input
-                type="text"
-                value={inputValues[`wl_${d}_min`] || ""}
-                onChange={(e) =>
-                  handleInputChange(`wl_${d.id}_min`, e.target.value)
-                }
-              />
-            </TableCell>
-            <TableCell>{d.wavelength}</TableCell>
-            <TableCell>
-              <Input
-                type="text"
-                value={inputValues[`wl_${d.id}_max`] || ""}
-                onChange={(e) =>
-                  handleInputChange(
-                    `wl_${d.id}_max`,
-
-                    e.target.value
-                  )
-                }
-              />
-            </TableCell>
-            <TableCell>{d.rangeMin}</TableCell>
-          </TableRow>
-        ))}
+        {groupedData.map((d: GroupedItem) => {
+  
+          return (
+            <TableRow key={`WL_${d.id}`}>
+              <TableCell>{`WL_${d.id}`}</TableCell>
+              <TableCell>mE</TableCell>
+              <TableCell>{d.rangeMax}</TableCell>
+              <TableCell>
+                <Input
+                  type="text"
+                  value={inputValues[`wl_${d.id}_min`] || ""}
+                  onChange={(e) =>
+                    handleInputChange(`wl_${d.id}_min`, e.target.value)
+                  }
+                />
+              </TableCell>
+              <TableCell>{d.wavelength}</TableCell>
+              <TableCell>
+                <Input
+                  type="text"
+                  value={inputValues[`wl_${d.id}_max`] || ""}
+                  onChange={(e) =>
+                    handleInputChange(
+                      `wl_${d.id}_max`,
+                      e.target.value
+                    )
+                  }
+                />
+              </TableCell>
+              <TableCell>{d.rangeMin}</TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

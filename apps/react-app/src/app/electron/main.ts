@@ -5,12 +5,7 @@ import * as fs from "fs";
 import * as path from "node:path";
 import * as os from "node:os";
 
-const DEFAULT_INPUTS_PATH = path.join(
-  os.homedir(),
-  "Documents",
-  "Interrogator",
-  "inputs.json"
-);
+const DEFAULT_INPUTS_PATH = path.join(os.homedir(), 'Documents', 'Interrogator', 'inputs.json');
 
 const convertDataToJSON = (lastLines: string) => {
   if (!lastLines) return [];
@@ -18,12 +13,12 @@ const convertDataToJSON = (lastLines: string) => {
   const DEFAULT_EOL = /,\s*[\r\n]+/;
   const lines = String(lastLines).trim().split(DEFAULT_EOL);
 
-  console.log("parsedLinesToArray", lines);
+  // console.log("parsedLinesToArray", lines);
 
   const processedLines = lines.map((line: string) => {
     try {
       const parsedLine = JSON.parse(line);
-      console.log("Parsed successfully:", parsedLine);
+      // console.log("Parsed successfully:", parsedLine);
       return parsedLine;
     } catch (error) {
       console.error("Error parsing JSON line:", line);
@@ -32,7 +27,7 @@ const convertDataToJSON = (lastLines: string) => {
     }
   });
 
-  console.log("processedLinesToJSONObj", processedLines);
+  // console.log("processedLinesToJSONObj", processedLines);
 
   return processedLines.filter((row) => row !== null).slice(-200);
 };
@@ -56,8 +51,8 @@ async function createWindow() {
     await mainWindow.loadFile("build/index.html");
   } else {
     // todo: поправить чтение переменных окружения, прокинуть их в package.json и поправить здесь сборку
-    await mainWindow.loadFile("build/index.html");
-    // await mainWindow.loadURL("http://localhost:3000/");
+    // await mainWindow.loadFile("build/index.html");
+    await mainWindow.loadURL("http://localhost:3000/");
   }
 
   ipcMain.handle("selectFile", async () => {
@@ -93,6 +88,23 @@ function readDataFile<T extends Record<string, string> | string>(
   return defaultValue as T;
 }
 
+function readDataFileInputs<T extends Record<string, string> | string>(
+  path: string,
+  defaultValue = {}
+): T {
+  if (fs.existsSync(path)) {
+    const rawData = fs.readFileSync(path, "utf-8");
+
+    try {
+      return JSON.parse(rawData);
+    } catch (err) {
+      return rawData as T;
+    }
+  }
+
+  return defaultValue as T;
+}
+
 function writeDataFile(filePath: string, data: Record<string, string>): void {
   if (!fs.existsSync(filePath)) {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -102,7 +114,7 @@ function writeDataFile(filePath: string, data: Record<string, string>): void {
 }
 
 ipcMain.handle("getInputs", async (_e: unknown) => {
-  return readDataFile(DEFAULT_INPUTS_PATH, []);
+  return readDataFileInputs(DEFAULT_INPUTS_PATH, []);
 });
 
 ipcMain.handle("getSensorsData", async (_e: unknown, path: string) => {
@@ -110,18 +122,14 @@ ipcMain.handle("getSensorsData", async (_e: unknown, path: string) => {
   return readDataFile(path, []);
 });
 
-ipcMain.handle("getSensorsDataTable", async (_e: unknown, path: string) => {
-  console.log(123456);
-  return readDataFile(path, []);
-});
-
 ipcMain.handle(
   "insertInput",
   async (event: any, key: string, value: string) => {
-    const data = readDataFile<Record<string, string>>(DEFAULT_INPUTS_PATH);
+    const data =
+      readDataFileInputs<Record<string, string>>(DEFAULT_INPUTS_PATH);
+
     data[key] = value;
 
-    console.log(app.getPath("userData"));
     writeDataFile(DEFAULT_INPUTS_PATH, data);
   }
 );

@@ -18,7 +18,6 @@ export const LineGraphDataBuilder: React.FC = () => {
           sensorDataFilePath
         );
 
-        console.log(12345, inputData);
         const processedData = processSensorData(
           inputData.filter((row) => row !== null)
         );
