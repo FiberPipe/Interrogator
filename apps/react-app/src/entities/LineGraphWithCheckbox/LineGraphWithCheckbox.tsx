@@ -1,5 +1,5 @@
 import { Checkbox } from "@nextui-org/react";
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import classes from "./LineGraphWithCheckbox.module.css";
 import { LineGraph } from "../../shared/ui/LineGraph/LineGraph";
 import { TTransformedData } from "../../shared";
@@ -7,11 +7,13 @@ import { TTransformedData } from "../../shared";
 interface LineGraphWithCheckboxProps {
   data: TTransformedData[];
   names: any;
+  sensorsConstraints: { [key: string]: string };
 }
 
 export const LineGraphWithCheckbox: React.FC<LineGraphWithCheckboxProps> = ({
   data,
   names,
+ sensorsConstraints
 }) => {
   const [selectedCharts, setSelectedCharts] = useState<any[]>(names);
 
@@ -40,6 +42,12 @@ export const LineGraphWithCheckbox: React.FC<LineGraphWithCheckboxProps> = ({
     return filteredEntry;
   });
 
+  const filteredNames = names.filter((chartNum: any) => {
+    if (selectedCharts.includes(chartNum)) {
+      return chartNum;
+    }
+  });
+
   return (
     <>
       <div className={classes.chartsWidget}>
@@ -56,7 +64,7 @@ export const LineGraphWithCheckbox: React.FC<LineGraphWithCheckboxProps> = ({
           ))}
         </div>
         <div className={classes.charts}>
-          <LineGraph names={names} data={filteredData as TTransformedData[]} />
+          <LineGraph names={filteredNames} data={filteredData as TTransformedData[]} sensorsConstraints={sensorsConstraints} />
         </div>
       </div>
     </>

@@ -8,20 +8,19 @@ export const LineGraphDataBuilder: React.FC = () => {
     uniqueIds: [],
     resultData: [],
   });
+  const [inputData, setInputData] = useState<{[key: string]: string}>({});
   const { filePaths } = useInputStore();
   const { sensorDataFilePath = "" } = filePaths ?? {};
 
   useEffect(() => {
     const fetchInputs = async () => {
       try {
-        const inputData = await window.electron.getSensorsData(
-          sensorDataFilePath
-        );
+        const sensorsData = await window.electron.getSensorsData(sensorDataFilePath);
+        const inputData = await window.electron.getInputs();
 
-        const processedData = processSensorData(
-          inputData.filter((row) => row !== null)
-        );
+        const processedData = processSensorData(sensorsData.filter((row) => row !== null));
 
+        setInputData(inputData)
         setTransformedData(processedData);
       } catch (error) {
         console.error("Error fetching input data:", error);
@@ -41,6 +40,7 @@ export const LineGraphDataBuilder: React.FC = () => {
     <LineGraphWithCheckbox
       names={transformedData.uniqueIds}
       data={transformedData.resultData}
+      sensorsConstraints={inputData}
     />
   );
 };
