@@ -5,7 +5,12 @@ import * as fs from "fs";
 import * as path from "node:path";
 import * as os from "node:os";
 
-const DEFAULT_INPUTS_PATH = path.join(os.homedir(), 'Documents', 'Interrogator', 'inputs.json');
+const DEFAULT_INPUTS_PATH = path.join(
+  os.homedir(),
+  "Documents",
+  "Interrogator",
+  "inputs.json"
+);
 
 const convertDataToJSON = (lastLines: string) => {
   if (!lastLines) return [];
@@ -50,6 +55,7 @@ async function createWindow() {
   if (env === "production") {
     await mainWindow.loadFile("build/index.html");
   } else {
+    // await mainWindow.loadFile("build/index.html");
     // todo: поправить чтение переменных окружения, прокинуть их в package.json и поправить здесь сборку
     // await mainWindow.loadFile("build/index.html");
     await mainWindow.loadURL("http://localhost:3000/");

@@ -5,6 +5,7 @@ import { AppRouter } from "./providers/router/AppRouter";
 import { Header } from "../widgets";
 import { PageContainer } from "../shared";
 import React from "react";
+import { AsideBar } from "../widgets/AsideBar";
 
 const App = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const App = () => {
       <NextUIProvider navigate={navigate}>
         <div className={"page"}>
           <Header />
+          {/* <AsideBar /> */}
           <PageContainer>
             <AppRouter />
           </PageContainer>

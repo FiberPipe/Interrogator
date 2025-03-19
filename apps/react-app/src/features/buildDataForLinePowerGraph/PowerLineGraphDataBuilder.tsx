@@ -1,8 +1,8 @@
 import { Fragment, useEffect, useState } from "react";
-import { LineGraphWithCheckbox } from "../../entities";
 import { useInputStore } from "../../shared";
 import { processSensorData } from "./utils";
 import { Button } from "@nextui-org/react";
+import { LineGraphWithCheckbox } from "../../entities/LineGraphWithCheckbox/PowerLineGraphWithCheckbox";
 
 export const LineGraphDataBuilder: React.FC = () => {
   const [transformedData, setTransformedData] = useState<any>({
@@ -10,7 +10,6 @@ export const LineGraphDataBuilder: React.FC = () => {
     resultData: [],
   });
 
-  const [inputData, setInputData] = useState<{ [key: string]: string }>({});
   const { filePaths } = useInputStore();
   const { sensorDataFilePath = "" } = filePaths ?? {};
 
@@ -22,13 +21,11 @@ export const LineGraphDataBuilder: React.FC = () => {
         const sensorsData = await window.electron.getSensorsData(
           sensorDataFilePath
         );
-        const inputData = await window.electron.getInputs();
 
         const processedData = processSensorData(
           sensorsData.filter((row) => row !== null)
         );
 
-        setInputData(inputData);
         setTransformedData(processedData);
       } catch (error) {
         console.error("Error fetching input data:", error);
@@ -63,7 +60,6 @@ export const LineGraphDataBuilder: React.FC = () => {
       <LineGraphWithCheckbox
         names={transformedData.uniqueIds}
         data={transformedData.resultData}
-        sensorsConstraints={inputData}
       />
     </Fragment>
   );

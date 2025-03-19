@@ -4,4 +4,6 @@
 
 .page {
   padding: 0 15px;
+  /* display: flex;
+  flex-flow: row nowrap; */
 }

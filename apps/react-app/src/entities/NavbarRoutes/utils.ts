@@ -14,4 +14,5 @@ export const DEFAULT_NAVBAR_ROUTES_LIST = [
   { url: "/", name: "Acquisition" },
   { url: "/sensors", name: "Sensors" },
   { url: "/charts", name: "Charts" },
+  { url: "/power", name: "Power" },
 ];
