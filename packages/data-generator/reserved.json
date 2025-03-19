@@ -281,3 +281,6 @@
 {"id_record":280,"id_sensor":1,"time":"00:05:04.565","wavelength":1558.471,"displacement":0.317328,"Pn":0.006771,"Pn_plus_1":0.003147},
 {"id_record":281,"id_sensor":1,"time":"00:05:05.642","wavelength":1558.471,"displacement":0.317328,"Pn":0.006771,"Pn_plus_1":0.003147},
 {"id_record":282,"id_sensor":1,"time":"00:05:06.719","wavelength":1558.471,"displacement":0.317328,"Pn":0.006771,"Pn_plus_1":0.003147},
+{"id_record":283,"id_sensor":1,"time":"00:05:07.796","wavelength":1558.471,"displacement":0.317328,"Pn":0.006771,"Pn_plus_1":0.003147},
+{"id_record":284,"id_sensor":1,"time":"00:05:08.874","wavelength":1558.471,"displacement":0.317328,"Pn":0.006771,"Pn_plus_1":0.003147},
+{"id_record":285,"id_sensor":1,"time":"00:05:09.951","wavelength":1558.471,"displacement":0.317328,"Pn":0.006771,"Pn_plus_1":0.003147},

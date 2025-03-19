@@ -1,7 +1,7 @@
 const fs = require("fs");
 
-const inputFile = "data.json";
-const outputFile = "current.json";
+const inputFile = "reserved.json";
+const outputFile = "data.json";
 const batchSize = 1;
 const totalLines = 560;
 let currentLine = 0;

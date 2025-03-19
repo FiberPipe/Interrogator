@@ -56,7 +56,7 @@ export const WLDataTable: React.FC<Props> = ({ body }) => {
             <TableRow key={`WL_${d.id}`}>
               <TableCell>{`WL_${d.id}`}</TableCell>
               <TableCell>mE</TableCell>
-              <TableCell>{d.rangeMax}</TableCell>
+              <TableCell>{d.rangeMin}</TableCell>
               <TableCell>
                 <Input
                   type="text"
@@ -79,7 +79,7 @@ export const WLDataTable: React.FC<Props> = ({ body }) => {
                   }
                 />
               </TableCell>
-              <TableCell>{d.rangeMin}</TableCell>
+              <TableCell>{d.rangeMax}</TableCell>
             </TableRow>
           );
         })}
