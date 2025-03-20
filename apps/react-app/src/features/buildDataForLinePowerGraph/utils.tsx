@@ -8,7 +8,7 @@ export const processSensorData = (data: TData[]): ProcessedData => {
   > = {};
 
   const uniqueIdsSet = new Set<number>(); // Для уникальных id_sensor
-  const uniquePXKeys = new Set<string>(); // Для уникальных ключей PX и stdDev
+  const uniquePXKeys = new Set<string>(); // Для уникальных ключей PX
 
   data.forEach((record) => {
     const time = record.time;
@@ -19,12 +19,11 @@ export const processSensorData = (data: TData[]): ProcessedData => {
       wavelength: record.wavelength,
     };
     Object.keys(record).forEach((key) => {
-      if (
-        (key.startsWith("P") || key.startsWith("stdDev")) &&
-        key !== "wavelength"
-      ) {
+      if (key.startsWith("P") && key !== "wavelength") {
         sensorData[key] = record[key as keyof typeof record] as number;
-        uniquePXKeys.add(key); // Добавляем ключ PX или stdDev в Set
+        uniquePXKeys.add(key); // Добавляем ключ PX в Set
+      } else if (key.startsWith("stdDev") && key !== "wavelength") {
+        sensorData[key] = record[key as keyof typeof record] as number;
       }
     });
 
@@ -72,7 +71,7 @@ export const processSensorData = (data: TData[]): ProcessedData => {
   const filteredResultData = resultData.filter(
     (entry) => Object.keys(entry).length > 1
   );
-  const uniquePX = Array.from(uniquePXKeys).sort(); // Уникальные ключи PX и stdDev
+  const uniquePX = Array.from(uniquePXKeys).sort(); // Уникальные ключи PX
 
   console.log(171717, { uniqueIds: uniquePX, resultData: filteredResultData });
 

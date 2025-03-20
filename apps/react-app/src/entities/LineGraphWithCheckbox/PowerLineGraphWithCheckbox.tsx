@@ -13,16 +13,21 @@ export const LineGraphWithCheckbox: React.FC<LineGraphWithCheckboxProps> = ({
   data,
   names,
 }) => {
+  // Состояние выбранных чекбоксов
   const [selectedCharts, setSelectedCharts] = useState<string[]>(names ?? []);
 
+  // Синхронизация выбранных чекбоксов при изменении данных
   useEffect(() => {
-    setSelectedCharts(names);
+    // Фильтруем выбранные чекбоксы, оставляя только те, которые есть в новых данных
+    setSelectedCharts((prevSelected) =>
+      prevSelected.filter((chartName) => names.includes(chartName))
+    );
   }, [names]);
 
+  // Обработчик изменения состояния чекбокса
   const handleCheckboxChange = useCallback(
     (chartName: string, isChecked: boolean) => {
       setSelectedCharts((prev) => {
-        console.log(1234321, prev);
         if (isChecked) {
           return [...prev, chartName];
         } else {
@@ -33,11 +38,12 @@ export const LineGraphWithCheckbox: React.FC<LineGraphWithCheckboxProps> = ({
     []
   );
 
+  // Фильтрация данных для отображения только выбранных графиков
   const filteredData =
     data &&
     data.map((entry) => {
       const filteredEntry: { [key: string]: number | string } = {
-        ...entry
+        ...entry,
       };
 
       selectedCharts &&
@@ -60,9 +66,7 @@ export const LineGraphWithCheckbox: React.FC<LineGraphWithCheckboxProps> = ({
             names.map((chartName) => (
               <Checkbox
                 key={chartName}
-                isSelected={
-                  selectedCharts && selectedCharts.includes(chartName)
-                }
+                isSelected={selectedCharts.includes(chartName)}
                 onChange={(e) =>
                   handleCheckboxChange(chartName, e.target.checked)
                 }
