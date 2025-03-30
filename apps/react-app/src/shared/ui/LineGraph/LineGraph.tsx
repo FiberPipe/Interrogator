@@ -41,16 +41,16 @@ const calculateNumericAverages = (data: TTransformedData[]) => {
 
   const averages: { [key: string]: number } = {};
   Object.keys(sums).forEach(
-    (key) => (averages[avg_${key}] = sums[key] / counts[key])
+    (key) => (averages[`avg_${key}`] = sums[key] / counts[key])
   );
 
   return averages;
 };
 
 const getConstraintKey = (id: number | string, type: "max" | "min") =>
-  wl_${id}_${type};
+  `wl_${id}_${type}`;
 
-const getAvgKey = (id: number | string) => avg_${id};
+const getAvgKey = (id: number | string) => `avg_${id}`;
 
 export const LineGraph: React.FC<Props> = ({
   names = [],
@@ -71,7 +71,10 @@ export const LineGraph: React.FC<Props> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log("Средние арифметические значения добавлены в данные:", renderedData);
+    console.log(
+      "Средние арифметические значения добавлены в данные:",
+      renderedData
+    );
   }, [renderedData]);
 
   const handleWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
@@ -124,13 +127,13 @@ export const LineGraph: React.FC<Props> = ({
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       onMouseMove={handleMouseMove}
-      style={{ position: "relative", width: "100%", height: 400 }}
+      style={{ position: "relative", width: "100%", height: "100%" }}
     >
       <ResponsiveContainer>
         <ComposedChart
           data={renderedData}
           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          >
+        >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
           {/* Автоматическое масштабирование */}
@@ -138,7 +141,7 @@ export const LineGraph: React.FC<Props> = ({
           <Tooltip />
           <Legend />
           <Brush dataKey="name" height={30} stroke="#8884d8" />
-          
+
           {names.map((key: string | number) => (
             <Line
               key={key}
@@ -149,7 +152,7 @@ export const LineGraph: React.FC<Props> = ({
               activeDot={{ r: 8 }}
             />
           ))}
-          
+
           {names.map((key: string | number) => (
             <Line
               key={getConstraintKey(key, "max")}
@@ -161,7 +164,7 @@ export const LineGraph: React.FC<Props> = ({
               strokeDasharray="5 5"
             />
           ))}
-          
+
           {names.map((key: string | number) => (
             <Line
               key={getConstraintKey(key, "min")}
@@ -173,7 +176,7 @@ export const LineGraph: React.FC<Props> = ({
               strokeDasharray="5 5"
             />
           ))}
-          
+
           {names.map((key: string | number) => (
             <Line
               key={getAvgKey(key)}
