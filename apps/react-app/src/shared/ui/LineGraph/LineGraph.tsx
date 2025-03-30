@@ -1,3 +1,4 @@
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   CartesianGrid,
   Legend,
@@ -11,7 +12,6 @@ import {
 } from "recharts";
 import { lineColorDict } from "./const";
 import { TTransformedData } from "../../types";
-import React, { useEffect } from "react";
 
 type Props = {
   names: string[] | number[];
@@ -27,6 +27,7 @@ const calculateNumericAverages = (data: TTransformedData[]) => {
     Object.keys(entry).forEach((key) => {
       //@ts-ignore
       const value = parseFloat(entry[key]);
+
       if (!isNaN(value)) {
         if (!sums[key]) {
           sums[key] = 0;
@@ -40,16 +41,16 @@ const calculateNumericAverages = (data: TTransformedData[]) => {
 
   const averages: { [key: string]: number } = {};
   Object.keys(sums).forEach(
-    (key) => (averages[`avg_${key}`] = sums[key] / counts[key])
+    (key) => (averages[avg_${key}] = sums[key] / counts[key])
   );
 
   return averages;
 };
 
 const getConstraintKey = (id: number | string, type: "max" | "min") =>
-  `wl_${id}_${type}`;
+  wl_${id}_${type};
 
-const getAvgKey = (id: number | string) => `avg_${id}`;
+const getAvgKey = (id: number | string) => avg_${id};
 
 export const LineGraph: React.FC<Props> = ({
   names = [],
@@ -63,80 +64,129 @@ export const LineGraph: React.FC<Props> = ({
     ...averageValues,
   }));
 
+  const [yAxisDomain, setYAxisDomain] = useState<[number, number]>([0, 10]); // Изначально выставляем, как [0, 10] для демонстрации
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [startY, setStartY] = useState<number>(0);
+  const [startDomain, setStartDomain] = useState<[number, number]>([0, 10]);
+  const containerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    console.log(
-      "Средние арифметические значения добавлены в данные:",
-      renderedData
-    );
+    console.log("Средние арифметические значения добавлены в данные:", renderedData);
   }, [renderedData]);
 
-  // console.log('peterr111', renderedData)
+  const handleWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const delta = event.deltaY;
+    const zoomFactor = 0.1;
+
+    setYAxisDomain(([min, max]) => {
+      const range = max - min;
+      const newRange =
+        delta > 0 ? range * (1 + zoomFactor) : range * (1 - zoomFactor);
+      const center = (min + max) / 2;
+      return [center - newRange / 2, center + newRange / 2];
+    });
+  }, []);
+
+  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.button === 0) {
+      setIsDragging(true);
+      setStartY(event.clientY);
+      setStartDomain(yAxisDomain);
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (isDragging) {
+      const moveDistance = event.clientY - startY;
+      const shiftFactor = moveDistance / 100;
+
+      setYAxisDomain(([min, max]) => {
+        const range = max - min;
+        return [
+          startDomain[0] + shiftFactor * range,
+          startDomain[1] + shiftFactor * range,
+        ];
+      });
+    }
+  };
+
   return (
-    <ResponsiveContainer width="100%" height={"100%"}>
-      <ComposedChart
-        width={500}
-        height={300}
-        data={renderedData}
-        margin={{
-          top: 5,
-          right: 30,
-          left: 20,
-          bottom: 5,
-        }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis domain={["auto", "auto"]} tick={{ fontSize: 12 }} />
-        <Tooltip />
-        <Legend />
-        <Brush dataKey="name" height={30} stroke="#8884d8" />
-        {names.map((key: string | number) => (
-          <Line
-            key={key}
-            dataKey={key}
-            type="monotone"
-            stroke={lineColorDict[Number(key) % 20]}
-            strokeWidth={2}
-            activeDot={{ r: 8 }}
-          />
-        ))}
-
-        {names.map((key: string | number) => (
-          <Line
-            key={getConstraintKey(key, "max")}
-            dataKey={getConstraintKey(key, "max")}
-            type="monotone"
-            stroke={lineColorDict[Number(key) % 20]}
-            strokeWidth={2}
-            activeDot={{ r: 8 }}
-            strokeDasharray={"5 5"}
-          />
-        ))}
-
-        {names.map((key: string | number) => (
-          <Line
-            key={getConstraintKey(key, "min")}
-            dataKey={getConstraintKey(key, "min")}
-            type="monotone"
-            stroke={lineColorDict[Number(key) % 20]}
-            strokeWidth={2}
-            activeDot={{ r: 8 }}
-            strokeDasharray={"5 5"}
-          />
-        ))}
-
-        {names.map((key: string | number) => (
-          <Line
-            key={getAvgKey(key)}
-            dataKey={getAvgKey(key)}
-            type="monotone"
-            stroke={lineColorDict[Number(key) % 20]}
-            strokeWidth={2}
-            activeDot={{ r: 8 }}
-            strokeDasharray={"5 5"}
-          />
-        ))}
-      </ComposedChart>
-    </ResponsiveContainer>
+    <div
+      ref={containerRef}
+      onWheel={handleWheel}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseMove={handleMouseMove}
+      style={{ position: "relative", width: "100%", height: 400 }}
+    >
+      <ResponsiveContainer>
+        <ComposedChart
+          data={renderedData}
+          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          {/* Автоматическое масштабирование */}
+          <YAxis domain={yAxisDomain} tick={{ fontSize: 12 }} />
+          <Tooltip />
+          <Legend />
+          <Brush dataKey="name" height={30} stroke="#8884d8" />
+          
+          {names.map((key: string | number) => (
+            <Line
+              key={key}
+              dataKey={key}
+              type="monotone"
+              stroke={lineColorDict[Number(key) % lineColorDict.length]}
+              strokeWidth={2}
+              activeDot={{ r: 8 }}
+            />
+          ))}
+          
+          {names.map((key: string | number) => (
+            <Line
+              key={getConstraintKey(key, "max")}
+              dataKey={getConstraintKey(key, "max")}
+              type="monotone"
+              stroke={lineColorDict[Number(key) % lineColorDict.length]}
+              strokeWidth={2}
+              activeDot={{ r: 8 }}
+              strokeDasharray="5 5"
+            />
+          ))}
+          
+          {names.map((key: string | number) => (
+            <Line
+              key={getConstraintKey(key, "min")}
+              dataKey={getConstraintKey(key, "min")}
+              type="monotone"
+              stroke={lineColorDict[Number(key) % lineColorDict.length]}
+              strokeWidth={2}
+              activeDot={{ r: 8 }}
+              strokeDasharray="5 5"
+            />
+          ))}
+          
+          {names.map((key: string | number) => (
+            <Line
+              key={getAvgKey(key)}
+              dataKey={getAvgKey(key)}
+              type="monotone"
+              stroke={lineColorDict[Number(key) % lineColorDict.length]}
+              strokeWidth={2}
+              activeDot={{ r: 8 }}
+              strokeDasharray="5 5"
+            />
+          ))}
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
   );
 };

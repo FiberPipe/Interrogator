@@ -43,7 +43,7 @@ export const LineGraphDataBuilder: React.FC = () => {
       if (fetching) {
         fetchInputs();
       }
-    }, 10000);
+    }, 1000);
 
     return () => {
       clearInterval(intervalId);
