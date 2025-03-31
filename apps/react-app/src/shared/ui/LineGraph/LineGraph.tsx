@@ -64,11 +64,34 @@ export const LineGraph: React.FC<Props> = ({
     ...averageValues,
   }));
 
+  // Состояние для временных значений диапазона (мин и макс)
+  const [tempMin, setTempMin] = useState<number>(0);
+  const [tempMax, setTempMax] = useState<number>(10);
+
   const [yAxisDomain, setYAxisDomain] = useState<[number, number]>([0, 10]); // Изначально выставляем, как [0, 10] для демонстрации
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [startY, setStartY] = useState<number>(0);
   const [startDomain, setStartDomain] = useState<[number, number]>([0, 10]);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Обработчик изменения минимального значения
+  const handleMinChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTempMin(Number(event.target.value));
+  };
+
+  // Обработчик изменения максимального значения
+  const handleMaxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTempMax(Number(event.target.value));
+  };
+
+  // Обработчик применения нового диапазона
+  const applyRange = () => {
+    if (tempMin < tempMax) {
+      setYAxisDomain([tempMin, tempMax]);
+    } else {
+      alert("Минимальное значение должно быть меньше максимального.");
+    }
+  };
 
   useEffect(() => {
     console.log(
@@ -129,6 +152,35 @@ export const LineGraph: React.FC<Props> = ({
       onMouseMove={handleMouseMove}
       style={{ position: "relative", width: "100%", height: "100%" }}
     >
+      {/* Поля ввода для выбора диапазона */}
+      <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1000 }}>
+        <div style={{ marginBottom: 5 }}>
+          <label>
+            Min:
+            <input
+              type="number"
+              value={tempMin}
+              onChange={handleMinChange}
+              style={{ marginLeft: 5, width: 80 }}
+            />
+          </label>
+        </div>
+        <div style={{ marginBottom: 5 }}>
+          <label>
+            Max:
+            <input
+              type="number"
+              value={tempMax}
+              onChange={handleMaxChange}
+              style={{ marginLeft: 5, width: 80 }}
+            />
+          </label>
+        </div>
+        <button onClick={applyRange} style={{ width: "100%" }}>
+          Применить
+        </button>
+      </div>
+
       <ResponsiveContainer>
         <ComposedChart
           data={renderedData}

@@ -47,29 +47,23 @@ export const DisplacementTable: React.FC<Props> = ({ body }) => {
   };
 
   const calculateDisplacement = (d: GroupedItem) => {
-    const λ = parseFloat(inputValues[`Disp_lambda_${d.id}`] || d.wavelength);
-    const λ0 = parseFloat(inputValues[`Disp_lambda0_${d.id}`] || "0");
-    const k = parseFloat(inputValues[`Disp_k_${d.id}`] || "0");
-    const C = parseFloat(inputValues[`Disp_C_${d.id}`] || "0");
-    const B = parseFloat(inputValues[`Disp_B_${d.id}`] || "0");
-    const alpha = parseFloat(inputValues[`Disp_alpha_${d.id}`] || "0");
-    const T = parseFloat(inputValues[`Disp_T_${d.id}`] || "0");
-    const T0 = parseFloat(inputValues[`Disp_T0_${d.id}`] || "0");
+    const λ = d.wavelength;
+    const λ0 = parseFloat(inputValues[`Displacement_lambda0_${d.id}`] || "0");
+    const k = parseFloat(inputValues[`Displacement_k_${d.id}`] || "0");
+    const C = parseFloat(inputValues[`Displacement_C_${d.id}`] || "0");
+    const B = parseFloat(inputValues[`Displacement_B_${d.id}`] || "0");
+    const alpha = parseFloat(inputValues[`Displacement_alpha_${d.id}`] || "0");
+    const T = parseFloat(inputValues[`Displacement_T_${d.id}`] || "0");
+    const T0 = parseFloat(inputValues[`Displacement_T0_${d.id}`] || "0");
+
+    console.log(λ, λ0, k, C, B, alpha, T, T0);
 
     return (
-      (1e6 * (λ - λ0)) / (k * λ0) -
+      (Math.pow(10, 6) * (λ - λ0)) / (k * λ0) -
       C * (Math.pow(T, 2) - Math.pow(T0, 2)) -
       (B + alpha) * (T - T0)
     );
   };
-
-  useEffect(() => {
-    const fetchInputs = async () => {
-      // Предположим, данные для inputValues могут быть получены здесь.
-    };
-
-    fetchInputs();
-  }, []);
 
   return (
     <Fragment>
@@ -93,26 +87,20 @@ export const DisplacementTable: React.FC<Props> = ({ body }) => {
               <TableCell>
                 <Input
                   type="text"
-                  value={inputValues[`Displacement_λ₀_${d.id}`] || ""}
+                  value={inputValues[`Displacement_lambda0_${d.id}`] || ""}
                   onChange={(e) =>
-                    handleInputChange(`Displacement_λ₀_${d.id}`, e.target.value)
+                    handleInputChange(
+                      `Displacement_lambda0_${d.id}`,
+                      e.target.value
+                    )
                   }
                 />
               </TableCell>
               <TableCell>
                 <Input
-                  value={inputValues[`Displacement_E_${d.id}`] || ""}
+                  value={inputValues[`Displacement_k_${d.id}`] || ""}
                   onChange={(e) =>
-                    handleInputChange(`Displacement_E_${d.id}`, e.target.value)
-                  }
-                />
-              </TableCell>
-              <TableCell>
-                <Input
-                  type="text"
-                  value={inputValues[`Displacement_D_${d.id}`] || ""}
-                  onChange={(e) =>
-                    handleInputChange(`Displacement_D_${d.id}`, e.target.value)
+                    handleInputChange(`Displacement_k_${d.id}`, e.target.value)
                   }
                 />
               </TableCell>
@@ -137,9 +125,12 @@ export const DisplacementTable: React.FC<Props> = ({ body }) => {
               <TableCell>
                 <Input
                   type="text"
-                  value={inputValues[`Displacement_A_${d.id}`] || ""}
+                  value={inputValues[`Displacement_alpha_${d.id}`] || ""}
                   onChange={(e) =>
-                    handleInputChange(`Displacement_A_${d.id}`, e.target.value)
+                    handleInputChange(
+                      `Displacement_alpha_${d.id}`,
+                      e.target.value
+                    )
                   }
                 />
               </TableCell>

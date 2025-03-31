@@ -2,7 +2,6 @@ import { TData } from "../../shared";
 
 export const DISPLACEMENT_HEADER_CELL_NAMES = [
   "ID",
-  "λ (нм)",
   "λ₀ (нм)",
   "k",
   "C (мкм/(м·°C²))",
