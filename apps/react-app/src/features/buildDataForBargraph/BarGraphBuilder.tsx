@@ -4,7 +4,7 @@ import { TBarGraphTransformedData, TData, useInputStore } from "../../shared";
 
 export const BarGraphBuilder: React.FC = () => {
   const [transformedData, setTransformedData] = useState<
-    TBarGraphTransformedData[]
+    TBarGraphTransformedData[][]
   >([]);
   const [uniqueIds, setUniqueIds] = useState<number[]>([]); // Уникальные sensor_id
   const { filePaths } = useInputStore();
@@ -33,30 +33,34 @@ export const BarGraphBuilder: React.FC = () => {
 
         // Уникальные sensor_id
         const sensorIds = Object.keys(dataBySensor).map(Number);
+
         setUniqueIds(sensorIds);
 
+        console.log("data", dataBySensor);
         // Преобразуем данные для BarGraph
         const modifiedData = Object.entries(dataBySensor).map(
           ([sensorId, entries]) => {
+            let results2 = [];
             const result: TBarGraphTransformedData = {
               name: `Sensor ${sensorId}`,
             };
 
-            // Вычисляем PX и PX+1 для текущего sensor_id
-            const x = 2 * Number(sensorId) - 1; // PX
-            const pxKey = `P${x}`; // Ключ для PX (например, P1, P3, P5)
-            const pxPlus1Key = `P${x + 1}`; // Ключ для PX+1 (например, P2, P4, P6)
-
-            // Берем последнюю запись для текущего sensor_id
+            let results = [];
             const lastEntry = entries[entries.length - 1];
-            if (
-              lastEntry[pxKey] !== undefined &&
-              lastEntry[pxPlus1Key] !== undefined
-            ) {
-              result.value = lastEntry[pxPlus1Key] / lastEntry[pxKey]; // Сохраняем отношение PX+1 / PX
+
+            for (let i = 0; i < 8; i += 2) {
+              if (
+                lastEntry[`P${i}`] !== undefined &&
+                lastEntry[`P${i + 1}`] !== undefined
+              ) {
+                results2.push({
+                  name: `Sensor ${sensorId} P${i}/P${i + 1}`,
+                  value: lastEntry[`P${i + 1}`] / lastEntry[`P${i}`],
+                });
+              }
             }
 
-            return result;
+            return results2;
           }
         );
 
@@ -75,6 +79,5 @@ export const BarGraphBuilder: React.FC = () => {
     };
   }, [sensorDataFilePath]);
 
-  console.log(2727272, transformedData);
   return <BarGraph data={transformedData} />;
 };

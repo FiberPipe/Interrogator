@@ -12,7 +12,7 @@ import React, { useState, useCallback, useRef } from "react";
 import { TBarGraphTransformedData } from "../../types";
 
 type Props = {
-  data: TBarGraphTransformedData[];
+  data: TBarGraphTransformedData[][];
 };
 
 export const BarGraph: React.FC<Props> = ({ data }) => {
@@ -86,12 +86,12 @@ export const BarGraph: React.FC<Props> = ({ data }) => {
 
   // Обработчик изменения минимального значения
   const handleMinChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTempMin(Number(event.target.value));
+    setTempMin(Number.parseFloat(event.target.value));
   };
 
   // Обработчик изменения максимального значения
   const handleMaxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTempMax(Number(event.target.value));
+    setTempMax(Number.parseFloat(event.target.value));
   };
 
   // Обработчик применения нового диапазона
@@ -132,10 +132,10 @@ export const BarGraph: React.FC<Props> = ({ data }) => {
           <label>
             Min:
             <input
-              type="number"
-              value={tempMin}
+              defaultValue={tempMax}
               onChange={handleMinChange}
               style={{ marginLeft: 5, width: 80 }}
+              type="text"
             />
           </label>
         </div>
@@ -143,10 +143,11 @@ export const BarGraph: React.FC<Props> = ({ data }) => {
           <label>
             Max:
             <input
-              type="number"
-              value={tempMax}
+              // value={tempMax}
+              defaultValue={tempMax}
               onChange={handleMaxChange}
               style={{ marginLeft: 5, width: 80 }}
+              type="text"
             />
           </label>
         </div>
@@ -155,43 +156,45 @@ export const BarGraph: React.FC<Props> = ({ data }) => {
         </button>
       </div>
 
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          width={500}
-          height={300}
-          data={data}
-          margin={{
-            top: 5,
-            right: 30,
-            left: 20,
-            bottom: 5,
-          }}
-          barSize={20}
-        >
-          <XAxis
-            dataKey="name"
-            scale="point"
-            padding={{ left: 10, right: 10 }}
-            tick={{ fontSize: 12 }}
-            angle={-45}
-            textAnchor="end"
-          />
-          <YAxis
-            domain={yAxisDomain}
-            allowDataOverflow={true}
-            tick={{ fontSize: 12 }}
-          />
-          <Tooltip />
-          <Legend />
-          <CartesianGrid strokeDasharray="3 3" />
+      {data.map((dataItem) => (
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            width={500}
+            height={300}
+            data={dataItem}
+            margin={{
+              top: 5,
+              right: 30,
+              left: 20,
+              bottom: 5,
+            }}
+            barSize={20}
+            key={dataItem.name}
+          >
+            <XAxis
+              dataKey="name"
+              scale="point"
+              padding={{ left: 10, right: 10 }}
+              tick={{ fontSize: 12 }}
+              angle={-45}
+              textAnchor="end"
+            />
+            <YAxis
+              domain={yAxisDomain}
+              allowDataOverflow={true}
+              tick={{ fontSize: 12 }}
+            />
+            <Tooltip />
+            <Legend />
+            <CartesianGrid strokeDasharray="3 3" />
 
-          {/* Отображаем столбец для значения value */}
-          <Bar
-            dataKey="value"
-            fill="#8884d8" // Цвет столбцов
-          />
-        </BarChart>
-      </ResponsiveContainer>
+            <Bar
+              dataKey="value"
+              fill="#8884d8" // Цвет столбцов
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      ))}
     </div>
   );
 };

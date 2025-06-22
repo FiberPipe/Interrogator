@@ -57,8 +57,8 @@ async function createWindow() {
   } else {
     // await mainWindow.loadFile("build/index.html");
     // todo: поправить чтение переменных окружения, прокинуть их в package.json и поправить здесь сборку
-    await mainWindow.loadFile("build/index.html");
-    // await mainWindow.loadURL("http://localhost:3000/");
+    // await mainWindow.loadFile("build/index.html");
+    await mainWindow.loadURL("http://localhost:3000/");
   }
 
   ipcMain.handle("selectFile", async () => {
@@ -82,13 +82,8 @@ function readDataFile<T extends Record<string, string> | string>(
 ): T {
   if (fs.existsSync(path)) {
     const rawData = fs.readFileSync(path, "utf-8");
-    const parsedData = convertDataToJSON(rawData);
 
-    try {
-      return parsedData as any;
-    } catch (err) {
-      return rawData as T;
-    }
+    return JSON.parse(rawData).slice(-200) as T;
   }
 
   return defaultValue as T;

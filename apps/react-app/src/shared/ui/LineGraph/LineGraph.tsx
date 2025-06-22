@@ -76,12 +76,12 @@ export const LineGraph: React.FC<Props> = ({
 
   // Обработчик изменения минимального значения
   const handleMinChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTempMin(Number(event.target.value));
+    setTempMin(Number.parseFloat(event.target.value));
   };
 
   // Обработчик изменения максимального значения
   const handleMaxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTempMax(Number(event.target.value));
+    setTempMax(Number.parseFloat(event.target.value));
   };
 
   // Обработчик применения нового диапазона
@@ -152,16 +152,15 @@ export const LineGraph: React.FC<Props> = ({
       onMouseMove={handleMouseMove}
       style={{ position: "relative", width: "100%", height: "100%" }}
     >
-      {/* Поля ввода для выбора диапазона */}
       <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1000 }}>
         <div style={{ marginBottom: 5 }}>
           <label>
             Min:
             <input
-              type="number"
-              value={tempMin}
+              defaultValue={tempMax}
               onChange={handleMinChange}
               style={{ marginLeft: 5, width: 80 }}
+              type="text"
             />
           </label>
         </div>
@@ -169,10 +168,11 @@ export const LineGraph: React.FC<Props> = ({
           <label>
             Max:
             <input
-              type="number"
-              value={tempMax}
+              // value={tempMax}
+              defaultValue={tempMax}
               onChange={handleMaxChange}
               style={{ marginLeft: 5, width: 80 }}
+              type="text"
             />
           </label>
         </div>
