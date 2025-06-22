@@ -4,7 +4,9 @@ import {
   ChartsPage,
   Power,
   SensorsPage,
+  Beta,
 } from "../../../pages";
+import WavelengthDisplacementChart from "../../../pages/Displacement/Displacement";
 
 type CustomRouteProps = {
   indexPage?: JSX.Element;
@@ -24,7 +26,9 @@ export const routerConfig: Array<RouteCustomProps> = [
     caseSensitive: false,
   },
   { path: "/charts", element: <ChartsPage />, caseSensitive: false },
-  { path: "/Power", element: <Power />, caseSensitive: false },
+  { path: "/power", element: <Power />, caseSensitive: false },
+  { path: "/displacement", element: <WavelengthDisplacementChart />, caseSensitive: false },
+  { path: "/beta", element: <Beta />, caseSensitive: false },
   {
     path: "*",
     element: <h1>Not found</h1>,

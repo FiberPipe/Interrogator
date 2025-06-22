@@ -57,33 +57,33 @@ export const LineGraph: React.FC<Props> = ({
   console.log("Processed Data for Power Graph:", data, names);
 
   // Создаем массив для областей stdev
-  const stdevAreas = [];
-  for (const key of names) {
-    if (key.startsWith("P")) {
-      const stdevKey = `stdDev${key.slice(1)}`; // Получаем соответствующий stdDev
-      if (renderedData[0][stdevKey] !== undefined) {
-        // Добавляем область для stdev
-        stdevAreas.push(
-          <Area
-            key={`${key}-area`}
-            dataKey={(entry) => entry[key] + entry[stdevKey] / 2}
-            stroke="none"
-            fill="#ff7300"
-            fillOpacity={0.2}
-            isAnimationActive={false}
-          />,
-          <Area
-            key={`${key}-area-lower`}
-            dataKey={(entry) => entry[key] - entry[stdevKey] / 2}
-            stroke="none"
-            fill="#ff7300"
-            fillOpacity={0.2}
-            isAnimationActive={false}
-          />
-        );
-      }
-    }
-  }
+  // const stdevAreas = [];
+  // for (const key of names) {
+  //   if (key.startsWith("P")) {
+  //     const stdevKey = `stdDev${key.slice(1)}`; // Получаем соответствующий stdDev
+  //     if (renderedData[0][stdevKey] !== undefined) {
+  // Добавляем область для stdev
+  // stdevAreas.push(
+  //   <Area
+  //     key={`${key}-area`}
+  //     dataKey={(entry) => entry[key] + entry[stdevKey] / 2}
+  //     stroke="none"
+  //     fill="#ff7300"
+  //     fillOpacity={0.2}
+  //     isAnimationActive={false}
+  //   />,
+  //   <Area
+  //     key={`${key}-area-lower`}
+  //     dataKey={(entry) => entry[key] - entry[stdevKey] / 2}
+  //     stroke="none"
+  //     fill="#ff7300"
+  //     fillOpacity={0.2}
+  //     isAnimationActive={false}
+  //   />
+  // );
+  //     }
+  //   }
+  // }
 
   // Обработчик события прокрутки колесика мыши
   const handleWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
@@ -242,7 +242,7 @@ export const LineGraph: React.FC<Props> = ({
           ))}
 
           {/* Отображаем области stdev */}
-          {stdevAreas}
+          {/* {stdevAreas} */}
         </ComposedChart>
       </ResponsiveContainer>
     </div>

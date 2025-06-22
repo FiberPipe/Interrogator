@@ -15,4 +15,5 @@ export const DEFAULT_NAVBAR_ROUTES_LIST = [
   { url: "/sensors", name: "Sensors" },
   { url: "/charts", name: "Charts" },
   { url: "/power", name: "Power" },
+  { url: "/displacement", name: "Displacement (mm)" },
 ];

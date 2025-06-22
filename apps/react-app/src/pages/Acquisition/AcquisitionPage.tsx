@@ -6,6 +6,7 @@ export const AcquisitionPage: React.FC = () => {
     <>
       <DataFilePathModal />
       <BarGraphBuilder />
+      {/* <HorizontalBargraph /> */}
     </>
   );
 };

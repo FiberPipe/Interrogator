@@ -9,9 +9,11 @@ import {
   YAxis,
   Brush,
   ComposedChart,
+  ReferenceLine,
 } from "recharts";
 import { lineColorDict } from "./const";
 import { TTransformedData } from "../../types";
+import { Button, Input } from "@nextui-org/react";
 
 type Props = {
   names: string[] | number[];
@@ -25,16 +27,21 @@ const calculateNumericAverages = (data: TTransformedData[]) => {
 
   data.forEach((entry) => {
     Object.keys(entry).forEach((key) => {
-      //@ts-ignore
-      const value = parseFloat(entry[key]);
+      if (key === "name") return; // Пропускаем ключ "name"
+
+      // Преобразуем значение в число
+      const value = typeof entry[key] === 'string'
+        ? parseFloat(entry[key] as string)
+        : (entry[key] as number);
 
       if (!isNaN(value)) {
-        if (!sums[key]) {
-          sums[key] = 0;
-          counts[key] = 0;
+        const safeKey = String(key); // Преобразуем ключ в строку для безопасности
+        if (!sums[safeKey]) {
+          sums[safeKey] = 0;
+          counts[safeKey] = 0;
         }
-        sums[key] += value;
-        counts[key] += 1;
+        sums[safeKey] += value;
+        counts[safeKey] += 1;
       }
     });
   });
@@ -52,36 +59,93 @@ const getConstraintKey = (id: number | string, type: "max" | "min") =>
 
 const getAvgKey = (id: number | string) => `avg_${id}`;
 
+// Новые отметки для графика (референсные значения)
+const referenceValues = [1540.184, 1540.996, 1541.78, 1542.592];
+
 export const LineGraph: React.FC<Props> = ({
   names = [],
   data,
   sensorsConstraints,
 }) => {
-  const averageValues = calculateNumericAverages(data);
-  const renderedData = data.map((entry) => ({
+  // Преобразуем строковые значения в числовые
+  const processedData = data.map(entry => {
+    const result = { ...entry };
+    for (const key in result) {
+      if (key !== "name" && typeof result[key] === 'string') {
+        const numValue = parseFloat(result[key] as string);
+        if (!isNaN(numValue)) {
+          result[key] = numValue;
+        }
+      }
+    }
+    return result;
+  });
+
+  const averageValues = calculateNumericAverages(processedData);
+  const renderedData = processedData.map((entry) => ({
     ...entry,
     ...sensorsConstraints,
     ...averageValues,
   }));
 
-  // Состояние для временных значений диапазона (мин и макс)
+  // Инициализируем состояния с безопасными начальными значениями
+  const [yAxisDomain, setYAxisDomain] = useState<[number, number]>([0, 10]);
   const [tempMin, setTempMin] = useState<number>(0);
   const [tempMax, setTempMax] = useState<number>(10);
-
-  const [yAxisDomain, setYAxisDomain] = useState<[number, number]>([0, 10]); // Изначально выставляем, как [0, 10] для демонстрации
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [startY, setStartY] = useState<number>(0);
   const [startDomain, setStartDomain] = useState<[number, number]>([0, 10]);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Определяем диапазон Y оси только один раз при первом рендере
+  useEffect(() => {
+    if (processedData.length > 0 && !isInitialized) {
+      // Находим все числовые значения из данных для определения min/max
+      const allValues: number[] = [];
+
+      processedData.forEach(entry => {
+        Object.entries(entry).forEach(([key, value]) => {
+          if (key !== "name") {
+            const numValue = typeof value === 'string' ? parseFloat(value) : (value as number);
+            if (!isNaN(numValue)) {
+              allValues.push(numValue);
+            }
+          }
+        });
+      });
+
+      // Добавляем референсные значения
+      allValues.push(...referenceValues);
+
+      if (allValues.length > 0) {
+        const min = Math.min(...allValues);
+        const max = Math.max(...allValues);
+
+        // Устанавливаем все состояния за один раз
+        setYAxisDomain([min, max]);
+        setTempMin(min);
+        setTempMax(max);
+        setStartDomain([min, max]);
+        setIsInitialized(true);
+      }
+    }
+  }, [processedData, isInitialized]);
 
   // Обработчик изменения минимального значения
   const handleMinChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTempMin(Number.parseFloat(event.target.value));
+    const value = Number.parseFloat(event.target.value);
+    if (!isNaN(value)) {
+      setTempMin(value);
+    }
   };
 
   // Обработчик изменения максимального значения
   const handleMaxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTempMax(Number.parseFloat(event.target.value));
+    const value = Number.parseFloat(event.target.value);
+    if (!isNaN(value)) {
+      setTempMax(value);
+    }
   };
 
   // Обработчик применения нового диапазона
@@ -94,11 +158,9 @@ export const LineGraph: React.FC<Props> = ({
   };
 
   useEffect(() => {
-    console.log(
-      "Средние арифметические значения добавлены в данные:",
-      renderedData
-    );
-  }, [renderedData]);
+    console.log("Обработанные данные:", renderedData);
+    console.log("Имена линий:", names);
+  }, [renderedData, names]);
 
   const handleWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -143,6 +205,9 @@ export const LineGraph: React.FC<Props> = ({
     }
   };
 
+  // Проверяем есть ли данные для отображения
+  const hasData = renderedData.length > 0;
+
   return (
     <div
       ref={containerRef}
@@ -150,98 +215,176 @@ export const LineGraph: React.FC<Props> = ({
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       onMouseMove={handleMouseMove}
-      style={{ position: "relative", width: "100%", height: "100%" }}
+      style={{ width: "100%", height: "100%" }}
     >
-      <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1000 }}>
-        <div style={{ marginBottom: 5 }}>
-          <label>
-            Min:
-            <input
-              defaultValue={tempMax}
-              onChange={handleMinChange}
-              style={{ marginLeft: 5, width: 80 }}
-              type="text"
-            />
-          </label>
+      <div
+        style={{
+          width: 200,
+          display: "flex",
+          gap: 15,
+          justifyContent: "center",
+          alignItems: "center",
+          marginLeft: 100,
+          marginBottom: 20
+        }}
+      >
+        <div>
+          <Input
+            label="min"
+            value={isInitialized ? tempMin.toFixed(2) : "0.00"}
+            onChange={handleMinChange}
+            style={{ marginLeft: 5, width: 80 }}
+            type="text"
+          />
         </div>
-        <div style={{ marginBottom: 5 }}>
-          <label>
-            Max:
-            <input
-              // value={tempMax}
-              defaultValue={tempMax}
-              onChange={handleMaxChange}
-              style={{ marginLeft: 5, width: 80 }}
-              type="text"
-            />
-          </label>
+        <div>
+          <Input
+            label="max"
+            value={isInitialized ? tempMax.toFixed(2) : "10.00"}
+            onChange={handleMaxChange}
+            style={{ marginLeft: 5, width: 80, marginTop: 10 }}
+            type="text"
+          />
         </div>
-        <button onClick={applyRange} style={{ width: "100%" }}>
+        <Button onClick={applyRange} color="primary" size="md" style={{ padding: 10 }}>
           Применить
-        </button>
+        </Button>
       </div>
 
-      <ResponsiveContainer>
-        <ComposedChart
-          data={renderedData}
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          {/* Автоматическое масштабирование */}
-          <YAxis domain={yAxisDomain} tick={{ fontSize: 12 }} />
-          <Tooltip />
-          <Legend />
-          <Brush dataKey="name" height={30} stroke="#8884d8" />
-
-          {names.map((key: string | number) => (
-            <Line
-              key={key}
-              dataKey={key}
-              type="monotone"
-              stroke={lineColorDict[Number(key) % lineColorDict.length]}
-              strokeWidth={2}
-              activeDot={{ r: 8 }}
+      {hasData ? (
+        <ResponsiveContainer width="100%" height="90%">
+          <ComposedChart
+            data={renderedData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="name"
+              tick={{ fontSize: 12 }}
+              height={50}
+              angle={-30}
+              textAnchor="end"
             />
-          ))}
-
-          {names.map((key: string | number) => (
-            <Line
-              key={getConstraintKey(key, "max")}
-              dataKey={getConstraintKey(key, "max")}
-              type="monotone"
-              stroke={lineColorDict[Number(key) % lineColorDict.length]}
-              strokeWidth={2}
-              activeDot={{ r: 8 }}
-              strokeDasharray="5 5"
+            <YAxis
+              domain={yAxisDomain}
+              tick={{ fontSize: 12 }}
+              allowDataOverflow={true}
+              width={80}
             />
-          ))}
-
-          {names.map((key: string | number) => (
-            <Line
-              key={getConstraintKey(key, "min")}
-              dataKey={getConstraintKey(key, "min")}
-              type="monotone"
-              stroke={lineColorDict[Number(key) % lineColorDict.length]}
-              strokeWidth={2}
-              activeDot={{ r: 8 }}
-              strokeDasharray="5 5"
+            <Tooltip
+              formatter={(value) => typeof value === 'number' ? value.toFixed(4) : value}
+              contentStyle={{ fontWeight: 'bold' }}
             />
-          ))}
-
-          {names.map((key: string | number) => (
-            <Line
-              key={getAvgKey(key)}
-              dataKey={getAvgKey(key)}
-              type="monotone"
-              stroke={lineColorDict[Number(key) % lineColorDict.length]}
-              strokeWidth={2}
-              activeDot={{ r: 8 }}
-              strokeDasharray="5 5"
+            <Legend
+              wrapperStyle={{ fontWeight: 'bold' }}
             />
-          ))}
-        </ComposedChart>
-      </ResponsiveContainer>
+            <Brush dataKey="name" height={30} stroke="#8884d8" />
+
+            {/* Основные линии данных - утолщенные */}
+            {names.map((key) => {
+              const stringKey = String(key);
+              return (
+                <Line
+                  key={`line-${stringKey}`}
+                  name={`Sensor ${stringKey}`}
+                  dataKey={stringKey}
+                  type="monotone"
+                  stroke={"#d62728"}
+                  strokeWidth={3.5} // Увеличена толщина линии
+                  activeDot={{ r: 10 }} // Увеличен размер активной точки
+                  dot={{ r: 4 }} // Увеличены стандартные точки
+                  connectNulls={true}
+                  isAnimationActive={false}
+                />
+              );
+            })}
+
+            {/* Ограничения макс - утолщенные */}
+            {names.map((key) => {
+              const stringKey = String(key);
+              return (
+                <Line
+                  key={`max-${getConstraintKey(key, "max")}`}
+                  name={`Max ${stringKey}`}
+                  dataKey={getConstraintKey(key, "max")}
+                  type="monotone"
+                  stroke={lineColorDict[Number(key) % lineColorDict.length]}
+                  strokeWidth={2.5} // Увеличена толщина линии
+                  strokeDasharray="10 5" // Более заметный пунктир
+                  connectNulls={true}
+                  isAnimationActive={false}
+                />
+              );
+            })}
+
+            {/* Ограничения мин - утолщенные */}
+            {names.map((key) => {
+              const stringKey = String(key);
+              return (
+                <Line
+                  key={`min-${getConstraintKey(key, "min")}`}
+                  name={`Min ${stringKey}`}
+                  dataKey={getConstraintKey(key, "min")}
+                  type="monotone"
+                  stroke={lineColorDict[Number(key) % lineColorDict.length]}
+                  strokeWidth={2.5} // Увеличена толщина линии
+                  strokeDasharray="10 5" // Более заметный пунктир
+                  connectNulls={true}
+                  isAnimationActive={false}
+                />
+              );
+            })}
+
+            {/* Средние значения - утолщенные */}
+            {names.map((key) => {
+              const stringKey = String(key);
+              return (
+                <Line
+                  key={`avg-${getAvgKey(key)}`}
+                  name={`Avg ${stringKey}`}
+                  dataKey={getAvgKey(key)}
+                  type="monotone"
+                  stroke={lineColorDict[Number(key) % lineColorDict.length]}
+                  strokeWidth={2.5} // Увеличена толщина линии
+                  strokeDasharray="10 5" // Более заметный пунктир
+                  connectNulls={true}
+                  isAnimationActive={false}
+                />
+              );
+            })}
+
+            {/* Референсные линии - утолщенные */}
+            {referenceValues.map((value, index) => (
+              <ReferenceLine
+                key={`ref-line-${index}`}
+                y={value}
+                stroke={"#1f77b4"}
+                strokeWidth={2} // Увеличена толщина линии
+                strokeDasharray="7 7" // Более заметный пунктир
+                label={{
+                  value: value.toFixed(3),
+                  position: 'insideRight',
+                  fill: "#1f77b4",
+                  fontSize: 14, // Увеличен размер шрифта
+                  fontWeight: 'bold'
+                }}
+              />
+            ))}
+          </ComposedChart>
+        </ResponsiveContainer>
+      ) : (
+        <div style={{
+          height: "90%",
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          border: '1px solid #ccc',
+          fontWeight: 'bold',
+          fontSize: '16px'
+        }}>
+          Нет данных для отображения
+        </div>
+      )}
     </div>
   );
 };

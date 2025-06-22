@@ -13,7 +13,7 @@ interface LineGraphWithCheckboxProps {
 export const LineGraphWithCheckbox: React.FC<LineGraphWithCheckboxProps> = ({
   data,
   names,
- sensorsConstraints
+  sensorsConstraints
 }) => {
   const [selectedCharts, setSelectedCharts] = useState<any[]>(names);
 
@@ -30,6 +30,8 @@ export const LineGraphWithCheckbox: React.FC<LineGraphWithCheckboxProps> = ({
     []
   );
 
+  console.log('peter', selectedCharts, names)
+
   const filteredData = data.map((entry) => {
     const filteredEntry: { [key: string]: number | string } = {
       name: entry.name,
@@ -40,12 +42,6 @@ export const LineGraphWithCheckbox: React.FC<LineGraphWithCheckboxProps> = ({
       }
     });
     return filteredEntry;
-  });
-
-  const filteredNames = names.filter((chartNum: any) => {
-    if (selectedCharts.includes(chartNum)) {
-      return chartNum;
-    }
   });
 
   return (
@@ -64,7 +60,7 @@ export const LineGraphWithCheckbox: React.FC<LineGraphWithCheckboxProps> = ({
           ))}
         </div>
         <div className={classes.charts}>
-          <LineGraph names={filteredNames} data={filteredData as TTransformedData[]} sensorsConstraints={sensorsConstraints} />
+          <LineGraph names={names.map((name) => String(name))} data={filteredData as TTransformedData[]} sensorsConstraints={sensorsConstraints} />
         </div>
       </div>
     </>
