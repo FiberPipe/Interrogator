@@ -1,9 +1,12 @@
-import { Link, NavbarContent, NavbarItem } from "@nextui-org/react";
-import { useLocation } from "react-router-dom";
+import { Button, Link, NavbarContent, NavbarItem } from "@nextui-org/react";
+import { redirect, useLocation, useNavigate } from "react-router-dom";
 import { DEFAULT_NAVBAR_ROUTES_LIST, getRouteColor } from "./utils";
+import { Gear } from '@gravity-ui/icons';
+
 
 export const NavbarRoutes: React.FC = () => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   return (
     <>
       <NavbarContent className="hidden sm:flex gap-4" justify="start">
@@ -14,6 +17,14 @@ export const NavbarRoutes: React.FC = () => {
             </Link>
           </NavbarItem>
         ))}
+      </NavbarContent>
+
+      <NavbarContent>
+        <NavbarItem key={"settings"}>
+          <Button isIconOnly aria-label="Settings" color="primary" onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.preventDefault(); navigate('/settings') }}>
+            <Gear />
+          </Button>
+        </NavbarItem>
       </NavbarContent>
     </>
   );

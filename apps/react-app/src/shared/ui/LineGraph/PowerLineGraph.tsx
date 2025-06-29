@@ -10,8 +10,9 @@ import {
   ComposedChart,
   Area,
 } from "recharts";
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { TTransformedData } from "../../types";
+import { RangeControl } from "../../../entities/RangeControl";
 
 type Props = {
   names: string[];
@@ -36,14 +37,13 @@ export const LineGraph: React.FC<Props> = ({
   // Состояние для ручного управления масштабом оси OY
   const [yAxisDomain, setYAxisDomain] = useState<[number, number]>([0, 10]);
 
-  // Состояние для временных значений диапазона (мин и макс)
-  const [tempMin, setTempMin] = useState<number>(0);
-  const [tempMax, setTempMax] = useState<number>(10);
-
   // Состояние для отслеживания перемещения мыши
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [startY, setStartY] = useState<number>(0);
   const [startDomain, setStartDomain] = useState<[number, number]>([0, 10]);
+
+  // Флаг инициализации данных
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
   // Ref для контейнера графика
   const containerRef = useRef<HTMLDivElement>(null);
@@ -54,36 +54,38 @@ export const LineGraph: React.FC<Props> = ({
     ...sensorsConstraints,
   }));
 
-  console.log("Processed Data for Power Graph:", data, names);
+  // Инициализация диапазона при первой загрузке данных
+  useEffect(() => {
+    if (data.length > 0 && !isInitialized) {
+      // Найдем все числовые значения для определения минимума и максимума
+      const allValues: number[] = [];
 
-  // Создаем массив для областей stdev
-  // const stdevAreas = [];
-  // for (const key of names) {
-  //   if (key.startsWith("P")) {
-  //     const stdevKey = `stdDev${key.slice(1)}`; // Получаем соответствующий stdDev
-  //     if (renderedData[0][stdevKey] !== undefined) {
-  // Добавляем область для stdev
-  // stdevAreas.push(
-  //   <Area
-  //     key={`${key}-area`}
-  //     dataKey={(entry) => entry[key] + entry[stdevKey] / 2}
-  //     stroke="none"
-  //     fill="#ff7300"
-  //     fillOpacity={0.2}
-  //     isAnimationActive={false}
-  //   />,
-  //   <Area
-  //     key={`${key}-area-lower`}
-  //     dataKey={(entry) => entry[key] - entry[stdevKey] / 2}
-  //     stroke="none"
-  //     fill="#ff7300"
-  //     fillOpacity={0.2}
-  //     isAnimationActive={false}
-  //   />
-  // );
-  //     }
-  //   }
-  // }
+      data.forEach(entry => {
+        names.forEach(key => {
+          const value = typeof entry[key] === 'string'
+            ? parseFloat(entry[key] as string)
+            : entry[key] as number;
+
+          if (!isNaN(value)) {
+            allValues.push(value);
+          }
+        });
+      });
+
+      if (allValues.length > 0) {
+        const min = Math.min(...allValues);
+        const max = Math.max(...allValues);
+
+        // Добавляем небольшой запас для визуального комфорта
+        const padding = (max - min) * 0.1;
+        setYAxisDomain([min - padding, max + padding]);
+        setStartDomain([min - padding, max + padding]);
+        setIsInitialized(true);
+      }
+    }
+  }, [data, names, isInitialized]);
+
+  console.log("Processed Data for Power Graph:", data, names);
 
   // Обработчик события прокрутки колесика мыши
   const handleWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
@@ -102,23 +104,9 @@ export const LineGraph: React.FC<Props> = ({
     });
   }, []);
 
-  // Обработчик изменения минимального значения
-  const handleMinChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTempMin(Number.parseFloat(event.target.value));
-  };
-
-  // Обработчик изменения максимального значения
-  const handleMaxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTempMax(Number.parseFloat(event.target.value));
-  };
-
-  // Обработчик применения нового диапазона
-  const applyRange = () => {
-    if (tempMin < tempMax) {
-      setYAxisDomain([tempMin, tempMax]);
-    } else {
-      alert("Минимальное значение должно быть меньше максимального.");
-    }
+  // Обработчик изменения диапазона из компонента RangeControl
+  const handleRangeChange = (min: number, max: number) => {
+    setYAxisDomain([min, max]);
   };
 
   // Обработчик начала перемещения (зажатие кнопки мыши)
@@ -174,77 +162,54 @@ export const LineGraph: React.FC<Props> = ({
   }, [isDragging, handleMouseMove]);
 
   return (
-    <div
-      style={{ position: "relative", width: "100%", height: "100%" }}
-      onWheel={handleWheel} // Добавляем обработчик события прокрутки
-      onMouseDown={handleMouseDown} // Добавляем обработчик начала перемещения
-      ref={containerRef} // Ref для контейнера
-    >
-      <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1000 }}>
-        <div style={{ marginBottom: 5 }}>
-          <label>
-            Min:
-            <input
-              defaultValue={tempMax}
-              onChange={handleMinChange}
-              style={{ marginLeft: 5, width: 80 }}
-              type="text"
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", width: '100%' }}>
+      <RangeControl
+        initialMin={yAxisDomain[0]}
+        initialMax={yAxisDomain[1]}
+        onRangeChange={handleRangeChange}
+        isInitialized={isInitialized}
+      />
+
+      <div
+        ref={containerRef}
+        style={{ flex: 1 }}
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart
+            data={renderedData}
+            margin={{
+              top: 5,
+              right: 30,
+              left: 20,
+              bottom: 5,
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis
+              domain={yAxisDomain}
+              allowDataOverflow={true}
+              tick={{ fontSize: 12 }}
             />
-          </label>
-        </div>
-        <div style={{ marginBottom: 5 }}>
-          <label>
-            Max:
-            <input
-              // value={tempMax}
-              defaultValue={tempMax}
-              onChange={handleMaxChange}
-              style={{ marginLeft: 5, width: 80 }}
-              type="text"
-            />
-          </label>
-        </div>
-        <button onClick={applyRange} style={{ width: "100%" }}>
-          Применить
-        </button>
+            <Tooltip />
+            <Legend />
+            <Brush dataKey="name" height={30} stroke="#8884d8" />
+
+            {names.map((key, index) => (
+              <Line
+                key={key}
+                dataKey={key}
+                type="monotone"
+                stroke={lineColorDict[index % lineColorDict.length]}
+                strokeWidth={2}
+                activeDot={{ r: 8 }}
+              />
+            ))}
+          </ComposedChart>
+        </ResponsiveContainer>
       </div>
-
-      <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart
-          data={renderedData}
-          margin={{
-            top: 5,
-            right: 30,
-            left: 20,
-            bottom: 5,
-          }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis
-            domain={yAxisDomain}
-            allowDataOverflow={true}
-            tick={{ fontSize: 12 }}
-          />
-          <Tooltip />
-          <Legend />
-          <Brush dataKey="name" height={30} stroke="#8884d8" />
-
-          {names.map((key, index) => (
-            <Line
-              key={key}
-              dataKey={key}
-              type="monotone"
-              stroke={lineColorDict[index % lineColorDict.length]}
-              strokeWidth={2}
-              activeDot={{ r: 8 }}
-            />
-          ))}
-
-          {/* Отображаем области stdev */}
-          {/* {stdevAreas} */}
-        </ComposedChart>
-      </ResponsiveContainer>
     </div>
   );
 };

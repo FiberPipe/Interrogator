@@ -25,6 +25,8 @@ const electron = {
     ipcRenderer.invoke("insertInput", key, value, path),
   selectFile: (): Promise<void> =>
     ipcRenderer.invoke("selectFile"),
+  getFilePaths: () => ipcRenderer.invoke('getFilePaths'),
+  setFilePaths: (filePaths: string[]) => ipcRenderer.invoke('setFilePaths', filePaths)
 };
 
 contextBridge.exposeInMainWorld("electron", electron);

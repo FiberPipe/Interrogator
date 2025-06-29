@@ -12,6 +12,13 @@ const DEFAULT_INPUTS_PATH = path.join(
   "inputs.json"
 );
 
+const DEFAULT_FILE_PATHS_PATH = path.join(
+  os.homedir(),
+  "Documents",
+  "Interrogator",
+  "file_paths.json"
+);
+
 const convertDataToJSON = (lastLines: string) => {
   if (!lastLines) return [];
 
@@ -55,8 +62,8 @@ async function createWindow() {
   if (env === "production") {
     await mainWindow.loadFile("build/index.html");
   } else {
-    // await mainWindow.loadURL("http://localhost:3000/");
-    await mainWindow.loadFile("build/index.html");
+    await mainWindow.loadURL("http://localhost:3000/");
+    // await mainWindow.loadFile("build/index.html");
   }
 
   ipcMain.handle("selectFile", async () => {
@@ -104,7 +111,7 @@ function readDataFileInputs<T extends Record<string, string> | string>(
   return defaultValue as T;
 }
 
-function writeDataFile(filePath: string, data: Record<string, string>): void {
+function writeDataFile(filePath: string, data: Record<string, any>): void {
   if (!fs.existsSync(filePath)) {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
   }
@@ -132,6 +139,17 @@ ipcMain.handle(
     writeDataFile(DEFAULT_INPUTS_PATH, data);
   }
 );
+
+ipcMain.handle("getFilePaths", async () => {
+  return readDataFileInputs(DEFAULT_FILE_PATHS_PATH, {});
+});
+
+ipcMain.handle("setFilePaths", async (_, filePaths) => {
+  const currentPaths = readDataFileInputs<Record<string, string>>(DEFAULT_FILE_PATHS_PATH, {});
+  const updatedPaths = { ...currentPaths, ...filePaths };
+  writeDataFile(DEFAULT_FILE_PATHS_PATH, updatedPaths);
+  return updatedPaths;
+});
 
 app.whenReady().then(async () => {
   let window = await createWindow();

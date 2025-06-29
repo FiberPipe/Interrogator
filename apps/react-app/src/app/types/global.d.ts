@@ -5,6 +5,15 @@ declare module "*.module.css" {
 
 export type Listener = (value: string) => void;
 
+export interface FilePaths {
+  sensorDataFilePath?: string;
+  [key: string]: string | undefined;
+}
+
+export interface TData {
+  [key: string]: any;
+}
+
 export declare global {
   interface Window {
     electron: {
@@ -14,6 +23,8 @@ export declare global {
       getInputs: () => Promise<{ [key: string]: string }>;
       insertInput: (key: string, value: string) => Promise<boolean>;
       selectFile: () => Promise<string>;
+      getFilePaths: () => Promise<FilePaths>;
+      setFilePaths: (filePaths: FilePaths) => Promise<FilePaths>;
     };
   }
 }

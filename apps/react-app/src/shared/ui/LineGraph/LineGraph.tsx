@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import { lineColorDict } from "./const";
 import { TTransformedData } from "../../types";
-import { Button, Input } from "@nextui-org/react";
+import { RangeControl } from "../../../entities/RangeControl";
 
 type Props = {
   names: string[] | number[];
@@ -90,8 +90,6 @@ export const LineGraph: React.FC<Props> = ({
 
   // Инициализируем состояния с безопасными начальными значениями
   const [yAxisDomain, setYAxisDomain] = useState<[number, number]>([0, 10]);
-  const [tempMin, setTempMin] = useState<number>(0);
-  const [tempMax, setTempMax] = useState<number>(10);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [startY, setStartY] = useState<number>(0);
   const [startDomain, setStartDomain] = useState<[number, number]>([0, 10]);
@@ -124,37 +122,15 @@ export const LineGraph: React.FC<Props> = ({
 
         // Устанавливаем все состояния за один раз
         setYAxisDomain([min, max]);
-        setTempMin(min);
-        setTempMax(max);
         setStartDomain([min, max]);
         setIsInitialized(true);
       }
     }
   }, [processedData, isInitialized]);
 
-  // Обработчик изменения минимального значения
-  const handleMinChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number.parseFloat(event.target.value);
-    if (!isNaN(value)) {
-      setTempMin(value);
-    }
-  };
-
-  // Обработчик изменения максимального значения
-  const handleMaxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number.parseFloat(event.target.value);
-    if (!isNaN(value)) {
-      setTempMax(value);
-    }
-  };
-
-  // Обработчик применения нового диапазона
-  const applyRange = () => {
-    if (tempMin < tempMax) {
-      setYAxisDomain([tempMin, tempMax]);
-    } else {
-      alert("Минимальное значение должно быть меньше максимального.");
-    }
+  // Обработчик применения нового диапазона из компонента RangeControl
+  const handleRangeChange = (min: number, max: number) => {
+    setYAxisDomain([min, max]);
   };
 
   useEffect(() => {
@@ -205,183 +181,153 @@ export const LineGraph: React.FC<Props> = ({
     }
   };
 
-  // Проверяем есть ли данные для отображения
   const hasData = renderedData.length > 0;
 
   return (
-    <div
-      ref={containerRef}
-      onWheel={handleWheel}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseMove={handleMouseMove}
-      style={{ width: "100%", height: "100%" }}
-    >
-      <div
-        style={{
-          width: 200,
-          display: "flex",
-          gap: 15,
-          justifyContent: "center",
-          alignItems: "center",
-          marginLeft: 100,
-          marginBottom: 20
-        }}
-      >
-        <div>
-          <Input
-            label="min"
-            value={isInitialized ? tempMin.toFixed(2) : "0.00"}
-            onChange={handleMinChange}
-            style={{ marginLeft: 5, width: 80 }}
-            type="text"
-          />
-        </div>
-        <div>
-          <Input
-            label="max"
-            value={isInitialized ? tempMax.toFixed(2) : "10.00"}
-            onChange={handleMaxChange}
-            style={{ marginLeft: 5, width: 80, marginTop: 10 }}
-            type="text"
-          />
-        </div>
-        <Button onClick={applyRange} color="primary" size="md" style={{ padding: 10 }}>
-          Применить
-        </Button>
+    <div className="flex flex-col h-full" style={{ width: "100%", height: "100%" }}>
+      <div className="flex mb-4">
+        <RangeControl
+          initialMin={yAxisDomain[0]}
+          initialMax={yAxisDomain[1]}
+          onRangeChange={handleRangeChange}
+          isInitialized={isInitialized}
+        />
       </div>
 
       {hasData ? (
-        <ResponsiveContainer width="100%" height="90%">
-          <ComposedChart
-            data={renderedData}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="name"
-              tick={{ fontSize: 12 }}
-              height={50}
-              angle={-30}
-              textAnchor="end"
-            />
-            <YAxis
-              domain={yAxisDomain}
-              tick={{ fontSize: 12 }}
-              allowDataOverflow={true}
-              width={80}
-            />
-            <Tooltip
-              formatter={(value) => typeof value === 'number' ? value.toFixed(4) : value}
-              contentStyle={{ fontWeight: 'bold' }}
-            />
-            <Legend
-              wrapperStyle={{ fontWeight: 'bold' }}
-            />
-            <Brush dataKey="name" height={30} stroke="#8884d8" />
-
-            {/* Основные линии данных - утолщенные */}
-            {names.map((key) => {
-              const stringKey = String(key);
-              return (
-                <Line
-                  key={`line-${stringKey}`}
-                  name={`Sensor ${stringKey}`}
-                  dataKey={stringKey}
-                  type="monotone"
-                  stroke={"#d62728"}
-                  strokeWidth={3.5} // Увеличена толщина линии
-                  activeDot={{ r: 10 }} // Увеличен размер активной точки
-                  dot={{ r: 4 }} // Увеличены стандартные точки
-                  connectNulls={true}
-                  isAnimationActive={false}
-                />
-              );
-            })}
-
-            {/* Ограничения макс - утолщенные */}
-            {names.map((key) => {
-              const stringKey = String(key);
-              return (
-                <Line
-                  key={`max-${getConstraintKey(key, "max")}`}
-                  name={`Max ${stringKey}`}
-                  dataKey={getConstraintKey(key, "max")}
-                  type="monotone"
-                  stroke={lineColorDict[Number(key) % lineColorDict.length]}
-                  strokeWidth={2.5} // Увеличена толщина линии
-                  strokeDasharray="10 5" // Более заметный пунктир
-                  connectNulls={true}
-                  isAnimationActive={false}
-                />
-              );
-            })}
-
-            {/* Ограничения мин - утолщенные */}
-            {names.map((key) => {
-              const stringKey = String(key);
-              return (
-                <Line
-                  key={`min-${getConstraintKey(key, "min")}`}
-                  name={`Min ${stringKey}`}
-                  dataKey={getConstraintKey(key, "min")}
-                  type="monotone"
-                  stroke={lineColorDict[Number(key) % lineColorDict.length]}
-                  strokeWidth={2.5} // Увеличена толщина линии
-                  strokeDasharray="10 5" // Более заметный пунктир
-                  connectNulls={true}
-                  isAnimationActive={false}
-                />
-              );
-            })}
-
-            {/* Средние значения - утолщенные */}
-            {names.map((key) => {
-              const stringKey = String(key);
-              return (
-                <Line
-                  key={`avg-${getAvgKey(key)}`}
-                  name={`Avg ${stringKey}`}
-                  dataKey={getAvgKey(key)}
-                  type="monotone"
-                  stroke={lineColorDict[Number(key) % lineColorDict.length]}
-                  strokeWidth={2.5} // Увеличена толщина линии
-                  strokeDasharray="10 5" // Более заметный пунктир
-                  connectNulls={true}
-                  isAnimationActive={false}
-                />
-              );
-            })}
-
-            {/* Референсные линии - утолщенные */}
-            {referenceValues.map((value, index) => (
-              <ReferenceLine
-                key={`ref-line-${index}`}
-                y={value}
-                stroke={"#1f77b4"}
-                strokeWidth={2} // Увеличена толщина линии
-                strokeDasharray="7 7" // Более заметный пунктир
-                label={{
-                  value: value.toFixed(3),
-                  position: 'insideRight',
-                  fill: "#1f77b4",
-                  fontSize: 14, // Увеличен размер шрифта
-                  fontWeight: 'bold'
-                }}
+        <div
+          ref={containerRef}
+          className="flex-grow"
+          onWheel={handleWheel}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          style={{ height: "90%" }}
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart
+              data={renderedData}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 12 }}
+                height={50}
+                angle={-30}
+                textAnchor="end"
               />
-            ))}
-          </ComposedChart>
-        </ResponsiveContainer>
+              <YAxis
+                domain={yAxisDomain}
+                tick={{ fontSize: 12 }}
+                allowDataOverflow={true}
+                width={80}
+              />
+              <Tooltip
+                formatter={(value) => typeof value === 'number' ? value.toFixed(4) : value}
+                contentStyle={{ fontWeight: 'bold' }}
+              />
+              <Legend
+                wrapperStyle={{ fontWeight: 'bold' }}
+              />
+              <Brush dataKey="name" height={30} stroke="#8884d8" />
+
+              {/* Основные линии данных - утолщенные */}
+              {names.map((key) => {
+                const stringKey = String(key);
+                return (
+                  <Line
+                    key={`line-${stringKey}`}
+                    name={`Sensor ${stringKey}`}
+                    dataKey={stringKey}
+                    type="monotone"
+                    stroke={"#d62728"}
+                    strokeWidth={3.5} // Увеличена толщина линии
+                    activeDot={{ r: 10 }} // Увеличен размер активной точки
+                    dot={{ r: 4 }} // Увеличены стандартные точки
+                    connectNulls={true}
+                    isAnimationActive={false}
+                  />
+                );
+              })}
+
+              {/* Ограничения макс - утолщенные */}
+              {names.map((key) => {
+                const stringKey = String(key);
+                return (
+                  <Line
+                    key={`max-${getConstraintKey(key, "max")}`}
+                    name={`Max ${stringKey}`}
+                    dataKey={getConstraintKey(key, "max")}
+                    type="monotone"
+                    stroke={lineColorDict[Number(key) % lineColorDict.length]}
+                    strokeWidth={2.5} // Увеличена толщина линии
+                    strokeDasharray="10 5" // Более заметный пунктир
+                    connectNulls={true}
+                    isAnimationActive={false}
+                  />
+                );
+              })}
+
+              {/* Ограничения мин - утолщенные */}
+              {names.map((key) => {
+                const stringKey = String(key);
+                return (
+                  <Line
+                    key={`min-${getConstraintKey(key, "min")}`}
+                    name={`Min ${stringKey}`}
+                    dataKey={getConstraintKey(key, "min")}
+                    type="monotone"
+                    stroke={lineColorDict[Number(key) % lineColorDict.length]}
+                    strokeWidth={2.5} // Увеличена толщина линии
+                    strokeDasharray="10 5" // Более заметный пунктир
+                    connectNulls={true}
+                    isAnimationActive={false}
+                  />
+                );
+              })}
+
+              {/* Средние значения - утолщенные */}
+              {names.map((key) => {
+                const stringKey = String(key);
+                return (
+                  <Line
+                    key={`avg-${getAvgKey(key)}`}
+                    name={`Avg ${stringKey}`}
+                    dataKey={getAvgKey(key)}
+                    type="monotone"
+                    stroke={lineColorDict[Number(key) % lineColorDict.length]}
+                    strokeWidth={2.5} // Увеличена толщина линии
+                    strokeDasharray="10 5" // Более заметный пунктир
+                    connectNulls={true}
+                    isAnimationActive={false}
+                  />
+                );
+              })}
+
+              {/* Референсные линии - утолщенные */}
+              {referenceValues.map((value, index) => (
+                <ReferenceLine
+                  key={`ref-line-${index}`}
+                  y={value}
+                  stroke={"#1f77b4"}
+                  strokeWidth={2} // Увеличена толщина линии
+                  strokeDasharray="7 7" // Более заметный пунктир
+                  label={{
+                    value: value.toFixed(3),
+                    position: 'insideRight',
+                    fill: "#1f77b4",
+                    fontSize: 14, // Увеличен размер шрифта
+                    fontWeight: 'bold'
+                  }}
+                />
+              ))}
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
       ) : (
-        <div style={{
-          height: "90%",
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          border: '1px solid #ccc',
-          fontWeight: 'bold',
-          fontSize: '16px'
-        }}>
+        <div className="flex items-center justify-center flex-grow">
           Нет данных для отображения
         </div>
       )}
