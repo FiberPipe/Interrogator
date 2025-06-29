@@ -1,9 +1,10 @@
-import { BrowserWindow, app, ipcMain, globalShortcut, dialog } from "electron";
+import { BrowserWindow, app, ipcMain, globalShortcut, dialog, IpcMainInvokeEvent } from "electron";
 import { join } from "node:path";
-import { ApiService } from "./api";
+import { spawn, ChildProcess } from "child_process";
 import * as fs from "fs";
 import * as path from "node:path";
 import * as os from "node:os";
+import { ApiService } from "./api";
 
 const DEFAULT_INPUTS_PATH = path.join(
   os.homedir(),
@@ -18,6 +19,76 @@ const DEFAULT_FILE_PATHS_PATH = path.join(
   "Interrogator",
   "file_paths.json"
 );
+
+function getPythonCommand(): string {
+  // Для Windows попробуем разные варианты
+  if (process.platform === 'win32') {
+    const pythonCommands = ['python', 'python3', 'py'];
+    
+    for (const cmd of pythonCommands) {
+      try {
+        const result = require('child_process').execSync(`${cmd} --version`, { encoding: 'utf8' });
+        if (result.includes('Python')) {
+          return cmd;
+        }
+      } catch (e) {
+        // Продолжаем поиск
+      }
+    }
+  } else {
+    // Для Unix-подобных систем
+    const pythonCommands = ['python3', 'python'];
+    
+    for (const cmd of pythonCommands) {
+      try {
+        const result = require('child_process').execSync(`which ${cmd}`, { encoding: 'utf8' });
+        if (result) {
+          return cmd;
+        }
+      } catch (e) {
+        // Продолжаем поиск
+      }
+    }
+  }
+  
+  return 'python'; // Значение по умолчанию
+}
+
+ipcMain.handle("killScript", async (
+  event: IpcMainInvokeEvent, 
+  pid: number
+): Promise<boolean> => {
+  const process: ChildProcess | undefined = runningScripts.get(pid);
+  
+  if (process && !process.killed) {
+    process.kill('SIGTERM'); // Можно указать сигнал явно
+    runningScripts.delete(pid);
+    return true;
+  }
+  
+  return false;
+});
+
+interface ScriptOutputData {
+  pid: number;
+  output: string;
+}
+
+interface ScriptErrorData {
+  pid: number;
+  error: string;
+}
+
+interface ScriptExitData {
+  pid: number;
+  code: number | null;
+}
+
+interface RunScriptResult {
+  pid: number;
+}
+
+const runningScripts = new Map<number, ChildProcess>();
 
 const convertDataToJSON = (lastLines: string) => {
   if (!lastLines) return [];
@@ -169,3 +240,124 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
+
+ipcMain.handle("runPythonScript", async (
+  event: IpcMainInvokeEvent, 
+  scriptPath: string, 
+  args: string[] = []
+): Promise<RunScriptResult> => {
+  try {
+    // Проверяем существование файла
+    if (!fs.existsSync(scriptPath)) {
+      throw new Error(`Script file not found: ${scriptPath}`);
+    }
+
+    // Получаем правильную команду Python
+    const pythonCmd = getPythonCommand();
+    console.log(`Using Python command: ${pythonCmd}`);
+
+    // Опции для spawn
+    const spawnOptions = {
+      shell: process.platform === 'win32', // Используем shell на Windows
+      env: { ...process.env }, // Передаем переменные окружения
+    };
+
+    // Запускаем Python скрипт
+    const pythonProcess: ChildProcess = spawn(pythonCmd, [scriptPath, ...args], spawnOptions);
+    
+    // Ждем немного для получения PID
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    const pid: number | undefined = pythonProcess.pid;
+
+    if (!pid) {
+      throw new Error("Failed to start Python script - no PID received");
+    }
+
+    console.log(`Started Python script with PID: ${pid}`);
+
+    // Сохраняем процесс для отслеживания
+    runningScripts.set(pid, pythonProcess);
+
+    // Отправляем output в renderer процесс
+    if (pythonProcess.stdout) {
+      pythonProcess.stdout.on("data", (data: Buffer) => {
+        const outputData: ScriptOutputData = { 
+          pid, 
+          output: data.toString() 
+        };
+        console.log(`Script output: ${data.toString().trim()}`);
+        event.sender.send("script-output", outputData);
+      });
+    }
+
+    // Отправляем ошибки в renderer процесс
+    if (pythonProcess.stderr) {
+      pythonProcess.stderr.on("data", (data: Buffer) => {
+        const errorData: ScriptErrorData = { 
+          pid, 
+          error: data.toString() 
+        };
+        console.error(`Script error: ${data.toString().trim()}`);
+        event.sender.send("script-error", errorData);
+      });
+    }
+
+    // Обрабатываем завершение процесса
+    pythonProcess.on("exit", (code: number | null) => {
+      console.log(`Script exited with code: ${code}`);
+      runningScripts.delete(pid);
+      const exitData: ScriptExitData = { 
+        pid, 
+        code: code ?? -1 
+      };
+      event.sender.send("script-exit", exitData);
+    });
+
+    // Обрабатываем ошибки процесса
+    pythonProcess.on("error", (error: Error) => {
+      console.error(`Process error: ${error.message}`);
+      runningScripts.delete(pid);
+      const errorData: ScriptErrorData = { 
+        pid, 
+        error: `Process error: ${error.message}` 
+      };
+      event.sender.send("script-error", errorData);
+    });
+
+    return { pid };
+  } catch (error) {
+    console.error('Failed to run Python script:', error);
+    if (error instanceof Error) {
+      throw new Error(`Failed to run Python script: ${error.message}`);
+    }
+    throw new Error("Unknown error occurred while running Python script");
+  }
+});
+
+// Добавим диагностический метод
+ipcMain.handle("checkPython", async (): Promise<{ available: boolean; version?: string; command?: string }> => {
+  try {
+    const pythonCmd = getPythonCommand();
+    const result = require('child_process').execSync(`${pythonCmd} --version`, { encoding: 'utf8' });
+    
+    return {
+      available: true,
+      version: result.trim(),
+      command: pythonCmd
+    };
+  } catch (error) {
+    return {
+      available: false
+    };
+  }
+});
+
+
+// Опциональные вспомогательные типы для экспорта
+export type {
+  ScriptOutputData,
+  ScriptErrorData,
+  ScriptExitData,
+  RunScriptResult,
+};

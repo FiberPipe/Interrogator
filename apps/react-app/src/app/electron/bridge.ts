@@ -3,6 +3,34 @@ import { Listener } from "../types/global";
 
 const { ipcRenderer, contextBridge } = require("electron");
 
+interface ScriptOutputData {
+  pid: number;
+  output: string;
+}
+
+interface ScriptErrorData {
+  pid: number;
+  error: string;
+}
+
+interface ScriptExitData {
+  pid: number;
+  code: number;
+}
+
+interface RunScriptResult {
+  pid: number;
+}
+
+interface ScriptStatus {
+  isRunning: boolean;
+  pid?: number;
+}
+
+type ScriptOutputCallback = (data: ScriptOutputData) => void;
+type ScriptErrorCallback = (data: ScriptErrorData) => void;
+type ScriptExitCallback = (data: ScriptExitData) => void;
+
 const electron = {
   send: (channel: string, text: string) => {
     ipcRenderer.send(channel, text);
@@ -26,7 +54,32 @@ const electron = {
   selectFile: (): Promise<void> =>
     ipcRenderer.invoke("selectFile"),
   getFilePaths: () => ipcRenderer.invoke('getFilePaths'),
-  setFilePaths: (filePaths: string[]) => ipcRenderer.invoke('setFilePaths', filePaths)
+  setFilePaths: (filePaths: string[]) => ipcRenderer.invoke('setFilePaths', filePaths),
+
+  runPythonScript: (scriptPath: string, args?: string[]): Promise<RunScriptResult> =>
+    ipcRenderer.invoke('runPythonScript', scriptPath, args),
+
+  getScriptStatus: (pid: number): Promise<ScriptStatus> =>
+    ipcRenderer.invoke('getScriptStatus', pid),
+
+  killScript: (pid: number): Promise<boolean> =>
+    ipcRenderer.invoke('killScript', pid),
+
+  // Подписка на события скриптов
+  onScriptOutput: (callback: ScriptOutputCallback): void => {
+    ipcRenderer.on('script-output', (event: IpcRendererEvent, data: ScriptOutputData) => callback(data));
+  },
+
+  onScriptError: (callback: ScriptErrorCallback): void => {
+    ipcRenderer.on('script-error', (event: IpcRendererEvent, data: ScriptErrorData) => callback(data));
+  },
+
+  onScriptExit: (callback: ScriptExitCallback): void => {
+    ipcRenderer.on('script-exit', (event: IpcRendererEvent, data: ScriptExitData) => callback(data));
+  },
+
+  checkPython: () => ipcRenderer.invoke('checkPython')
+
 };
 
 contextBridge.exposeInMainWorld("electron", electron);
