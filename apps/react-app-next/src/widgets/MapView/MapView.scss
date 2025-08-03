@@ -1,0 +1,26 @@
+.map-container {
+    width: 100%;
+
+    &__map-view {
+        flex: 1;
+        width: 100%;
+    }
+
+
+}
+
+.leaflet-container .leaflet-control-attribution .leaflet-attribution-flag {
+
+    width: 1em !important;
+    height: .6669em !important;
+    vertical-align: baseline !important;
+    display: inline-block !important;
+
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 6"><rect width="9" height="2" fill="white"/><rect width="9" height="2" y="2" fill="blue"/><rect width="9" height="2" y="4" fill="red"/></svg>') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+
+    color: transparent !important;
+    font-size: 0 !important;
+}

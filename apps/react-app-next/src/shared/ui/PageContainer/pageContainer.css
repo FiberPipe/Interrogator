@@ -1,0 +1,6 @@
+.page-container {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  width: 100%;
+}
