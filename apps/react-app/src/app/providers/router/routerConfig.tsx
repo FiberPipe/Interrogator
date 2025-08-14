@@ -8,6 +8,7 @@ import {
 } from "../../../pages";
 import WavelengthDisplacementChart from "../../../pages/Displacement/Displacement";
 import { Scripts } from "../../../pages/Scripts/Scripts";
+import { LightManagement } from "../../../pages/LightManagement/LightManagement";
 
 type CustomRouteProps = {
   indexPage?: JSX.Element;
@@ -28,6 +29,7 @@ export const routerConfig: Array<RouteCustomProps> = [
   },
   { path: "/charts", element: <ChartsPage />, caseSensitive: false },
   { path: "/power", element: <Power />, caseSensitive: false },
+  { path: "/light-management", element: <LightManagement />, caseSensitive: false },
   { path: "/displacement", element: <WavelengthDisplacementChart />, caseSensitive: false },
   { path: "/scripts", element: <Scripts/>, caseSensitive: false },
   { path: "/settings", element: <Settings />, caseSensitive: false },
