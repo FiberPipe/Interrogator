@@ -21,12 +21,19 @@ export type DBStatus = 'loading' | 'connect' | 'disconnect';
 export const useDbConnection = () => {
     const [dbStatus, setDbStatus] = useState<DbConnectionStatus>(DEFAULT_DB_CONNECTION_STATUS);
 
-    const connect = useCallback(() => {
+    const connect = useCallback((formData: FormData) => {
         setDbStatus({ ...dbStatus, loading: true, error: null });
+
+        const host = formData.get('Хост');
+        const port = formData.get('port');
+        const db = formData.get('database');
+        const username = formData.get('username');
+        const password = formData.get('password');
 
         // Имитация подключения к БД
         setTimeout(() => {
-            alert(1);
+            alert([host, port, db, username, password]);
+
             // if (!formValues.host || !formValues.database || !formValues.username) {
             //     setDbStatus({
             //         connected: false,
@@ -38,11 +45,11 @@ export const useDbConnection = () => {
 
             setDbStatus({ connected: true, loading: false, error: null });
         }, 1500);
-    }, []);
+    }, [dbStatus, setDbStatus]);
 
     const disconnect = useCallback(() => {
         setDbStatus({ connected: false, loading: false, error: null });
-    }, []);
+    }, [dbStatus, setDbStatus]);
 
     return { status, connect, disconnect };
 }

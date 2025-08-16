@@ -2,15 +2,23 @@
   "name": "react-app-next",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
+  "main": "build/src/app/electron/main.js",
   "scripts": {
     "build": "rsbuild build",
-    "dev": "rsbuild dev --open",
-    "preview": "rsbuild preview"
+    "preview": "rsbuild preview",
+    "dev:react": "rsbuild dev --port 3000",
+    "dev:web": "npm run dev:react -- --open",
+    "dev:electron": "concurrently \"pnpm dev:react\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ -w\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ && electron .\"",
+    "prod:electron": "cross-env PRODUCTION=true pnpm dev:electron",
+    "dev": "npm run dev:web",
+    "build:web": "rsbuild build",
+    "build:electron": "npm run build:web && tsc -p ./src/app/electron/ && electron-builder",
+    "build:prod:electron": "cross-env PRODUCTION=true npm run build:web && tsc -p ./src/app/electron/ && electron-builder"
   },
   "dependencies": {
     "@gravity-ui/uikit": "7.18.0",
     "@rsbuild/plugin-sass": "1.3.3",
+    "electron": "31.3.0",
     "leaflet": "1.9.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -27,7 +35,12 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "bem-cn-lite": "4.1.0",
+    "concurrently": "8.2.2",
+    "cross-env": "10.0.0",
+    "electron-icon-maker": "0.0.5",
     "react-router-dom": "^6.25.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "wait-on": "7.2.0",
+    "zustand": "4.5.4"
   }
 }

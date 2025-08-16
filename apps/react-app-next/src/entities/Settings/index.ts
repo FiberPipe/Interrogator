@@ -1,4 +1,4 @@
 export * from './SettingsHeader';
 export * from './DbSettingsLabel';
 export * from './SettingsBlock';
-export * from './DbSettingsForm';
+export * from '../../shared/ui/Form';

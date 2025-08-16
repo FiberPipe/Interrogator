@@ -1,10 +1,10 @@
-import { Flex, TextInput, Switch, Text, Checkbox, Button, Icon, SegmentedRadioGroup } from "@gravity-ui/uikit"
-import { useRef, useState } from "react";
+import { Flex, Switch, Checkbox, Button, Icon } from "@gravity-ui/uikit"
+import { useState } from "react";
 import { UniversalChart } from "../LineChart";
 import block from 'bem-cn-lite';
 import './ChartControls.scss';
-import type { ChartInputData } from "@widgets/ChartsView/utils";
-import { ChartLine, LayoutCells, TrashBin } from "@gravity-ui/icons";
+import type { ChartInputData } from "@pages/Monitoring/ChartsPage/utils";
+import { TrashBin } from "@gravity-ui/icons";
 
 const b = block('chart-controls');
 

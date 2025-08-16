@@ -3,7 +3,7 @@ import { ResponsiveContainer, ComposedChart, CartesianGrid, XAxis, YAxis, Legend
 import block from 'bem-cn-lite';
 import './LineChart.scss';
 import { ConfidenceRange } from "./ConfidenceRange";
-import type { ChartData, ChartType } from "@widgets/ChartsView/utils";
+import type { ChartData, ChartType } from "@pages/Monitoring/ChartsPage/utils";
 
 const b = block('universal-line-chart');
 

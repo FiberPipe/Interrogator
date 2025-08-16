@@ -1,13 +1,5 @@
-export type ChartType = 'Acquisition' | 'Power' | 'Displacement' | 'Temperature';
-export type ChartData = {
-    time: string;
-    value: number;
-}
+import { ChartType, ChartInputData } from "@shared/types/charts";
 
-export type ChartInputData = {
-    data: ChartData[];
-    unit: ChartType;
-}
 
 
 export const generateData = (type: ChartType): ChartInputData => {

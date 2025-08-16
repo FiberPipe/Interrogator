@@ -1,7 +1,7 @@
-import { ConnectionSettings, MainSettings, Monitoring, Settings } from "@pages/index";
+import { ChartsPage, Monitoring, Settings } from "@pages/index";
 import { RootLayout } from "./RootLayout";
 import type { RouteObject } from "react-router-dom";
-import { ChartsView, GraphView, MapView } from "@widgets/index";
+import { GraphView, MapView } from "@widgets/index";
 
 export const routerConfig: RouteObject[] = [
   {
@@ -26,7 +26,7 @@ export const routerConfig: RouteObject[] = [
           },
           {
             path: "charts",
-            element: <ChartsView />,
+            element: <ChartsPage />,
           }
         ],
       },

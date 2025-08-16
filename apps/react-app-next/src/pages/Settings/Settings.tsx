@@ -4,7 +4,8 @@ import {
 } from '@gravity-ui/uikit';
 import block from 'bem-cn-lite';
 import './Settings.scss';
-import { ConnectionSettings } from './ConnectionSettings';
+import { MainSettings, ConnectionSettings } from '@widgets/index';
+import { SettingsBlock } from '@entities/Settings';
 
 const b = block('settings-page');
 
@@ -22,11 +23,18 @@ export const Settings = () => {
         },
     ];
 
+    const SETTINGS_BLOCKS = [
+        // { key: 'Основные', children: <MainSettings /> },
+        { key: 'Подключение к источнику данных', children: <ConnectionSettings /> },
+    ];
     return (
         <Flex className={b()} direction="row" gap={3}>
-            {/* <SettingsHeader /> */}
             <Flex overflow='auto' width="max" className={b('settings')}>
-                <ConnectionSettings />
+                {SETTINGS_BLOCKS.map(({ key, children }) =>
+                    <SettingsBlock header={key} key={key}>
+                        {children}
+                    </SettingsBlock>
+                )}
             </Flex>
 
             <Toc items={TOC_ITEMS} />
