@@ -1,10 +1,10 @@
-import { Flex, TextInput, Switch, Text, Checkbox, Button, Icon } from "@gravity-ui/uikit"
+import { Flex, TextInput, Switch, Text, Checkbox, Button, Icon, SegmentedRadioGroup } from "@gravity-ui/uikit"
 import { useRef, useState } from "react";
 import { UniversalChart } from "../LineChart";
 import block from 'bem-cn-lite';
 import './ChartControls.scss';
 import type { ChartInputData } from "@widgets/ChartsView/utils";
-import { TrashBin } from "@gravity-ui/icons";
+import { ChartLine, LayoutCells, TrashBin } from "@gravity-ui/icons";
 
 const b = block('chart-controls');
 
@@ -36,11 +36,10 @@ export const ChartControls = ({ chartData }: ChartControlsProps) => {
                 </Flex>
             </Flex>
             <Flex className={b('chart-container')}>
-                <UniversalChart data={chartData.data}/>
+                <UniversalChart data={chartData.data} />
             </Flex>
             <Flex gap="1" alignItems="center" className={b('chart-controls-container')}>
-                <Switch checked={autoScale} onChange={() => setAutoScale(!autoScale)} content="Auto Scale"/>
-                
+                <Switch checked={autoScale} onChange={() => setAutoScale(!autoScale)} content="Auto Scale" />
             </Flex>
 
         </div>

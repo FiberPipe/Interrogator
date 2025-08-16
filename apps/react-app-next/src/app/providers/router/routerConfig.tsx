@@ -1,4 +1,4 @@
-import { Monitoring, Settings } from "@pages/index";
+import { ConnectionSettings, MainSettings, Monitoring, Settings } from "@pages/index";
 import { RootLayout } from "./RootLayout";
 import type { RouteObject } from "react-router-dom";
 import { ChartsView, GraphView, MapView } from "@widgets/index";
@@ -8,11 +8,6 @@ export const routerConfig: RouteObject[] = [
     path: "/",
     element: <RootLayout />,
     children: [
-      {
-        path: "settings",
-        index: true,
-        element: <Settings />,
-      },
       {
         path: "monitoring",
         element: <Monitoring />,
@@ -34,6 +29,24 @@ export const routerConfig: RouteObject[] = [
             element: <ChartsView />,
           }
         ],
+      },
+      {
+        path: "settings",
+        element: <Settings />,
+        // children: [
+        //   {
+        //     index: true,
+        //     element: <MainSettings />,
+        //   },
+        //   {
+        //     path: "main",
+        //     element: <MainSettings />,
+        //   },
+        //   {
+        //     path: "connection",
+        //     element: <ConnectionSettings />,
+        //   },
+        // ]
       },
       {
         path: "*",

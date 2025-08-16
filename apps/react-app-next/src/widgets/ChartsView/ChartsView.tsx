@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import {
     Flex,
+    Icon,
     SegmentedRadioGroup,
 } from "@gravity-ui/uikit";
 import block from 'bem-cn-lite';
 import './ChartsView.scss';
 import { ChartControls } from '@entities/Charts/ChartControls/ChartControls';
 import { generateData, type ChartInputData, type ChartType } from './utils';
+import { LayoutCells, ChartLine } from '@gravity-ui/icons';
+import { DataFilters } from '@shared/ui/DataFilter/DataFilter';
 
 const b = block('charts-view');
 
@@ -26,13 +29,26 @@ export const ChartsView = () => {
         setChartData(newData);
     }, [selectedType]);
 
+    const options2 = [
+        <SegmentedRadioGroup.Option key="Table" value="Table">
+            <Icon data={LayoutCells} size={16} />
+            Table
+        </SegmentedRadioGroup.Option>,
+        <SegmentedRadioGroup.Option key="Graph" value="Graph">
+            <Icon data={ChartLine} size={16} />
+            Graph
+        </SegmentedRadioGroup.Option>,
+    ];
+
+
+
     return (
         <Flex direction="column" className={b()} gap={3}>
             <Flex>
                 <SegmentedRadioGroup
                     name="chartType"
                     value={selectedType}
-                    onChange={(e) => {setSelectedType(e.target.value as ChartType);}}
+                    onChange={(e) => { setSelectedType(e.target.value as ChartType); }}
                     size="m"
                     width='auto'
                 >
@@ -40,7 +56,10 @@ export const ChartsView = () => {
                 </SegmentedRadioGroup>
             </Flex>
 
-            {/* <DataFilters /> */}
+            <Flex>
+                <SegmentedRadioGroup name="View" defaultValue="Graph" size="s">{options2}</SegmentedRadioGroup>
+            </Flex>
+
 
             <ChartControls type={selectedType} chartData={chartData} />
         </Flex>
