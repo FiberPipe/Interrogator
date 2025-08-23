@@ -3,6 +3,7 @@ import { RootLayout } from "./RootLayout";
 import type { RouteObject } from "react-router-dom";
 import { GraphView, MapView } from "@widgets/index";
 import { RouterErrorFallback } from "../AppErrorBoundary";
+import { LogsPage } from "@pages/Logger/Logger";
 
 export const routerConfig: RouteObject[] = [
   {
@@ -49,6 +50,10 @@ export const routerConfig: RouteObject[] = [
       {
         path: "settings",
         element: <Settings />,
+      },
+      {
+        path: "logs",
+        element: <LogsPage/>,
       },
       {
         path: "interrogator-settings",

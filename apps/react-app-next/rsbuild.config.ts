@@ -29,5 +29,11 @@ export default defineConfig({
     distPath: {
       root: "./build",
     },
+    copy: [
+      {
+        from: "src/shared/assets/tiles",
+        to: "tiles", 
+      },
+    ]
   },
 });

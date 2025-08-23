@@ -28,7 +28,6 @@ export const FileConnection = () => {
         });
     };
 
-    throw new Error("💥 Искусственная ошибка для теста ErrorBoundary!");
     return (
         <Flex direction={"column"} gap={2} className={b()}>
             <Flex gap={2} direction="row">

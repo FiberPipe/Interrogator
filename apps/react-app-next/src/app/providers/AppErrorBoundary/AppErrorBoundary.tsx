@@ -5,6 +5,7 @@ import { useNavigate, useRouteError, isRouteErrorResponse } from "react-router-d
 
 import "./AppErrorBoundary.scss";
 import block from "bem-cn-lite";
+import { logError } from "@shared/utils/logs";
 
 const b = block("app-error-boundary");
 
@@ -13,9 +14,6 @@ type ErrorBoundaryState = {
     error?: Error;
 };
 
-/**
- * Универсальный ErrorBoundary для любых React-компонентов
- */
 export class AppErrorBoundary extends React.Component<
     { children?: React.ReactNode },
     ErrorBoundaryState
@@ -31,6 +29,13 @@ export class AppErrorBoundary extends React.Component<
 
     componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
         console.error("Ошибка в приложении:", error, errorInfo);
+
+        // Используем utils logger
+        logError("React ErrorBoundary", {
+            message: error.message,
+            stack: error.stack,
+            componentStack: errorInfo.componentStack,
+        });
     }
 
     handleReload = () => {
@@ -45,9 +50,6 @@ export class AppErrorBoundary extends React.Component<
     }
 }
 
-/**
- * Общий UI для отображения ошибок
- */
 const ErrorFallback: React.FC<{ onReload: () => void; error?: Error }> = ({
     onReload,
     error,
@@ -63,18 +65,18 @@ const ErrorFallback: React.FC<{ onReload: () => void; error?: Error }> = ({
             gap={4}
             className={b()}
         >
-            <Icon data={TriangleExclamation} size={64} className={b('icon')} />
+            <Icon data={TriangleExclamation} size={64} className={b("icon")} />
 
-            <Text variant="display-2">
-                Упс! Что-то пошло не так
-            </Text>
+            <Text variant="display-2">Упс! Что-то пошло не так</Text>
 
             <Text variant="body-2" color="secondary" style={{ maxWidth: 500 }}>
                 {error?.message ||
                     "Произошла непредвиденная ошибка. Попробуйте обновить страницу."}
             </Text>
 
-            <pre className={b("pre-error")}>{error?.stack}</pre>
+            {showDetails && (
+                <pre className={b("pre-error")}>{error?.stack}</pre>
+            )}
 
             <Flex gap={2}>
                 <Button size="l" view="action" onClick={onReload}>
@@ -83,14 +85,18 @@ const ErrorFallback: React.FC<{ onReload: () => void; error?: Error }> = ({
                 <Button size="l" view="outlined" onClick={() => navigate("/")}>
                     На главную
                 </Button>
+                <Button
+                    size="l"
+                    view="outlined"
+                    onClick={() => setShowDetails((s) => !s)}
+                >
+                    {showDetails ? "Скрыть детали" : "Показать детали"}
+                </Button>
             </Flex>
         </Flex>
     );
 };
 
-/**
- * Фоллбек для маршрутизатора react-router (используется в errorElement)
- */
 export const RouterErrorFallback: React.FC = () => {
     const error = useRouteError();
     let message = "Произошла ошибка при загрузке страницы.";
@@ -101,5 +107,16 @@ export const RouterErrorFallback: React.FC = () => {
         message = error.message;
     }
 
-    return <ErrorFallback onReload={() => window.location.reload()} error={error instanceof Error ? error : new Error(message)} />;
+    // Логируем через utils
+    logError("RouterErrorFallback", {
+        message,
+        stack: error instanceof Error ? error.stack : undefined,
+    });
+
+    return (
+        <ErrorFallback
+            onReload={() => window.location.reload()}
+            error={error instanceof Error ? error : new Error(message)}
+        />
+    );
 };

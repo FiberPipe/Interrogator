@@ -1,5 +1,5 @@
 import { Text } from '@gravity-ui/uikit';
-import { AntennaSignal, ChartBar, Display, Gear, SquareDashedText } from '@gravity-ui/icons';
+import { AntennaSignal, Bell, ChartBar, Display, Gear, SquareDashedText } from '@gravity-ui/icons';
 import { AsideHeader } from '@gravity-ui/navigation';
 import Logo from '@shared/assets/blue_logo_short.svg?url';
 import block from "bem-cn-lite";
@@ -56,9 +56,13 @@ export const AppAsideHeader = () => {
           icon: Gear,
           onItemClick: () => { navigate('/settings') },
         },
+        {
+          id: "logs",
+          title: <Text>Логи</Text>,
+          icon: Bell,
+          onItemClick: () => { navigate('/logs') },
+        },
       ]}
-
-
     />
   )
 }

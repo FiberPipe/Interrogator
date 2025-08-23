@@ -1,12 +1,12 @@
-import { useEffect, useRef } from 'react';
-import { Flex } from '@gravity-ui/uikit';
-import L from 'leaflet';
-import block from 'bem-cn-lite';
-import 'leaflet/dist/leaflet.css';
+import { useEffect, useRef } from "react";
+import { Flex } from "@gravity-ui/uikit";
+import L from "leaflet";
+import block from "bem-cn-lite";
+import "leaflet/dist/leaflet.css";
 
-import './MapView.scss';
+import "./MapView.scss";
 
-const b = block('map-container');
+const b = block("map-container");
 
 export const MapView = () => {
     const mapRef = useRef<HTMLDivElement>(null);
@@ -14,14 +14,20 @@ export const MapView = () => {
     useEffect(() => {
         if (!mapRef.current) return;
 
-        const map = L.map(mapRef.current).setView([55.7558, 37.6173], 10);
+        const map = L.map(mapRef.current, {
+            center: [55.7558, 37.6173],
+            zoom: 10,
+            minZoom: 10,
+            maxZoom: 13,
+        });
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19
+        L.tileLayer("tiles/{z}/{x}/{y}.png", {
+            attribution: "Offline tiles",
+            minZoom: 10,
+            maxZoom: 13,
+            errorTileUrl: "tiles/placeholder.png", // запасной тайл
         }).addTo(map);
 
-        // Очистка при размонтировании
         return () => {
             map.remove();
         };
@@ -29,7 +35,7 @@ export const MapView = () => {
 
     return (
         <Flex direction="column" className={b()}>
-            <div ref={mapRef} className={b('map-view')}></div>
+            <div ref={mapRef} className={b("map-view")}></div>
         </Flex>
     );
 };
