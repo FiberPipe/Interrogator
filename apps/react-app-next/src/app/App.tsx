@@ -4,6 +4,7 @@ import '@gravity-ui/uikit/styles/fonts.css';
 import '@gravity-ui/uikit/styles/styles.css';
 import './styles/App.css';
 import { AppRouter } from "./providers/router/AppRouter";
+import { AppErrorBoundary } from "./providers/AppErrorBoundary";
 
 const App = () => {
   useEffect(() => {
@@ -14,7 +15,9 @@ const App = () => {
 
   return (
     <ThemeProvider theme="light">
-      <AppRouter />
+      <AppErrorBoundary>
+        <AppRouter />
+      </AppErrorBoundary>
     </ThemeProvider>
   );
 };

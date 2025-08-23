@@ -21,12 +21,6 @@ export const Monitoring = () => {
                     icon: GraphNode,
                     onItemClick: () => { navigate('/monitoring/graphs') },
                 },
-                {
-                    id: "charts",
-                    title: <Text>Графики</Text>,
-                    icon: ChartBar,
-                    onItemClick: () => { navigate('/monitoring/charts') },
-                },
             ]} />
             <Outlet />
         </Flex>

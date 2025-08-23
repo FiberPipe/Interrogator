@@ -1,5 +1,5 @@
 import { Text } from '@gravity-ui/uikit';
-import { AntennaSignal, Display, Gear, SquareDashedText } from '@gravity-ui/icons';
+import { AntennaSignal, ChartBar, Display, Gear, SquareDashedText } from '@gravity-ui/icons';
 import { AsideHeader } from '@gravity-ui/navigation';
 import Logo from '@shared/assets/blue_logo_short.svg?url';
 import block from "bem-cn-lite";
@@ -36,13 +36,19 @@ export const AppAsideHeader = () => {
           id: "interrogator-setings",
           title: <Text>Настройка интеррогатора</Text>,
           icon: AntennaSignal,
-          onItemClick: () => { },
+          onItemClick: () => { navigate('/interrogator-settings') },
         },
         {
           id: "dashboard",
           title: <Text>Дашборды</Text>,
           icon: SquareDashedText,
           onItemClick: () => { },
+        },
+        {
+          id: "charts",
+          title: <Text>Графики</Text>,
+          icon: ChartBar,
+          onItemClick: () => { navigate('/charts/acqusition') },
         },
         {
           id: "settings",

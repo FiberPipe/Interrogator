@@ -1,0 +1,13 @@
+.light-management-widget {
+    display: grid;
+    grid-row: 2fr 1fr;
+    grid-column: 1fr 1fr 1fr 1fr;
+    height: 100%;
+    width: 100%;
+    padding: var(--g-spacing-2) 0;
+    gap: var(--g-spacing-2);
+
+    &__light-manager-card {
+        padding: var(--g-spacing-3);
+    }
+}

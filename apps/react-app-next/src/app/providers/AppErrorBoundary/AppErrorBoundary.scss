@@ -1,0 +1,23 @@
+.app-error-boundary {
+    height: 100vh;
+    width: 100vw;
+    text-align: center;
+
+    &__text {
+        max-width: 800px;
+    }
+
+    &__pre-error {
+        margin-top: var(--g-spacing-4);
+        max-width: 800px;
+        overflow-x: auto;
+        padding: var(--g-spacing-3);
+        border-radius: var(--g-spacing-2);
+        text-align: left;
+        font-size: 14px;
+        line-height: 1.4;
+        white-space: pre-wrap;
+        word-break: break-word;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1),
+    }
+}

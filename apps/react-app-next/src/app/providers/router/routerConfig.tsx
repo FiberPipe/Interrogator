@@ -1,12 +1,14 @@
-import { ChartsPage, Monitoring, Settings } from "@pages/index";
+import { ChartsPage, InterrogatorSettings, Monitoring, NotFoundPage, Settings } from "@pages/index";
 import { RootLayout } from "./RootLayout";
 import type { RouteObject } from "react-router-dom";
 import { GraphView, MapView } from "@widgets/index";
+import { RouterErrorFallback } from "../AppErrorBoundary";
 
 export const routerConfig: RouteObject[] = [
   {
     path: "/",
     element: <RootLayout />,
+    errorElement: <RouterErrorFallback />,
     children: [
       {
         path: "monitoring",
@@ -24,33 +26,37 @@ export const routerConfig: RouteObject[] = [
             path: "graphs",
             element: <GraphView />,
           },
+        ],
+      },
+      {
+        path: "charts",
+        element: <ChartsPage />,
+        children: [
           {
-            path: "charts",
-            element: <ChartsPage />,
-          }
+            index: true,
+            element: <MapView />,
+          },
+          {
+            path: "map",
+            element: <MapView />,
+          },
+          {
+            path: "graphs",
+            element: <GraphView />,
+          },
         ],
       },
       {
         path: "settings",
         element: <Settings />,
-        // children: [
-        //   {
-        //     index: true,
-        //     element: <MainSettings />,
-        //   },
-        //   {
-        //     path: "main",
-        //     element: <MainSettings />,
-        //   },
-        //   {
-        //     path: "connection",
-        //     element: <ConnectionSettings />,
-        //   },
-        // ]
+      },
+      {
+        path: "interrogator-settings",
+        element: <InterrogatorSettings />,
       },
       {
         path: "*",
-        element: <h1>Not found</h1>,
+        element: <NotFoundPage />,
       },
     ],
   },
