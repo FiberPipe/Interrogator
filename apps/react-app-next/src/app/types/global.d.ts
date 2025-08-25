@@ -3,11 +3,26 @@ export interface FilePaths {
   [key: string]: string | undefined;
 }
 
+export interface UserSettings {
+  theme: "light" | "dark";
+  language: "ru" | "en";
+}
+
+export interface GrpcApi {
+  listBdiModules: () => Promise<any[]>;
+  listDrivers: () => Promise<any[]>;
+  listTestSources: () => Promise<any[]>;
+}
+
+
 export declare global {
   interface Window {
     electron: {
+      // базовые методы
       send: (channel: string, text: string) => void;
       subscribe: (channel: string, listener: Listener) => void;
+
+      // работа с файлами
       selectFile: () => Promise<string>;
       getSensorsData: (path: string) => Promise<ChartInputData[]>;
       getFilePaths: () => Promise<FilePaths>;
@@ -22,6 +37,8 @@ export declare global {
       getFiles: () => Promise<LogFile[]>;
       readFile: (fileName: string) => Promise<string>;
     };
+
+    grpc: GrpcApi
   }
 }
 

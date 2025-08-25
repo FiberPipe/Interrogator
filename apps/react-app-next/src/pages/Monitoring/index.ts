@@ -1,2 +1,2 @@
 export * from './Monitoring';
-export * from './ChartsPage';
+export * from '../ChartsPage';

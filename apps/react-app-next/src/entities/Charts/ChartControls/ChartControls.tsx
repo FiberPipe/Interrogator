@@ -3,7 +3,7 @@ import { useState } from "react";
 import { UniversalChart } from "../LineChart";
 import block from 'bem-cn-lite';
 import './ChartControls.scss';
-import type { ChartInputData } from "@pages/Monitoring/ChartsPage/utils";
+import type { ChartInputData } from "@pages/ChartsPage/utils";
 import { TrashBin } from "@gravity-ui/icons";
 
 const b = block('chart-controls');

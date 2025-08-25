@@ -1,8 +1,10 @@
-import { BrowserWindow, app } from "electron";
+import { BrowserWindow, app, ipcMain } from "electron";
 import { join } from "node:path";
 import { ApiService } from "./api";
 import log from "electron-log";
 import { setupLogger } from "./logs";
+import { registerIpcHandlers } from "./handlers";
+import { initGrpcApi } from "./handlers/grpc";
 
 async function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -31,6 +33,9 @@ app.whenReady().then(async () => {
   console.log("Путь к логам:", log.transports.file.getFile().path);
 
   let window = await createWindow();
+
+  registerIpcHandlers(window);
+  initGrpcApi(window);
 
   app.on("activate", async () => {
     if (BrowserWindow.getAllWindows().length === 0) {

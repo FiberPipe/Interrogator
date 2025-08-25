@@ -48,7 +48,7 @@ export const AppAsideHeader = () => {
           id: "charts",
           title: <Text>Графики</Text>,
           icon: ChartBar,
-          onItemClick: () => { navigate('/charts/acqusition') },
+          onItemClick: () => { navigate('/charts') },
         },
         {
           id: "settings",

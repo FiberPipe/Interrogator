@@ -1,8 +1,5 @@
-export type ChartType = 'Acquisition' | 'Power' | 'Displacement' | 'Temperature';
-export type ChartData = {
-    time: string;
-    value: number;
-}
+export type ChartType = 'acqusition' | 'power' | 'displacement' | 'temperature';
+export type ChartData = { id: string; data: { x: string; y: number; }[]; };
 
 export type ChartInputData = {
     data: ChartData[];

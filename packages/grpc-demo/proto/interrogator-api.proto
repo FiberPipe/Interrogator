@@ -1,0 +1,90 @@
+syntax = "proto3";
+package interrogator.api.v1;
+// Импорты низкоуровневых протоколов, которые используются для управления
+// конечными устройствами. Высокоуровневый API инкапсулирует их.
+import "ad7768.proto";
+import "sf8xxx_nm.proto";
+import "current_source.proto";
+import "tia_control.proto";
+// =============================================================================
+// СЕРВИС УПРАВЛЕНИЯ МОДУЛЯМИ БДИ (АЦП + ТИА)
+// =============================================================================
+service IduService {
+  // Управление параметрами АЦП на конкретном модуле БДИ.
+  rpc ControlAdc(ControlAdcRequest) returns (ad7768.control.AdcResponse);
+  // Управление параметрами ТИА на конкретном модуле БДИ.
+  rpc ControlTia(ControlTiaRequest) returns (tia.control.TiaResponse);
+  // Подписывается на поток данных с АЦП.
+  // ВАЖНО: Сервер выполняет конвертацию сырых данных в физические величины.
+  // Клиент получает уже готовые значения фототоков.
+  rpc StreamAdcData(StreamAdcDataRequest) returns (stream AdcDataPacket);
+}
+
+// Запрос на управление АЦП.
+message ControlAdcRequest {
+  // ID модуля БДИ для маршрутизации запроса.
+  uint32 module_id = 1;
+  // Низкоуровневая команда для АЦП.
+  ad7768.control.AdcRequest request = 2;
+}
+
+// Запрос на управление ТИА.
+message ControlTiaRequest {
+  // ID модуля БДИ для маршрутизации запроса.
+  uint32 module_id = 1;
+  // Низкоуровневая команда для ТИА.
+  tia.control.TiaRequest request = 2;
+}
+// Запрос на запуск потока данных с модуля БДИ.
+message StreamAdcDataRequest {
+  // ID модуля БДИ, с которого нужно получать данные.
+  uint32 module_id = 1;
+}
+// Пакет с данными измерений, который Сервер отправляет Потребителям.
+message AdcDataPacket {
+  uint32 module_id = 1;
+  uint64 packet_id = 2;
+  // Атомарный набор данных: срез АЦП + метаданные.
+message SampleSet {
+	// Уникальный порядковый номер данного отсчета.
+	uint64 sample_id = 1;
+	// Интерполированная временная метка отсчета с наносекундной точностью.
+	uint64 timestamp_ns = 3;
+	// Массив значений фототока в микроамперах (мкА) для каждого активного канала.
+	// Порядок соответствует порядку активных каналов.
+	repeated float photocurrents_uA = 4;
+  }
+  repeated SampleSet sample_sets = 3;
+}
+// =============================================================================
+// СЕРВИС УПРАВЛЕНИЯ ДРАЙВЕРАМИ ЛАЗЕРОВ
+// =============================================================================
+
+service DriverService {
+  // Управление параметрами драйвера лазера.
+  rpc ControlDriver(ControlDriverRequest) returns (sf8xxx_nm.DriverResponse);
+}
+// Запрос на управление драйвером лазера.
+message ControlDriverRequest {
+  // ID драйвера для маршрутизации запроса.
+  uint32 driver_id = 1;
+  // Низкоуровневая команда для драйвера.
+  sf8xxx_nm.DriverCommand command = 2;
+}
+
+// =============================================================================
+// СЕРВИС УПРАВЛЕНИЯ ТЕСТОВЫМИ ИСТОЧНИКАМИ ТОКА
+// =============================================================================
+
+
+service TestSourceService {
+  // Управление параметрами источника тока.
+  rpc ControlSource(ControlSourceRequest) returns (current_source.Response);
+}
+// Запрос на управление тестовым источником тока.
+message ControlSourceRequest {
+  // ID источника для маршрутизации запроса.
+  uint32 source_id = 1;
+  // Низкоуровневая команда для источника.
+  current_source.Command command = 2;
+}

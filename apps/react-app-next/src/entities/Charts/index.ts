@@ -1,2 +1,2 @@
 export * from './LineChart';
-export * from './ChartControls';
+export * from './ChartsCheckboxes';

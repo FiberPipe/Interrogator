@@ -1,139 +1,101 @@
-import { useEffect, useRef, useState } from "react";
-import { ResponsiveContainer, ComposedChart, CartesianGrid, XAxis, YAxis, Legend, Area, Line, Tooltip, Bar } from "recharts";
-import block from 'bem-cn-lite';
-import './LineChart.scss';
-import { ConfidenceRange } from "./ConfidenceRange";
-import type { ChartData, ChartType } from "@pages/Monitoring/ChartsPage/utils";
+import { ResponsiveLine } from "@nivo/line";
+import type { Serie } from "@nivo/core";
+import { useMemo } from "react";
 
-const b = block('universal-line-chart');
-
-
-interface UniversalChartProps {
-    data: ChartData[];
-    unit: ChartType;
-    confidenceInterval: number;
-    autoScale: boolean;
+interface LineChartProps {
+    data: { id: string; data: { x: string; y: number }[] }[];
 }
 
-export interface ChartDataWithConfidence extends Omit<ChartData, 'time'> {
-    name: string;
-    upperBound: number,
-    lowerBound: number,
-    confidenceRange: number[];
-}
-
-export const UniversalChart = ({ data, unit = 'Acquisition', confidenceInterval = 50, autoScale = true }: UniversalChartProps) => {
-    const [yDomain, setYDomain] = useState(null);
-    const containerRef = useRef(null);
-    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-
-    useEffect(() => {
-        const updateDimensions = () => {
-            if (containerRef.current) {
-                setDimensions({
-                    width: containerRef.current.offsetWidth,
-                    height: containerRef.current.offsetHeight
-                });
-            }
-        };
-
-        // Измеряем размер при монтировании
-        updateDimensions();
-
-        // Настраиваем слушатель изменения размера окна
-        window.addEventListener('resize', updateDimensions);
-
-        // Удаляем слушатель при размонтировании
-        return () => window.removeEventListener('resize', updateDimensions);
-    }, []);
-
-    useEffect(() => {
-        if (autoScale && data && data.length > 0) {
-            // Автоматическое определение домена по данным
-            const values = data.map(item => item.value);
-            const min = Math.min(...values) - confidenceInterval;
-            const max = Math.max(...values) + confidenceInterval;
-            const padding = (max - min) * 0.1; // 10% отступ
-
-            setYDomain([min - padding, max + padding]);
-        } else {
-            // Сбросить к null для использования настроек recharts по умолчанию
-            setYDomain(null);
-        }
-    }, [data, confidenceInterval, autoScale]);
-
-    // // Форматирование времени для оси X
-    const formatXAxis = (tickItem) => {
-        const date = new Date(tickItem);
-        return `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
-    };
-
-    const dataWithConfidence: ChartDataWithConfidence[] = data.map(item => ({
-        name: item.time,
-        value: item.value,
-        upperBound: item.value + confidenceInterval,
-        lowerBound: item.value - confidenceInterval,
-        confidenceRange: [item.value - confidenceInterval, item.value + confidenceInterval]
-    }));
-
-    console.log(dimensions)
+// Кастомный слой для отрисовки доверительных интервалов
+const ConfidenceInterval = ({ series, xScale, yScale }: any) => {
     return (
-        <div
-            ref={containerRef}
-            style={{
-                width: dimensions.width,
-                height: dimensions.height,
-                maxWidth: '100%',
-                position: 'relative'
-            }}>
-            <ResponsiveContainer width={"100%"} height={'100%'}>
-                <ComposedChart
-                    data={dataWithConfidence}
-                    margin={{
-                        top: 5,
-                        right: 30,
-                        left: 20,
-                        bottom: 5,
-                    }}
-                >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" label={{ value: 'Pages', position: 'insideBottomRight', offset: 0 }} />
+        <g>
+            {series.map((s: any) => {
+                if (!s.upper || !s.lower) return null;
 
-                    <Tooltip
-                        formatter={(value, name) => {
-                            const labels = {
-                                value: 'Значение',
-                                upperBound: 'Верхняя граница',
-                                lowerBound: 'Нижняя граница',
-                                confidenceRange: 'Доверительный интервал'
-                            };
-                            return [`${typeof value === 'number' ? value.toFixed(2) : value} ${unit}`, labels[name] || name];
-                        }}
-                        labelFormatter={(label) => {
-                            const date = new Date(label);
-                            return `Время: ${date.toLocaleTimeString()}`;
-                        }}
-                    />
-                    <Legend />
+                const upperPath = s.upper.map(
+                    (d: any) => `${xScale(d.x)},${yScale(d.y)}`
+                );
+                const lowerPath = s.lower
+                    .slice()
+                    .reverse()
+                    .map((d: any) => `${xScale(d.x)},${yScale(d.y)}`);
 
-                    <Area
-                        type="monotone"
-                        dataKey="confidenceRange"
+                const path = `M ${upperPath.join(" L ")} L ${lowerPath.join(" L ")} Z`;
+
+                return (
+                    <path
+                        key={s.id + "_interval"}
+                        d={path}
+                        fill={s.color}
+                        fillOpacity={0.15}
                         stroke="none"
-                        fill="#8884d8"
-                        fillOpacity={0.4}
-                        name="Доверительный интервал"
                     />
-                    <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke="#8884d8"
-                        strokeWidth={2}
-                        dot={true}
-                        activeDot={{ r: 8 }}
-                    />
-                </ComposedChart>
-            </ResponsiveContainer>
+                );
+            })}
+        </g>
+    );
+};
+
+export const LineChart = ({ data }: LineChartProps) => {
+    const withIntervals: (Serie & { upper: any[]; lower: any[] })[] = useMemo(() => {
+        const interval = 0.001;
+
+        return data.map((serie) => {
+            const upper = serie.data.map((d) => ({ x: d.x, y: d.y + interval }));
+            const lower = serie.data.map((d) => ({ x: d.x, y: d.y - interval }));
+
+            return { ...serie, upper, lower };
+        });
+    }, [data]);
+
+    return (
+        <div style={{ height: "100%", width: "100%" }}>
+            <ResponsiveLine
+                data={withIntervals}
+                margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
+                xScale={{ type: "point" }}
+                yScale={{ type: "linear", min: "auto", max: "auto" }}
+                axisBottom={{
+                    tickRotation: -30,
+                    legend: "Время",
+                    legendOffset: 40,
+                    legendPosition: "middle",
+                }}
+                axisLeft={{
+                    legend: "Значение",
+                    legendOffset: -50,
+                    legendPosition: "middle",
+                }}
+                curve="monotoneX"
+                enablePoints={false}
+                lineWidth={2}
+                useMesh={true}
+                colors={{ scheme: "category10" }}
+                legends={[
+                    {
+                        anchor: "bottom-right",
+                        direction: "column",
+                        translateX: 100,
+                        itemWidth: 80,
+                        itemHeight: 20,
+                        symbolSize: 12,
+                        symbolShape: "circle",
+                        data: data.map((d) => ({ id: d.id, label: d.id })),
+                    },
+                ]}
+                layers={[
+                    "grid",
+                    "markers",
+                    "axes",
+                    ConfidenceInterval,
+                    "lines",
+                    "points",
+                    "slices",
+                    "mesh",
+                    "legends",
+                ]}
+            />
         </div>
     );
 };

@@ -2,8 +2,21 @@ const { ipcRenderer, contextBridge } = require("electron");
 
 import { IpcRendererEvent } from "electron";
 import { Listener } from "../types/global";
+import { SensorData } from "./types";
 
-const electron = {
+interface InterrogatorApi {
+  send: (channel: string, text: string) => void;
+  getFilePaths: () => Promise<string[]>;
+  setFilePaths: (filePaths: string[]) => Promise<void>;
+  subscribe: (channel: string, listener: Listener) => (...args: any[]) => void;
+  unsubscribe: (channel: string, listener: (...args: any[]) => void) => void;
+  getUserSettings: () => Promise<any>;
+  saveUserSettings: (settings: any) => Promise<void>;
+  restartApp: () => void;
+  getSensorsData: (path: string) => Promise<SensorData[]>;
+}
+
+const electron: InterrogatorApi = {
   send: (channel: string, text: string) => {
     ipcRenderer.send(channel, text);
   },
@@ -19,10 +32,17 @@ const electron = {
   unsubscribe: (channel: string, listener: (...args: any[]) => void) => {
     ipcRenderer.removeListener(channel, listener);
   },
+  getUserSettings: () => ipcRenderer.invoke("get-user-settings"),
+  saveUserSettings: (settings: any) => ipcRenderer.invoke("save-user-settings", settings),
+  restartApp: () => ipcRenderer.send("restart-app"),
+  getSensorsData: (path: string): Promise<SensorData[]> =>
+    ipcRenderer.invoke("getSensorsData", path),
 };
 
+// Экспорт API в глобальный контекст
 contextBridge.exposeInMainWorld("electron", electron);
 
+// Экспорт API логгера
 contextBridge.exposeInMainWorld("logger", {
   info: (msg: string) => ipcRenderer.send("log-message", "info", msg),
   error: (msg: string) => ipcRenderer.send("log-message", "error", msg),
@@ -31,3 +51,18 @@ contextBridge.exposeInMainWorld("logger", {
   getFiles: () => ipcRenderer.invoke("logs:getFiles"),
   readFile: (fileName: string) => ipcRenderer.invoke("logs:readFile", fileName),
 });
+
+
+export interface GrpcApi {
+  listBdiModules: () => Promise<any[]>;
+  listDrivers: () => Promise<any[]>;
+  listTestSources: () => Promise<any[]>;
+}
+
+const grpc: GrpcApi = {
+  listBdiModules: () => ipcRenderer.invoke("grpc:listBdiModules"),
+  listDrivers: () => ipcRenderer.invoke("grpc:listDrivers"),
+  listTestSources: () => ipcRenderer.invoke("grpc:listTestSources"),
+};
+
+contextBridge.exposeInMainWorld("grpc", grpc);

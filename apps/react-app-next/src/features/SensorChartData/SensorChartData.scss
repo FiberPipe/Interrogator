@@ -1,0 +1,24 @@
+.sensor-chart-data {
+    width: 100%;
+    height: 100%;
+
+    grid-template-columns: 3fr 1fr;
+    grid-template-rows: 3fr 1fr;
+    gap: var(--g-spacing-2);
+    display: grid;
+
+    &__chart {
+        grid-column-start: 1;
+        grid-column-end: 3;
+        grid-row-start: 1;
+        grid-row-end: 4;
+
+    }
+
+    &__checkboxes {
+        grid-column-start: 3;
+        grid-column-end: 4;
+        grid-row-start: 1;
+        grid-row-end: 4;
+    }
+}

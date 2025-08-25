@@ -1,0 +1,60 @@
+syntax = "proto3";
+package interrogator.api.v1;
+
+// Этот файл определяет API для обнаружения устройств, подключенных к Серверу.
+// Позволяет клиентским приложениям динамически получать список доступных     // для управления аппаратных модулей.
+// =============================================================================
+// СЕРВИС ОБНАРУЖЕНИЯ УСТРОЙСТВ
+// =============================================================================
+
+
+service DiscoveryService {
+  // Запрашивает список всех настроенных на сервере модулей БДИ.
+  rpc ListBdiModules(ListRequest) returns (ListBdiModulesResponse);
+  // Запрашивает список всех настроенных драйверов лазеров.
+  rpc ListDrivers(ListRequest) returns (ListDriversResponse);
+  // Запрашивает список всех настроенных тестовых источников.
+  rpc ListTestSources(ListRequest) returns (ListTestSourcesResponse);
+}
+
+// Пустое сообщение-запрос, зарезервировано для будущего расширения.
+message ListRequest {}
+// ---------------- Ответы на запросы списка ----------------
+message ListBdiModulesResponse {
+  repeated BdiModuleInfo modules = 1;
+}
+message ListDriversResponse {
+  repeated DriverInfo drivers = 1;
+}
+
+
+message ListTestSourcesResponse {
+  repeated TestSourceInfo sources = 1;
+}
+
+// ---------------- Структуры с информацией об устройствах----------------
+
+
+// Информация о модуле БДИ (Блок Детектирования Интеррогатора)
+message BdiModuleInfo {
+  // Уникальный ID, используемый в запросах к IduService.
+  uint32 module_id = 1;
+  // Человеко-читаемое имя или описание, заданное в конфигурации сервера.
+  string description = 2;
+  // IP-адрес и порт МК, к которому подключен модуль (для отладки).
+  string address = 3;
+}
+// Информация о драйвере лазера
+message DriverInfo {
+  // Уникальный ID, используемый в запросах к DriverService.
+  uint32 driver_id = 1;
+  string description = 2;
+  string address = 3;
+}
+// Информация о тестовом источнике тока
+message TestSourceInfo {
+  // Уникальный ID, используемый в запросах к TestSourceService.
+  uint32 source_id = 1;
+  string description = 2;
+  string address = 3;
+}

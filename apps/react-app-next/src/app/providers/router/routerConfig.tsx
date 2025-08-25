@@ -32,20 +32,6 @@ export const routerConfig: RouteObject[] = [
       {
         path: "charts",
         element: <ChartsPage />,
-        children: [
-          {
-            index: true,
-            element: <MapView />,
-          },
-          {
-            path: "map",
-            element: <MapView />,
-          },
-          {
-            path: "graphs",
-            element: <GraphView />,
-          },
-        ],
       },
       {
         path: "settings",
