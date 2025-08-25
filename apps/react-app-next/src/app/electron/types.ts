@@ -3,6 +3,7 @@ export interface SensorData {
     idSensor: number,
     time: string,
     systemTime: string,
+    wavelength: number;
     P: number[],
     stdDev: number[],
 }
