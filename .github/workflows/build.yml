@@ -1,0 +1,33 @@
+name: Build Windows EXE  # Имя workflow, отображается в Actions
+
+on:
+  push:
+    branches: [ main ]  # Запускается при push в main. Можно добавить: pull_request: для PR.
+  workflow_dispatch:  # Добавляет кнопку "Run workflow" для ручного запуска
+
+jobs:
+  build-win:
+    runs-on: windows-latest  # Запускается на виртуальной Windows-машине
+    steps:
+      - name: Checkout code  # Скачивает код репозитория
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js  # Устанавливает Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20  # Укажите вашу версию Node (из вашего package.json: ~22, но 20 стабильна)
+
+      - name: Install pnpm  # Устанавливает pnpm глобально (если используете pnpm)
+        run: npm install -g pnpm
+
+      - name: Install dependencies  # Переходим в директорию и устанавливаем зависимости
+        run: cd apps/react-app && pnpm install
+
+      - name: Build application  # Переходим в директорию и запускаем сборку
+        run: cd apps/react-app && pnpm run build:win
+
+      - name: Upload build artifacts  # Сохраняет готовые файлы как артефакт
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-build  # Имя артефакта
+          path: apps/react-app/dist/*.exe  # Путь к .exe файлам. Можно изменить на apps/react-app/dist/** для всего dist
