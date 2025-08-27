@@ -10,7 +10,7 @@ jobs:
     runs-on: windows-latest  # Запускается на виртуальной Windows-машине
     steps:
       - name: Checkout code  # Скачивает код репозитория
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # Обновлено до v4
 
       - name: Setup Node.js  # Устанавливает Node.js
         uses: actions/setup-node@v3
@@ -27,7 +27,7 @@ jobs:
         run: cd apps/react-app && pnpm run build:win
 
       - name: Upload build artifacts  # Сохраняет готовые файлы как артефакт
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # Обновлено до v4
         with:
           name: windows-build  # Имя артефакта
           path: apps/react-app/dist/*.exe  # Путь к .exe файлам. Можно изменить на apps/react-app/dist/** для всего dist
