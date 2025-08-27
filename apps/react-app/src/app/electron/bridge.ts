@@ -56,8 +56,7 @@ const electron = {
   getFilePaths: () => ipcRenderer.invoke('getFilePaths'),
   setFilePaths: (filePaths: string[]) => ipcRenderer.invoke('setFilePaths', filePaths),
 
-  runPythonScript: (scriptPath: string, args?: string[]): Promise<RunScriptResult> =>
-    ipcRenderer.invoke('runPythonScript', scriptPath, args),
+  runPythonScript: (scriptPath: string = '', args = []) => ipcRenderer.invoke("run-python-script", scriptPath, args),
 
   getScriptStatus: (pid: number): Promise<ScriptStatus> =>
     ipcRenderer.invoke('getScriptStatus', pid),

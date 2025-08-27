@@ -24,7 +24,7 @@ function getPythonCommand(): string {
   // Для Windows попробуем разные варианты
   if (process.platform === 'win32') {
     const pythonCommands = ['python', 'python3', 'py'];
-    
+
     for (const cmd of pythonCommands) {
       try {
         const result = require('child_process').execSync(`${cmd} --version`, { encoding: 'utf8' });
@@ -38,7 +38,7 @@ function getPythonCommand(): string {
   } else {
     // Для Unix-подобных систем
     const pythonCommands = ['python3', 'python'];
-    
+
     for (const cmd of pythonCommands) {
       try {
         const result = require('child_process').execSync(`which ${cmd}`, { encoding: 'utf8' });
@@ -50,22 +50,22 @@ function getPythonCommand(): string {
       }
     }
   }
-  
+
   return 'python'; // Значение по умолчанию
 }
 
 ipcMain.handle("killScript", async (
-  event: IpcMainInvokeEvent, 
+  event: IpcMainInvokeEvent,
   pid: number
 ): Promise<boolean> => {
   const process: ChildProcess | undefined = runningScripts.get(pid);
-  
+
   if (process && !process.killed) {
     process.kill('SIGTERM'); // Можно указать сигнал явно
     runningScripts.delete(pid);
     return true;
   }
-  
+
   return false;
 });
 
@@ -242,8 +242,8 @@ app.on("window-all-closed", () => {
 });
 
 ipcMain.handle("runPythonScript", async (
-  event: IpcMainInvokeEvent, 
-  scriptPath: string, 
+  event: IpcMainInvokeEvent,
+  scriptPath: string,
   args: string[] = []
 ): Promise<RunScriptResult> => {
   try {
@@ -264,10 +264,10 @@ ipcMain.handle("runPythonScript", async (
 
     // Запускаем Python скрипт
     const pythonProcess: ChildProcess = spawn(pythonCmd, [scriptPath, ...args], spawnOptions);
-    
+
     // Ждем немного для получения PID
     await new Promise(resolve => setTimeout(resolve, 100));
-    
+
     const pid: number | undefined = pythonProcess.pid;
 
     if (!pid) {
@@ -282,9 +282,9 @@ ipcMain.handle("runPythonScript", async (
     // Отправляем output в renderer процесс
     if (pythonProcess.stdout) {
       pythonProcess.stdout.on("data", (data: Buffer) => {
-        const outputData: ScriptOutputData = { 
-          pid, 
-          output: data.toString() 
+        const outputData: ScriptOutputData = {
+          pid,
+          output: data.toString()
         };
         console.log(`Script output: ${data.toString().trim()}`);
         event.sender.send("script-output", outputData);
@@ -294,9 +294,9 @@ ipcMain.handle("runPythonScript", async (
     // Отправляем ошибки в renderer процесс
     if (pythonProcess.stderr) {
       pythonProcess.stderr.on("data", (data: Buffer) => {
-        const errorData: ScriptErrorData = { 
-          pid, 
-          error: data.toString() 
+        const errorData: ScriptErrorData = {
+          pid,
+          error: data.toString()
         };
         console.error(`Script error: ${data.toString().trim()}`);
         event.sender.send("script-error", errorData);
@@ -307,9 +307,9 @@ ipcMain.handle("runPythonScript", async (
     pythonProcess.on("exit", (code: number | null) => {
       console.log(`Script exited with code: ${code}`);
       runningScripts.delete(pid);
-      const exitData: ScriptExitData = { 
-        pid, 
-        code: code ?? -1 
+      const exitData: ScriptExitData = {
+        pid,
+        code: code ?? -1
       };
       event.sender.send("script-exit", exitData);
     });
@@ -318,9 +318,9 @@ ipcMain.handle("runPythonScript", async (
     pythonProcess.on("error", (error: Error) => {
       console.error(`Process error: ${error.message}`);
       runningScripts.delete(pid);
-      const errorData: ScriptErrorData = { 
-        pid, 
-        error: `Process error: ${error.message}` 
+      const errorData: ScriptErrorData = {
+        pid,
+        error: `Process error: ${error.message}`
       };
       event.sender.send("script-error", errorData);
     });
@@ -340,7 +340,7 @@ ipcMain.handle("checkPython", async (): Promise<{ available: boolean; version?: 
   try {
     const pythonCmd = getPythonCommand();
     const result = require('child_process').execSync(`${pythonCmd} --version`, { encoding: 'utf8' });
-    
+
     return {
       available: true,
       version: result.trim(),
@@ -351,6 +351,92 @@ ipcMain.handle("checkPython", async (): Promise<{ available: boolean; version?: 
       available: false
     };
   }
+});
+
+function runPython(scriptPath: string, args: string[] = []) {
+  return new Promise((resolve, reject) => {
+    // сначала пробуем python, если нет - python3
+    const interpreters = ["python", "python3"];
+    let current = 0;
+
+    function trySpawn() {
+      const cmd = interpreters[current];
+      const pythonProcess = spawn(cmd, [scriptPath, ...args], { shell: true });
+
+      let output = "";
+      let error = "";
+
+      pythonProcess.stdout.on("data", (data) => {
+        output += data.toString();
+      });
+
+      pythonProcess.stderr.on("data", (data) => {
+        error += data.toString();
+      });
+
+      pythonProcess.on("error", (err) => {
+        if (current < interpreters.length - 1) {
+          // пробуем следующий интерпретатор
+          current++;
+          trySpawn();
+        } else {
+          reject(new Error(`Не удалось запустить Python: ${err.message}`));
+        }
+      });
+
+      pythonProcess.on("close", (code) => {
+        if (code === 0) {
+          resolve(output.trim());
+        } else {
+          reject(new Error(error || `Python завершился с кодом ${code}`));
+        }
+      });
+    }
+
+    trySpawn();
+  });
+}
+ipcMain.handle("run-python-script", async (_event, scriptPath: string, args: string[] = []) => {
+  return new Promise((resolve, reject) => {
+    // пробуем сначала python3, потом python
+    const interpreters = ["python3", "python"];
+    let used = 0;
+
+    function tryRun() {
+      const cmd = interpreters[used];
+      const pythonProcess = spawn(cmd, [scriptPath, ...args], { shell: true });
+
+      let output = "";
+      let error = "";
+
+      pythonProcess.stdout.on("data", (data) => {
+        output += data.toString();
+      });
+
+      pythonProcess.stderr.on("data", (data) => {
+        error += data.toString();
+      });
+
+      pythonProcess.on("error", (err) => {
+        if (used < interpreters.length - 1) {
+          used++;
+          tryRun(); // пробуем следующий интерпретатор
+        } else {
+          reject(new Error(`Python не найден. Попробуй установить python3. Ошибка: ${err.message}`));
+        }
+      });
+
+      pythonProcess.on("close", (code) => {
+        if (code === 0) {
+          resolve(output.trim());
+        } else {
+          reject(new Error(error || `Python завершился с кодом ${code}`));
+        }
+      });
+    }
+
+    tryRun();
+  });
 });
 
 
