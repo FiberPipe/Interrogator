@@ -133,8 +133,8 @@ async function createWindow() {
   if (env === "production") {
     await mainWindow.loadFile("build/index.html");
   } else {
-    await mainWindow.loadURL("http://localhost:3000/");
-    // await mainWindow.loadFile("build/index.html");
+    // await mainWindow.loadURL("http://localhost:3000/");
+    await mainWindow.loadFile("build/index.html");
   }
 
   ipcMain.handle("selectFile", async () => {

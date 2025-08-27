@@ -1,0 +1,20 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ main ]  # Или другой branch
+
+jobs:
+  build-win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20  # Или ваша версия Node
+      - run: npm install  # Или pnpm install, если используете pnpm
+      - run: npm run build:win
+      - uses: actions/upload-artifact@v3
+        with:
+          name: windows-build
+          path: dist/*.exe  # Или весь dist
