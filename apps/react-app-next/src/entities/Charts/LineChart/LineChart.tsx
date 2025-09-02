@@ -4,10 +4,13 @@ import { useMemo } from "react";
 
 interface LineChartProps {
     data: { id: string; data: { x: string; y: number }[] }[];
+    yScale?: any;
+    confidenceIntervalLayer?: number;
 }
 
-// Кастомный слой для отрисовки доверительных интервалов
 const ConfidenceInterval = ({ series, xScale, yScale }: any) => {
+    if (!series) return null;
+
     return (
         <g>
             {series.map((s: any) => {
@@ -37,9 +40,13 @@ const ConfidenceInterval = ({ series, xScale, yScale }: any) => {
     );
 };
 
-export const LineChart = ({ data }: LineChartProps) => {
+export const LineChart = ({
+    data,
+    yScale,
+    confidenceIntervalLayer = 0,
+}: LineChartProps) => {
     const withIntervals: (Serie & { upper: any[]; lower: any[] })[] = useMemo(() => {
-        const interval = 0.001;
+        const interval = confidenceIntervalLayer;
 
         return data.map((serie) => {
             const upper = serie.data.map((d) => ({ x: d.x, y: d.y + interval }));
@@ -47,7 +54,7 @@ export const LineChart = ({ data }: LineChartProps) => {
 
             return { ...serie, upper, lower };
         });
-    }, [data]);
+    }, [data, confidenceIntervalLayer]);
 
     return (
         <div style={{ height: "100%", width: "100%" }}>
@@ -55,7 +62,7 @@ export const LineChart = ({ data }: LineChartProps) => {
                 data={withIntervals}
                 margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
                 xScale={{ type: "point" }}
-                yScale={{ type: "linear", min: "auto", max: "auto" }}
+                yScale={yScale ?? { type: "linear", min: "auto", max: "auto" }}
                 axisBottom={{
                     tickRotation: -30,
                     legend: "Время",

@@ -1,15 +1,15 @@
-// BarChart.tsx
 import { ResponsiveBar } from "@nivo/bar";
 
 interface BarChartProps {
     data: { id: string; data: { x: string; y: number }[] }[];
+    yScale?: any;
+    xScale?: any
 }
 
-export const BarChart = ({ data }: BarChartProps) => {
-    // преобразуем ChartSerie[] -> формат для Nivo
-    const barData = data.map((serie, idx) => ({
-        index: serie.id,   // подпись столбца (Ratio-0/1 и т.п.)
-        ratio: serie.data[0]?.y ?? 0, // берём y (у нас только одна точка)
+export const BarChart = ({ data, yScale }: BarChartProps) => {
+    const barData = data.map((serie) => ({
+        index: serie.id,
+        ratio: serie.data[0]?.y ?? 0,
     }));
 
     return (
@@ -19,7 +19,7 @@ export const BarChart = ({ data }: BarChartProps) => {
             indexBy="index"
             margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
             padding={0.3}
-            valueScale={{ type: "linear" }}
+            valueScale={yScale ?? { type: "linear" }}
             indexScale={{ type: "band", round: true }}
             axisBottom={{
                 legend: "Ratio (Ch[i]/Ch[i+1])",

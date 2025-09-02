@@ -2,11 +2,11 @@ import { useGetSensorChartData } from "./useGetSensorChartData";
 import { ChartType } from "@shared/types/charts";
 import { useInputStore } from "@shared/store";
 import { useState, useMemo, useEffect } from "react";
-import { Alert, Flex } from "@gravity-ui/uikit";
+import { Flex, Text } from "@gravity-ui/uikit";
 import block from "bem-cn-lite";
 import "./SensorChartData.scss";
 import { BarChart, ChartCheckboxes, LineChart } from "@entities/Charts";
-import { useNavigate } from "react-router-dom";
+import { ChartWrapper } from "@entities/Charts/ChartWrapper";
 
 const b = block("sensor-chart-data");
 
@@ -17,8 +17,6 @@ interface SensorChartDataProps {
 export const SensorChartData = ({ type }: SensorChartDataProps) => {
     const { filePaths } = useInputStore();
     const { sensorDataFilePath = "" } = filePaths ?? {};
-
-    const navigate = useNavigate();
 
     const { chartData, maxChannels } = useGetSensorChartData({
         type,
@@ -66,39 +64,30 @@ export const SensorChartData = ({ type }: SensorChartDataProps) => {
 
     return (
         <div className={b()}>
-            {!sensorDataFilePath && (
-                <Alert
-                    layout="horizontal"
-                    title="Не подключен файл с данными"
-                    message="Перейдите в настройки, чтобы подключить"
-                    theme="warning"
-                    actions={
-                        <Alert.Action onClick={() => navigate("/settings")}>
-                            Подключить
-                        </Alert.Action>
-                    }
-                />
-            )}
-
-            <Flex className={b("chart")}>
-                {type === "acqusition" ? (
-                    <BarChart data={chartData} />
-                ) : (
-                    <LineChart data={filteredChartData} />
-                )}
+            <Flex className={b("chart")} alignItems="center" justifyContent="center">
+                {!sensorDataFilePath ? (
+                    <Flex className={b("placeholder")} direction="column" gap={3}>
+                        <Text color="secondary" variant="subheader-2">
+                            Файл с данными не подключен
+                        </Text>
+                        <Text color="secondary" variant="body-1">
+                            Перейдите в настройки, чтобы загрузить данные
+                        </Text>
+                    </Flex>
+                ) :
+                    <ChartWrapper type={type} data={filteredChartData} />
+                }
             </Flex>
 
-            {maxChannels > 0 && type === "power" && (
-                <Flex className={b("checkboxes")}>
-                    <ChartCheckboxes
-                        params={Array.from({ length: maxChannels }, (_, i) => i)}
-                        enabled={enabledChannels}
-                        onChangeUpdate={handleChannelToggle}
-                        onEnableAll={handleEnableAll}
-                        onDisableAll={handleDisableAll}
-                    />
-                </Flex>
-            )}
+            <Flex className={b("checkboxes")}>
+                <ChartCheckboxes
+                    params={Array.from({ length: maxChannels }, (_, i) => i)}
+                    enabled={enabledChannels}
+                    onChangeUpdate={handleChannelToggle}
+                    onEnableAll={handleEnableAll}
+                    onDisableAll={handleDisableAll}
+                />
+            </Flex>
         </div>
     );
 };

@@ -9,8 +9,7 @@
     "dev:electron": "concurrently \"pnpm dev:react\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ -w\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ && electron .\"",
     "dev": "npm run dev:web",
     "build:web": "rsbuild build",
-    "build:electron": "npm run build:web && tsc -p ./src/app/electron/ && electron-builder",
-    "build:win": "npm run build:web && tsc -p ./src/app/electron/ && electron-builder --win --x64"
+    "build:electron": "npm run build:web && tsc -p ./src/app/electron/ && electron-builder"
   },
   "dependencies": {
     "@emotion/react": "^11.13.0",
@@ -46,44 +45,12 @@
     "wait-on": "7.2.0"
   },
   "build": {
-    "appId": "com.interrogator.app",
-    "productName": "Interrogator",
+    "extends": null,
     "files": [
       "build/**/*"
     ],
     "directories": {
-      "buildResources": "assets",
-      "output": "dist"
-    },
-    "mac": {
-      "category": "public.app-category.developer-tools",
-      "target": [
-        "dmg"
-      ]
-    },
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "icon": "assets/icon.ico"
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "category": "Development"
+      "buildResources": "assets"
     }
   }
 }

@@ -1,3 +1,4 @@
+// useGetSensorChartData.ts
 import { useEffect, useState, useMemo } from "react";
 import { SensorData } from "@app/electron/types";
 import { ChartType } from "@shared/types/charts";
@@ -7,11 +8,10 @@ interface UseGetSensorChartDataProps {
     sensorDataFilePath: string;
 }
 
-type ChartSerie = { id: string; data: { x: string; y: number }[] };
+export type ChartSerie = { id: string; data: { x: string; y: number }[] };
 
-// Константы из Java
-const LAMBDA_0 = 1550.0; // эталонная длина волны (нм)
-const L_MM = 100.0;      // длина участка волокна (мм)
+const LAMBDA_0 = 1550.0;
+const L_MM = 100.0;
 
 const calculateDisplacement = (measuredLambda: number): number => {
     if (measuredLambda <= 0) return 0;
@@ -29,6 +29,69 @@ const fetchInputs = async (sensorDataFilePath: string) => {
     }
 };
 
+// ===============================
+// Отдельные вычисления по типам
+// ===============================
+const buildPowerData = (rawData: SensorData[], maxChannels: number): ChartSerie[] => {
+    const grouped: Record<string, ChartSerie> = {};
+    rawData.forEach((record) => {
+        for (let ch = 0; ch < maxChannels; ch++) {
+            const y = record.P?.[ch];
+            if (typeof y !== "number") continue;
+
+            const id = `Ch-${ch}`;
+            if (!grouped[id]) grouped[id] = { id, data: [] };
+            grouped[id].data.push({ x: record.systemTime, y });
+        }
+    });
+    return Object.values(grouped);
+};
+
+const buildWavelengthData = (rawData: SensorData[]): ChartSerie[] => {
+    const id = "Ch-0";
+    const serie: ChartSerie = { id, data: [] };
+    rawData.forEach((record) => {
+        if (typeof record.wavelength !== "number") return;
+        serie.data.push({ x: record.systemTime, y: record.wavelength });
+    });
+    return serie.data.length > 0 ? [serie] : [];
+};
+
+const buildDisplacementData = (rawData: SensorData[]): ChartSerie[] => {
+    const id = "Displacement";
+    const serie: ChartSerie = { id, data: [] };
+    rawData.forEach((record) => {
+        if (typeof record.wavelength !== "number") return;
+        serie.data.push({
+            x: record.systemTime,
+            y: calculateDisplacement(record.wavelength),
+        });
+    });
+    return serie.data.length > 0 ? [serie] : [];
+};
+
+const buildAcquisitionData = (rawData: SensorData[]): ChartSerie[] => {
+    const lastRecord = rawData[rawData.length - 1];
+    if (!lastRecord?.P) return [];
+
+    const grouped: Record<string, ChartSerie> = {};
+    for (let ch = 0; ch < lastRecord.P.length; ch += 2) {
+        const p1 = lastRecord.P[ch];
+        const p2 = lastRecord.P[ch + 1];
+        if (typeof p1 !== "number" || typeof p2 !== "number") continue;
+
+        const id = `Ratio-${ch}/${ch + 1}`;
+        grouped[id] = {
+            id,
+            data: [{ x: String(ch), y: p1 / p2 }],
+        };
+    }
+    return Object.values(grouped);
+};
+
+// ===============================
+// Хук
+// ===============================
 export const useGetSensorChartData = ({
     type,
     sensorDataFilePath,
@@ -43,7 +106,6 @@ export const useGetSensorChartData = ({
         return () => clearInterval(intervalId);
     }, [sensorDataFilePath]);
 
-    // Кол-во каналов для текущего типа
     const maxChannels = useMemo(() => {
         if (rawData.length === 0) return 0;
 
@@ -59,66 +121,21 @@ export const useGetSensorChartData = ({
         return 0;
     }, [rawData, type]);
 
-    // Унифицированные данные для чарта
     const chartData: ChartSerie[] = useMemo(() => {
         if (rawData.length === 0 || maxChannels === 0) return [];
 
-        const grouped: Record<string, ChartSerie> = {};
-
-        if (type === "power") {
-            rawData.forEach((record) => {
-                for (let ch = 0; ch < maxChannels; ch++) {
-                    const y = record.P?.[ch];
-                    if (typeof y !== "number") continue;
-
-                    const id = `Ch-${ch}`;
-                    if (!grouped[id]) grouped[id] = { id, data: [] };
-                    grouped[id].data.push({ x: record.systemTime, y });
-                }
-            });
+        switch (type) {
+            case "power":
+                return buildPowerData(rawData, maxChannels);
+            case "wavelength":
+                return buildWavelengthData(rawData);
+            case "displacement":
+                return buildDisplacementData(rawData);
+            case "acqusition":
+                return buildAcquisitionData(rawData);
+            default:
+                return [];
         }
-
-        if (type === "wavelength") {
-            rawData.forEach((record) => {
-                const y = record.wavelength;
-                if (typeof y !== "number") return;
-
-                const id = "Ch-0";
-                if (!grouped[id]) grouped[id] = { id, data: [] };
-                grouped[id].data.push({ x: record.systemTime, y });
-            });
-        }
-
-        if (type === "displacement") {
-            rawData.forEach((record) => {
-                const lambda = record.wavelength;
-                if (typeof lambda !== "number") return;
-
-                const displacement = calculateDisplacement(lambda);
-                const id = "Displacement";
-                if (!grouped[id]) grouped[id] = { id, data: [] };
-                grouped[id].data.push({ x: record.systemTime, y: displacement });
-            });
-        }
-
-        if (type === "acqusition") {
-            const lastRecord = rawData[rawData.length - 1];
-            if (lastRecord?.P) {
-                for (let ch = 0; ch < lastRecord.P.length; ch += 2) {
-                    const p1 = lastRecord.P[ch];
-                    const p2 = lastRecord.P[ch + 1];
-                    if (typeof p1 !== "number" || typeof p2 !== "number") continue;
-
-                    const id = `Ratio-${ch}/${ch + 1}`;
-                    grouped[id] = {
-                        id,
-                        data: [{ x: String(ch), y: p1 / p2 }],
-                    };
-                }
-            }
-        }
-
-        return Object.values(grouped);
     }, [rawData, type, maxChannels]);
 
     return { data: rawData, chartData, maxChannels };
