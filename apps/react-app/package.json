@@ -9,7 +9,8 @@
     "dev:electron": "concurrently \"pnpm dev:react\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ -w\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ && electron .\"",
     "dev": "npm run dev:web",
     "build:web": "rsbuild build",
-    "build:electron": "npm run build:web && tsc -p ./src/app/electron/ && electron-builder"
+    "build:electron": "npm run build:web && tsc -p ./src/app/electron/ && electron-builder",
+    "build:win": "npm run build:web && tsc -p ./src/app/electron/ && electron-builder --win --x64"
   },
   "dependencies": {
     "@emotion/react": "^11.13.0",
