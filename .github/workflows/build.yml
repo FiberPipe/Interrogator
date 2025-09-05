@@ -1,33 +1,58 @@
-name: Build Windows EXE  # Имя workflow, отображается в Actions
+name: Build Windows EXE
 
 on:
   push:
-    branches: [ main ]  # Запускается при push в main. Можно добавить: pull_request: для PR.
-  workflow_dispatch:  # Добавляет кнопку "Run workflow" для ручного запуска
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build-win:
-    runs-on: windows-latest  # Запускается на виртуальной Windows-машине
+    runs-on: windows-latest
     steps:
-      - name: Checkout code  # Скачивает код репозитория
-        uses: actions/checkout@v4  # Обновлено до v4
+      - name: Notify start
+        run: |
+          MESSAGE="🚀 Началась сборка Windows EXE\nРепозиторий: ${{ github.repository }}\nWorkflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+            -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+            -d text="$MESSAGE"
 
-      - name: Setup Node.js  # Устанавливает Node.js
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20  # Укажите вашу версию Node (из вашего package.json: ~22, но 20 стабильна)
+          node-version: 20
 
-      - name: Install pnpm  # Устанавливает pnpm глобально (если используете pnpm)
+      - name: Install pnpm
         run: npm install -g pnpm
 
-      - name: Install dependencies  # Переходим в директорию и устанавливаем зависимости
+      - name: Install dependencies
         run: cd apps/react-app && pnpm install
 
-      - name: Build application  # Переходим в директорию и запускаем сборку
+      - name: Build application
         run: cd apps/react-app && pnpm run build:win
 
-      - name: Upload build artifacts  # Сохраняет готовые файлы как артефакт
-        uses: actions/upload-artifact@v4  # Обновлено до v4
+      - name: Upload build artifacts
+        id: upload
+        uses: actions/upload-artifact@v4
         with:
-          name: windows-build  # Имя артефакта
-          path: apps/react-app/dist/*.exe  # Путь к .exe файлам. Можно изменить на apps/react-app/dist/** для всего dist
+          name: windows-build
+          path: apps/react-app/dist/*.exe
+
+      - name: Notify success
+        if: ${{ success() }}
+        run: |
+          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          MESSAGE="✅ Сборка завершена успешно!\nРепозиторий: ${{ github.repository }}\nСкачать: $ARTIFACT_URL"
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+            -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+            -d text="$MESSAGE"
+
+      - name: Notify failure
+        if: ${{ failure() }}
+        run: |
+          MESSAGE="❌ Ошибка сборки!\nРепозиторий: ${{ github.repository }}\nПроверьте лог: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+            -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+            -d text="$MESSAGE"
