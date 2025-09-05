@@ -27,6 +27,8 @@ export declare global {
       getSensorsData: (path: string) => Promise<ChartInputData[]>;
       getFilePaths: () => Promise<FilePaths>;
       setFilePaths: (filePaths: FilePaths) => Promise<FilePaths>;
+      getInputs: () => Promise<Record<string, string>>;
+      insertInput: (key: string, value: string) => Promise<void>;
     };
 
     logger: {

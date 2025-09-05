@@ -14,6 +14,8 @@ interface InterrogatorApi {
   saveUserSettings: (settings: any) => Promise<void>;
   restartApp: () => void;
   getSensorsData: (path: string) => Promise<SensorData[]>;
+  getInputs: () =>  Promise<Record<string, string>>;
+  insertInput: (key: string, value: string, path: string) => Promise<void>;
 }
 
 const electron: InterrogatorApi = {
@@ -37,6 +39,10 @@ const electron: InterrogatorApi = {
   restartApp: () => ipcRenderer.send("restart-app"),
   getSensorsData: (path: string): Promise<SensorData[]> =>
     ipcRenderer.invoke("getSensorsData", path),
+  getInputs: (): Promise<Record<string, string>> =>
+    ipcRenderer.invoke("getInputs"),
+  insertInput: (key: string, value: string, path: string): Promise<void> =>
+    ipcRenderer.invoke("insertInput", key, value, path),
 };
 
 // Экспорт API в глобальный контекст

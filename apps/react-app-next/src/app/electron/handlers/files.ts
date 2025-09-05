@@ -56,4 +56,27 @@ export function registerFileHandlers() {
       return {};
     }
   });
+
+  ipcMain.handle("insertInput", async (_e, key: string, value: string) => {
+    try {
+      const data = readDataFile<Record<string, string>>(DEFAULT_INPUTS_PATH, {});
+      data[key] = value;
+      writeDataFile(DEFAULT_INPUTS_PATH, data);
+      log.info("💾 Записан инпут", key, value);
+      return data;
+    } catch (e) {
+      log.error("❌ Ошибка при сохранении инпутов", e);
+      return {};
+    }
+  });
+
+  ipcMain.handle("getInputs", async (_e: unknown) => {
+    try {
+      log.info("💾 Получен файл с инпутами");
+      return readDataFile<Record<string, string>>(DEFAULT_INPUTS_PATH, {});
+    } catch (e) {
+      log.error("❌ Ошибка при чтении инпутов", e);
+      return {};
+    }
+  });
 }

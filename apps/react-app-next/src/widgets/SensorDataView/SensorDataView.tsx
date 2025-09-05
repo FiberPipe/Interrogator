@@ -6,6 +6,7 @@ import "./SensorDataView.scss";
 import { ChartType } from "@shared/types/charts";
 import { SensorChartData } from "@features/SensorChartData";
 import { VIEW_RULES } from "@shared/config/view-rules";
+import { SensorDataTable } from "@features/SensorDataTable/SensorDataTable";
 
 const b = block("sensor-data-view");
 
@@ -45,7 +46,7 @@ export const SensorDataView = ({ type }: SensorDataViewProps) => {
                     ))}
                 </SegmentedRadioGroup>)}
             </Flex>
-            {view === 'chart' ? <SensorChartData type={type} /> : <>Таблицаgi</>}
+            {view === 'chart' ? <SensorChartData type={type} /> : <SensorDataTable type={type} />}
 
         </Flex>
     );
