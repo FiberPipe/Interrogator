@@ -1,4 +1,4 @@
-name: Build Windows EXE
+name: Build Windows EXE  # Имя workflow, отображается в Actions
 
 on:
   push:
@@ -9,13 +9,6 @@ jobs:
   build-win:
     runs-on: windows-latest
     steps:
-      - name: Notify start
-        run: |
-          MESSAGE="🚀 Началась сборка Windows EXE\nРепозиторий: ${{ github.repository }}\nWorkflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
-            -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-            -d text="$MESSAGE"
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -40,19 +33,10 @@ jobs:
           name: windows-build
           path: apps/react-app/dist/*.exe
 
-      - name: Notify success
-        if: ${{ success() }}
+      - name: Send Telegram notification
         run: |
           ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          MESSAGE="✅ Сборка завершена успешно!\nРепозиторий: ${{ github.repository }}\nСкачать: $ARTIFACT_URL"
-          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
-            -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-            -d text="$MESSAGE"
-
-      - name: Notify failure
-        if: ${{ failure() }}
-        run: |
-          MESSAGE="❌ Ошибка сборки!\nРепозиторий: ${{ github.repository }}\nПроверьте лог: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          MESSAGE="✅ Сборка завершена!\nРепозиторий: ${{ github.repository }}\nБилд: $ARTIFACT_URL"
           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
             -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
             -d text="$MESSAGE"
