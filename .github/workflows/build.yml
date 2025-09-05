@@ -34,6 +34,7 @@ jobs:
           path: apps/react-app/dist/*.exe
 
       - name: Send Telegram notification
+        shell: bash
         run: |
           ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           MESSAGE="✅ Сборка завершена!\nРепозиторий: ${{ github.repository }}\nБилд: $ARTIFACT_URL"
