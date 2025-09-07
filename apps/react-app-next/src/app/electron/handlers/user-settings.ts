@@ -16,6 +16,7 @@ export function registerUserSettingsHandlers() {
       theme: "light",
       language: "en",
     });
+
     log.info("⚙️ Загружены настройки:", settings);
     return settings;
   });

@@ -39,17 +39,8 @@ export declare global {
       selectFile: () => Promise<string>;
       getFilePaths: () => Promise<FilePaths>;
       setFilePaths: (filePaths: FilePaths) => Promise<FilePaths>;
-      runPythonScript: (scriptPath: string, args?: string[]) => Promise<{ pid: number }>;
-      getScriptStatus: (pid: number) => Promise<ScriptStatus>;
-      killScript: (pid: number) => Promise<boolean>;
-      onScriptOutput: (callback: (data: { pid: number; output: string }) => void) => void;
-      onScriptError: (callback: (data: { pid: number; error: string }) => void) => void;
-      onScriptExit: (callback: (data: { pid: number; code: number }) => void) => void;
-      checkPython: () => Promise<{ 
-        available: boolean; 
-        version?: string; 
-        command?: string;
-      }>;
+
+      runPythonScript: (scriptPath: string, args?: string[]) => Promise<string>;
     };
   }
 }

@@ -55,30 +55,7 @@ const electron = {
     ipcRenderer.invoke("selectFile"),
   getFilePaths: () => ipcRenderer.invoke('getFilePaths'),
   setFilePaths: (filePaths: string[]) => ipcRenderer.invoke('setFilePaths', filePaths),
-
-  runPythonScript: (scriptPath: string = '', args = []) => ipcRenderer.invoke("run-python-script", scriptPath, args),
-
-  getScriptStatus: (pid: number): Promise<ScriptStatus> =>
-    ipcRenderer.invoke('getScriptStatus', pid),
-
-  killScript: (pid: number): Promise<boolean> =>
-    ipcRenderer.invoke('killScript', pid),
-
-  // Подписка на события скриптов
-  onScriptOutput: (callback: ScriptOutputCallback): void => {
-    ipcRenderer.on('script-output', (event: IpcRendererEvent, data: ScriptOutputData) => callback(data));
-  },
-
-  onScriptError: (callback: ScriptErrorCallback): void => {
-    ipcRenderer.on('script-error', (event: IpcRendererEvent, data: ScriptErrorData) => callback(data));
-  },
-
-  onScriptExit: (callback: ScriptExitCallback): void => {
-    ipcRenderer.on('script-exit', (event: IpcRendererEvent, data: ScriptExitData) => callback(data));
-  },
-
-  checkPython: () => ipcRenderer.invoke('checkPython')
-
+  runPythonScript: (args: string[] = []) => ipcRenderer.invoke("runPythonScript", args),
 };
 
 contextBridge.exposeInMainWorld("electron", electron);
