@@ -20,6 +20,12 @@ import { Button, Switch } from '@nextui-org/react'; // Предполагает�
 const LAMBDA_0 = 1550.0; // Эталонная длина волны (нм)
 const L_MM = 100.0;      // Длина участка волокна (мм)
 
+const extractIndex = (key: string) => {
+    const match = key.match(/^wavelength(\d+)$/);
+    return match ? parseInt(match[1], 10) : null;
+};
+
+
 // Цвета для линий
 const lineColors = [
     "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
@@ -172,7 +178,7 @@ const WavelengthDisplacementChart: React.FC = () => {
     // Получение цвета для линии
     const getLineColor = (index: number) => lineColors[index % lineColors.length];
 
-    console.log('displayData', displayData);
+    console.log('displayData', transformedData, inputValues);
 
     return (
         <div style={{ width: '100%', height: '100%', padding: '15px' }}>
@@ -251,22 +257,26 @@ const WavelengthDisplacementChart: React.FC = () => {
                         <Tooltip content={<CustomTooltip />} />
                         <Legend wrapperStyle={{ paddingTop: '10px' }} />
                         <Brush dataKey="name" height={30} stroke="#8884d8" />
-
-                        {/* Линии данных для каждого ID сенсора */}
-                        {transformedData.uniqueIds.map((id: string | number, index: number) => (
-                            <Line
-                                key={`line-${id}`}
-                                type="monotone"
-                                dataKey={String(id)}
-                                name={`Датчик ${id}`}
-                                stroke={getLineColor(index)}
-                                strokeWidth={3}
-                                dot={{ r: 4 }}
-                                activeDot={{ r: 8 }}
-                                isAnimationActive={false}
-                                connectNulls
-                            />
-                        ))}
+                        {transformedData.uniqueIds
+                            .filter((key: string) => {
+                                const index = extractIndex(key);
+                                if (index === null) return false;
+                                return inputValues?.sensorTypes?.[index] === "displacement";
+                            })
+                            .map((id: string, index: number) => (
+                                <Line
+                                    key={`line-${id}`}
+                                    type="monotone"
+                                    dataKey={String(id)}
+                                    name={`Датчик ${id}`}
+                                    stroke={getLineColor(index)}
+                                    strokeWidth={3}
+                                    dot={{ r: 4 }}
+                                    activeDot={{ r: 8 }}
+                                    isAnimationActive={false}
+                                    connectNulls
+                                />
+                            ))}
 
                         {/* Референсная линия (эталонная длина волны или нулевое смещение) */}
                         {!showDisplacement ? (

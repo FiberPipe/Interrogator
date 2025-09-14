@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
-import { Fragment, useEffect, useMemo } from "react";
+import { Fragment, useEffect} from "react";
 import { TData, useInputStore } from "../../shared";
 import { DISPLACEMENT_HEADER_CELL_NAMES } from "./utils";
 import { groupDataById, GroupedItem } from "../utils";
