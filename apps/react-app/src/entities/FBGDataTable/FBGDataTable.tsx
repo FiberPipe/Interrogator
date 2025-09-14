@@ -8,8 +8,9 @@ import {
   TableRow,
 } from "@nextui-org/react";
 import { TData, useInputStore } from "../../shared";
-import { FBG_HEADER_CELL_NAMES, groupDataById, GroupedItem } from "./utils";
+import { FBG_HEADER_CELL_NAMES } from "./utils";
 import { useEffect } from "react";
+import { groupDataById, GroupedItem } from "../utils";
 
 type Props = {
   body: TData[];

@@ -1,51 +1,37 @@
 import { TData } from "../../shared";
 import { OutputRecord, ProcessedData } from "./types";
 
-
 export const processSensorData = (data: TData[]): ProcessedData => {
-  const timeDict: Record<string, Partial<Record<number, number>>> = {};
-  const lastValues: Partial<Record<number, Record<string, number>>> = {};
+  const timeDict: Record<string, Record<string, number>> = {};
+  const uniqueKeys = new Set<string>();
 
-  const uniqueIdsSet = new Set<number>();
-
-  data.forEach(record => {
+  data.forEach((record) => {
     const time = record.time;
-    const id = record.id_sensor;
-    const value = record.wavelength;
+    if (!time) return;
+    if (!timeDict[time]) timeDict[time] = {};
 
-    uniqueIdsSet.add(id);
+    Object.keys(record).forEach((key) => {
+      // только wavelength{index}
+      const match = key.match(/^wavelength(\d+)$/);
+      if (!match) return;
 
-    if (!timeDict[time]) {
-      timeDict[time] = {};
-    }
-
-    if (!lastValues[id]) {
-      lastValues[id] = {};
-    }
-    lastValues[id]![time] = value;
-    timeDict[time][id] = value;
+      const value = Number(record[key as keyof typeof record]);
+      if (!isNaN(value)) {
+        timeDict[time][key] = value;
+        uniqueKeys.add(key);
+      }
+    });
   });
 
   const times = Object.keys(timeDict).sort();
 
-  const resultData: OutputRecord[] = times.map(time => {
-    const entry: OutputRecord = { name: time };
-    const currentValues = timeDict[time];
+  const resultData: OutputRecord[] = times.map((time) => ({
+    name: time,
+    ...timeDict[time],
+  }));
 
-    for (const id in lastValues) {
-      const previousTimes = Object.keys(lastValues[+id]!).filter(t => t <= time).sort();
-      const lastTime = previousTimes.length > 0 && previousTimes[previousTimes.length - 1];
-
-      if (lastTime && lastValues[+id]![lastTime] !== undefined) {
-        entry[id] = lastValues[+id]![lastTime];
-      }
-    }
-
-    return entry;
-  });
-
-  const filteredResultData = resultData.filter(entry => Object.keys(entry).length > 1);
-  const uniqueIds = Array.from(uniqueIdsSet).sort((a, b) => a - b);
-
-  return { uniqueIds, resultData: filteredResultData };
+  return {
+    uniqueIds: Array.from(uniqueKeys).sort(), // ["wavelength0", "wavelength1", ...]
+    resultData,
+  };
 };

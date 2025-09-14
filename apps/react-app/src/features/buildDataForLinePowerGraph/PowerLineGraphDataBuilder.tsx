@@ -22,9 +22,9 @@ export const LineGraphDataBuilder: React.FC = () => {
           sensorDataFilePath
         );
 
-        const processedData = processSensorData(
-          sensorsData.filter((row) => row !== null)
-        );
+        const processedData = processSensorData(sensorsData);
+
+        console.log(111111, processedData)
 
         setTransformedData(processedData);
       } catch (error) {
@@ -54,7 +54,6 @@ export const LineGraphDataBuilder: React.FC = () => {
   return (
     <Fragment>
       <Button color="primary" onClick={toggleFetching}>
-        {" "}
         {fetching ? "Stop" : "Start"}
       </Button>
       <LineGraphWithCheckbox

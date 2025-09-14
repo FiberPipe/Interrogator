@@ -8,8 +8,9 @@ import {
   TableRow,
 } from "@nextui-org/react";
 import { TData, useInputStore } from "../../shared";
-import { FBG_HEADER_CELL_NAMES, groupDataById, GroupedItem } from "./utils";
+import { FBG_HEADER_CELL_NAMES } from "./utils";
 import { Fragment, useEffect } from "react";
+import { groupDataById, GroupedItem } from "../utils";
 
 type Props = {
   body: TData[];
@@ -77,65 +78,67 @@ export const TemperatureTable: React.FC<Props> = ({ body }) => {
           ))}
         </TableHeader>
         <TableBody>
-          {groupedData.map((d: GroupedItem) => (
-            <TableRow key={`Temp_${d.id}`}>
-              <TableCell>{`Temp_${d.id}`}</TableCell>
-              <TableCell>
-                <Input
-                  type="text"
-                  value={inputValues[`Temp_λ₀_${d.id}`] || ""}
-                  onChange={(e) =>
-                    handleInputChange(`Temp_λ₀_${d.id}`, e.target.value)
-                  }
-                />
-              </TableCell>
-              <TableCell>
-                <Input
-                  value={inputValues[`Temp_E_${d.id}`] || ""}
-                  onChange={(e) =>
-                    handleInputChange(`Temp_E_${d.id}`, e.target.value)
-                  }
-                />
-              </TableCell>
-              <TableCell>
-                <Input
-                  type="text"
-                  value={inputValues[`Temp_D_${d.id}`] || ""}
-                  onChange={(e) =>
-                    handleInputChange(`Temp_D_${d.id}`, e.target.value)
-                  }
-                />
-              </TableCell>
-              <TableCell>
-                <Input
-                  type="text"
-                  value={inputValues[`Temp_C_${d.id}`] || ""}
-                  onChange={(e) =>
-                    handleInputChange(`Temp_C_${d.id}`, e.target.value)
-                  }
-                />
-              </TableCell>
-              <TableCell>
-                <Input
-                  type="text"
-                  value={inputValues[`Temp_B_${d.id}`] || ""}
-                  onChange={(e) =>
-                    handleInputChange(`Temp_B_${d.id}`, e.target.value)
-                  }
-                />
-              </TableCell>
-              <TableCell>
-                <Input
-                  type="text"
-                  value={inputValues[`Temp_A_${d.id}`] || ""}
-                  onChange={(e) =>
-                    handleInputChange(`Temp_A_${d.id}`, e.target.value)
-                  }
-                />
-              </TableCell>
-              <TableCell>{calculateTemperature(d).toFixed(2)}</TableCell>
-            </TableRow>
-          ))}
+          {groupedData
+            .filter((d) => inputValues?.sensorTypes?.[d.id] !== "displacement")
+            .map((d: GroupedItem) => (
+              <TableRow key={`Temp_${d.id}`}>
+                <TableCell>{`Temp_${d.id}`}</TableCell>
+                <TableCell>
+                  <Input
+                    type="text"
+                    value={inputValues[`Temp_λ₀_${d.id}`] || ""}
+                    onChange={(e) =>
+                      handleInputChange(`Temp_λ₀_${d.id}`, e.target.value)
+                    }
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    value={inputValues[`Temp_E_${d.id}`] || ""}
+                    onChange={(e) =>
+                      handleInputChange(`Temp_E_${d.id}`, e.target.value)
+                    }
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="text"
+                    value={inputValues[`Temp_D_${d.id}`] || ""}
+                    onChange={(e) =>
+                      handleInputChange(`Temp_D_${d.id}`, e.target.value)
+                    }
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="text"
+                    value={inputValues[`Temp_C_${d.id}`] || ""}
+                    onChange={(e) =>
+                      handleInputChange(`Temp_C_${d.id}`, e.target.value)
+                    }
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="text"
+                    value={inputValues[`Temp_B_${d.id}`] || ""}
+                    onChange={(e) =>
+                      handleInputChange(`Temp_B_${d.id}`, e.target.value)
+                    }
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="text"
+                    value={inputValues[`Temp_A_${d.id}`] || ""}
+                    onChange={(e) =>
+                      handleInputChange(`Temp_A_${d.id}`, e.target.value)
+                    }
+                  />
+                </TableCell>
+                <TableCell>{calculateTemperature(d).toFixed(2)}</TableCell>
+              </TableRow>
+            ))}
         </TableBody>
       </Table>
     </Fragment>

@@ -74,7 +74,7 @@ const WavelengthDisplacementChart: React.FC = () => {
     });
 
     const [inputData, setInputData] = useState<{ [key: string]: string }>({});
-    const { filePaths } = useInputStore();
+    const { inputValues, filePaths } = useInputStore();
     const { sensorDataFilePath = "" } = filePaths ?? {};
 
     const [fetching, setFetching] = useState<boolean>(true);

@@ -1,11 +1,11 @@
 import { BrowserWindow, app, ipcMain, globalShortcut, dialog, } from "electron";
 import { join } from "node:path";
-import {  ChildProcess } from "child_process";
 import * as fs from "fs";
 import * as path from "node:path";
 import * as os from "node:os";
 import { ApiService } from "./api";
 import { startSensorCollector } from "./savetojson";
+import { SerialPort } from "serialport";
 
 
 const DEFAULT_INPUTS_PATH = path.join(
@@ -40,7 +40,7 @@ async function createWindow() {
   if (env === "production") {
     await mainWindow.loadFile("build/index.html");
   } else {
-    await mainWindow.loadFile("build/index.html");
+    await mainWindow.loadURL("http://localhost:3000/");
   }
 
   ipcMain.handle("selectFile", async () => {
@@ -132,22 +132,6 @@ function readJSONFile<T>(filePath: string, defaultValue: T): T {
   return defaultValue;
 }
 
-function waitForSensorDataPathAndStart() {
-  let started = false;
-
-  const interval = setInterval(() => {
-    const filePaths = readJSONFile<Record<string, string>>(DEFAULT_FILE_PATHS_PATH, {});
-    const sensorDataFilePath = filePaths["sensorDataFilePath"];
-
-    if (sensorDataFilePath && !started) {
-      console.log("sensorDataFilePath найден, запускаем сбор данных:", sensorDataFilePath);
-      startSensorCollector(sensorDataFilePath);
-      started = true;
-      clearInterval(interval);
-    }
-  }, 1000);
-}
-
 
 ipcMain.handle("setFilePaths", async (_, filePaths) => {
   const currentPaths = readDataFileInputs<Record<string, string>>(DEFAULT_FILE_PATHS_PATH, {});
@@ -156,6 +140,29 @@ ipcMain.handle("setFilePaths", async (_, filePaths) => {
   return updatedPaths;
 });
 
+function waitForSensorDataPathAndStart() {
+  let started = false;
+
+  const interval = setInterval(() => {
+    const filePaths = readJSONFile<Record<string, string>>(DEFAULT_FILE_PATHS_PATH, {});
+    const inputs = readJSONFile<Record<string, string>>(DEFAULT_INPUTS_PATH, {});
+    const sensorDataFilePath = filePaths["sensorDataFilePath"];
+    const serialPortPath = filePaths["serialPortPath"] || "COM13"; 
+
+    console.log(12345, filePaths, inputs)
+
+    if (sensorDataFilePath && !started) {
+      console.log("sensorDataFilePath найден:", sensorDataFilePath);
+      console.log("serialPortPath найден:", serialPortPath);
+
+      // передаём оба параметра
+      startSensorCollector(sensorDataFilePath, serialPortPath, inputs);
+
+      started = true;
+      clearInterval(interval);
+    }
+  }, 1000);
+}
 app.whenReady().then(async () => {
   let window = await createWindow();
 
@@ -169,6 +176,7 @@ app.whenReady().then(async () => {
   apiService.start();
   waitForSensorDataPathAndStart();
 });
+
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {

@@ -1,3 +1,4 @@
+// WLDataTable.tsx
 import React, { useEffect } from "react";
 import {
   Input,
@@ -8,32 +9,29 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
-import { TData } from "../../shared";
-import { groupDataById, GroupedItem, WL_HEADER_CELL_NAMES } from "./utils";
-import { useInputStore } from "../../shared";
+import { TData, useInputStore } from "../../shared";
+import { WL_HEADER_CELL_NAMES } from "./utils";
+import { groupDataById, GroupedItem } from "../utils";
 
 type Props = {
   body: TData[];
 };
 
 export const WLDataTable: React.FC<Props> = ({ body }) => {
-  const groupedData = groupDataById(body);
-  const { inputValues, updateInputValue, initializeInputValues } =
-    useInputStore();
+  const { inputValues, updateInputValue, initializeInputValues } = useInputStore();
+
+  // Группируем данные по ID сенсора
+  const groupedData: GroupedItem[] = groupDataById(body);
 
   useEffect(() => {
     const fetchInputs = async () => {
       try {
-        console.log("Fetching input data...");
-        const inputData = await window.electron.getInputs();
-        console.log("Fetched input data:", inputData);
-
-        initializeInputValues(inputData);
-      } catch (error) {
-        console.error("Error fetching input data:", error);
+        const inputs = await window.electron.getInputs();
+        initializeInputValues(inputs);
+      } catch (err) {
+        console.error(err);
       }
     };
-
     fetchInputs();
   }, [initializeInputValues]);
 
@@ -43,46 +41,42 @@ export const WLDataTable: React.FC<Props> = ({ body }) => {
   };
 
   return (
-    <Table aria-label="Example static collection table" style={{ width: 400 }}>
+    <Table aria-label="Wavelength data table" style={{ width: "100%" }}>
       <TableHeader>
         {WL_HEADER_CELL_NAMES.map((header) => (
           <TableColumn key={header}>{header}</TableColumn>
         ))}
       </TableHeader>
       <TableBody>
-        {groupedData.map((d: GroupedItem) => {
-  
-          return (
-            <TableRow key={`WL_${d.id}`}>
-              <TableCell>{`WL_${d.id}`}</TableCell>
-              <TableCell>mE</TableCell>
-              <TableCell>{d.rangeMin}</TableCell>
-              <TableCell>
-                <Input
-                  type="text"
-                  value={inputValues[`wl_${d.id}_min`] || ""}
-                  onChange={(e) =>
-                    handleInputChange(`wl_${d.id}_min`, e.target.value)
-                  }
-                />
-              </TableCell>
-              <TableCell>{d.wavelength}</TableCell>
-              <TableCell>
-                <Input
-                  type="text"
-                  value={inputValues[`wl_${d.id}_max`] || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      `wl_${d.id}_max`,
-                      e.target.value
-                    )
-                  }
-                />
-              </TableCell>
-              <TableCell>{d.rangeMax}</TableCell>
-            </TableRow>
-          );
-        })}
+        {groupedData
+          .map((d) => {
+            const minKey = `wavelength${d.id}_min`;
+            const maxKey = `wavelength${d.id}_max`;
+
+            return (
+              <TableRow key={`WL_${d.id}`}>
+                <TableCell>{`WL_${d.id}`}</TableCell>
+                <TableCell>mE</TableCell>
+                <TableCell>{d.rangeMin}</TableCell>
+                <TableCell>
+                  <Input
+                    type="text"
+                    value={inputValues[minKey] || ""}
+                    onChange={(e) => handleInputChange(minKey, e.target.value)}
+                  />
+                </TableCell>
+                <TableCell>{d.wavelength}</TableCell>
+                <TableCell>
+                  <Input
+                    type="text"
+                    value={inputValues[maxKey] || ""}
+                    onChange={(e) => handleInputChange(maxKey, e.target.value)}
+                  />
+                </TableCell>
+                <TableCell>{d.rangeMax}</TableCell>
+              </TableRow>
+            );
+          })}
       </TableBody>
     </Table>
   );

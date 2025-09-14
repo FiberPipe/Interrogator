@@ -13,6 +13,7 @@ export const LineGraphWithCheckbox: React.FC<LineGraphWithCheckboxProps> = ({
   data,
   names,
 }) => {
+
   // Состояние выбранных чекбоксов
   const [selectedCharts, setSelectedCharts] = useState<string[]>(names ?? []);
 

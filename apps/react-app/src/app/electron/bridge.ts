@@ -56,6 +56,16 @@ const electron = {
   getFilePaths: () => ipcRenderer.invoke('getFilePaths'),
   setFilePaths: (filePaths: string[]) => ipcRenderer.invoke('setFilePaths', filePaths),
   runPythonScript: (args: string[] = []) => ipcRenderer.invoke("runPythonScript", args),
+  listSerialPorts: (): Promise<
+    {
+      path: string;
+      manufacturer?: string;
+      serialNumber?: string;
+      vendorId?: string;
+      productId?: string;
+    }[]
+  > => ipcRenderer.invoke("listSerialPorts"),
+   startSensorCollector: (filePath: any) => ipcRenderer.send("start-sensor-collector", filePath),
 };
 
 contextBridge.exposeInMainWorld("electron", electron);
