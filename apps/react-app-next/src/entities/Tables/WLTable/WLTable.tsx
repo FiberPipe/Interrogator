@@ -1,15 +1,7 @@
-import { Input, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
 import { SensorData } from "@shared/types/sensor-data";
-import { groupDataById } from "./utils";
-import { Button, Flex, Icon, TextInput } from "@gravity-ui/uikit";
-import { FloppyDisk } from "@gravity-ui/icons";
-
-export interface WLGroupedItem {
-    id: number;
-    wavelength: number;
-    rangeMin?: number;
-    rangeMax?: number;
-}
+import { TextInput } from "@gravity-ui/uikit";
+import { groupDataById } from "../utils";
 
 
 interface WLTableProps {
@@ -19,114 +11,6 @@ interface WLTableProps {
 }
 
 const WL_HEADER_CELL_NAMES = ["ID", "", "Range min", "Alarm min", "Current", "Alarm max", "Range max"];
-
-// // Редактируемая ячейка с локальным состоянием
-// const EditableCell = ({
-//     initialValue,
-//     onSave,
-// }: {
-//     initialValue?: string;
-//     onSave: (val: string) => void;
-// }) => {
-//     const [localValue, setLocalValue] = useState(initialValue || "");
-//     const [savedValue, setSavedValue] = useState(initialValue || "");
-//     const [isFocused, setIsFocused] = useState(false);
-
-//     // обновляем локальное состояние только если input не в фокусе
-//     useEffect(() => {
-//         if (!isFocused) {
-//             setLocalValue(initialValue || "");
-//             setSavedValue(initialValue || "");
-//         }
-//     }, [initialValue, isFocused]);
-
-//     const isChanged = localValue !== savedValue;
-
-//     const handleSave = () => {
-//         setSavedValue(localValue);
-//         onSave(localValue);
-//     };
-
-//     return (
-//         <Flex gap={2} alignItems="center">
-//             <TextInput
-//                 value={localValue}
-//                 onChange={(e) => setLocalValue(e.target.value)}
-//                 onFocus={() => setIsFocused(true)}
-//                 onBlur={() => setIsFocused(false)}
-//             />
-//             <Button
-//                 size="s"
-//                 view="action"
-//                 onClick={handleSave}
-//                 style={{ visibility: isChanged ? "visible" : "hidden", minWidth: 40 }}
-//             >
-//                 <Icon data={FloppyDisk} size={20} />
-//             </Button>
-//         </Flex>
-//     );
-// };
-
-// export const WLTable = ({ data, inputs, handleInputChange }: WLTableProps) => {
-//     const groupedData = groupDataById(data);
-
-//     const columns = useMemo<ColumnDef<WLGroupedItem, any>[]>(
-//         () => [
-//             {
-//                 header: WL_HEADER_CELL_NAMES[0],
-//                 accessorKey: "id",
-//                 cell: ({ row }) => `WL_${row.original.id}`,
-//             },
-//             {
-//                 header: WL_HEADER_CELL_NAMES[1],
-//                 accessorKey: "rangeMin",
-//             },
-//             {
-//                 header: WL_HEADER_CELL_NAMES[2],
-//                 accessorKey: "alarmMin",
-//                 cell: ({ row }) => {
-//                     const key = `WL_${row.original.id}_min`;
-//                     return (
-//                         <EditableCell
-//                             initialValue={inputs[key]}
-//                             onSave={(val) => handleInputChange(key, val)}
-//                         />
-//                     );
-//                 },
-//             },
-//             {
-//                 header: WL_HEADER_CELL_NAMES[3],
-//                 accessorKey: "wavelength",
-//             },
-//             {
-//                 header: WL_HEADER_CELL_NAMES[4],
-//                 accessorKey: "alarmMax",
-//                 cell: ({ row }) => {
-//                     const key = `WL_${row.original.id}_max`;
-//                     return (
-//                         <EditableCell
-//                             initialValue={inputs[key]}
-//                             onSave={(val) => handleInputChange(key, val)}
-//                         />
-//                     );
-//                 },
-//             },
-//             {
-//                 header: WL_HEADER_CELL_NAMES[5],
-//                 accessorKey: "rangeMax",
-//             },
-//         ],
-//         [] // больше не зависит от inputs — предотвращаем ререндер всей таблицы
-//     );
-
-//     const table = useTable({
-//         columns,
-//         data: groupedData,
-//     });
-
-//     return <Table table={table} />;
-// };
-
 
 export const WLTable = ({ data, inputs, handleInputChange }: WLTableProps) => {
     const groupedData = groupDataById(data);

@@ -1,13 +1,7 @@
 import { SensorData } from "@shared/types/sensor-data";
+import { TableGroupedItem } from "./types";
 
-export interface WLGroupedItem {
-  id: number;
-  wavelength: number;
-  rangeMin: number;
-  rangeMax: number;
-};
-
-export const groupDataById = (data: SensorData[]): WLGroupedItem[] => {
+export const groupDataById = (data: SensorData[]): TableGroupedItem[] => {
   const groupedData = data.reduce(
     (acc: Record<number, number[]>, item: SensorData) => {
       const { idSensor, wavelength } = item;

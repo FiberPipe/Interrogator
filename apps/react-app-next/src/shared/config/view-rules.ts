@@ -7,6 +7,6 @@ export const VIEW_RULES: Record<ChartType, ChartView[]> = {
     'fbg': ['table'],
     'wavelength': ['chart', 'table'],
     'displacement': ['chart', 'table'],
-    'temperature': ['chart', 'table'],
+    'temperature': ['table'],
     'power': ['chart']
 }; 
