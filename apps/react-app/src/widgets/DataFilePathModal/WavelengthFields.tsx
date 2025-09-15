@@ -16,7 +16,7 @@ export const WavelengthFields: React.FC<WavelengthFieldsProps> = ({
 		onChange(newValues);
 
 		// сразу пишем в inputs.json
-		await window.electron.insertInput(`wavelength${i}`, newVal);
+		await window.electron.insertInput(`lambdas_central${i}`, newVal);
 	};
 
 	return (
@@ -28,8 +28,8 @@ export const WavelengthFields: React.FC<WavelengthFieldsProps> = ({
 					<Input
 						key={i}
 						type="number"
-						label={`λ${i + 1}`}
-						placeholder={`Введите λ${i + 1}`}
+						label={`λ${i}`}
+						placeholder={`Введите λ${i}`}
 						value={val}
 						onChange={(e) => handleChange(i, e.target.value)}
 					/>

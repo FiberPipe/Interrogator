@@ -20,11 +20,11 @@ export const DataFilePathModal: React.FC = () => {
 	);
 
 	const [fieldValues, setFieldValues] = useState<string[]>(
-		Array.from({ length: 16 }, (_, i) => filePaths?.[`field${i + 1}`] || "")
+		Array.from({ length: 16 }, (_, i) => filePaths?.[`field${i}`] || "")
 	);
 
 	const [wavelengthValues, setWavelengthValues] = useState<string[]>(
-		Array.from({ length: 16 }, (_, i) => filePaths?.[`wavelength${i + 1}`] || "")
+		Array.from({ length: 16 }, (_, i) => filePaths?.[`lambdas_central${i}`] || "")
 	);
 
 	useEffect(() => {
@@ -36,11 +36,11 @@ export const DataFilePathModal: React.FC = () => {
 			}
 
 			setFieldValues((prev) =>
-				prev.map((_, i) => savedPaths[`field${i + 1}`] || "")
+				prev.map((_, i) => savedPaths[`field${i}`] || "")
 			);
 
 			setWavelengthValues((prev) =>
-				prev.map((_, i) => savedPaths[`wavelength${i + 1}`] || "")
+				prev.map((_, i) => savedPaths[`lambdas_central${i}`] || "")
 			);
 
 			setFilePaths(savedPaths);
@@ -55,11 +55,11 @@ export const DataFilePathModal: React.FC = () => {
 		if (sensorDataFilePath) updatedPaths.sensorDataFilePath = sensorDataFilePath;
 
 		fieldValues.forEach((val, i) => {
-			if (val) updatedPaths[`field${i + 1}`] = val;
+			if (val) updatedPaths[`field${i}`] = val;
 		});
 
 		wavelengthValues.forEach((val, i) => {
-			if (val) updatedPaths[`wavelength${i + 1}`] = val;
+			if (val) updatedPaths[`lambdas_central${i}`] = val;
 		});
 
 		if (Object.keys(updatedPaths).length > 0) {

@@ -30,7 +30,7 @@ export const LineGraphWithCheckbox: React.FC<LineGraphWithCheckboxProps> = ({
     []
   );
 
-  console.log('peter', selectedCharts, names)
+  console.log('peter90000000', selectedCharts, names)
 
   const filteredData = data.map((entry) => {
     const filteredEntry: { [key: string]: number | string } = {

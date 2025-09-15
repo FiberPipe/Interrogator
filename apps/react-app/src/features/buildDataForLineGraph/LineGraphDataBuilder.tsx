@@ -54,7 +54,6 @@ export const LineGraphDataBuilder: React.FC = () => {
     setFetching((prev) => !prev);
   };
 
-  console.log(transformedData)
   return (
     <Fragment>
       <Button color="primary" onClick={toggleFetching}>

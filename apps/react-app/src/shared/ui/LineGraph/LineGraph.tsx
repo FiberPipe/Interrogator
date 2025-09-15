@@ -60,7 +60,7 @@ const getConstraintKey = (id: number | string, type: "max" | "min") =>
 const getAvgKey = (id: number | string) => `avg_${id}`;
 
 // Новые отметки для графика (референсные значения)
-const referenceValues = [1540.184, 1540.996, 1541.78, 1542.592];
+//const referenceValues = [1540.184, 1540.996, 1541.78, 1542.592];
 
 export const LineGraph: React.FC<Props> = ({
   names = [],
@@ -114,7 +114,7 @@ export const LineGraph: React.FC<Props> = ({
       });
 
       // Добавляем референсные значения
-      allValues.push(...referenceValues);
+      //allValues.push(...referenceValues);
 
       if (allValues.length > 0) {
         const min = Math.min(...allValues);
@@ -235,6 +235,7 @@ export const LineGraph: React.FC<Props> = ({
 
               {/* Основные линии данных - утолщенные */}
               {names.map((key) => {
+                console.log('egor',key)
                 const stringKey = String(key);
                 return (
                   <Line
@@ -242,7 +243,7 @@ export const LineGraph: React.FC<Props> = ({
                     name={`Sensor ${stringKey}`}
                     dataKey={stringKey}
                     type="monotone"
-                    stroke={"#d62728"}
+                    stroke={"#e91717ff"}
                     strokeWidth={3.5} // Увеличена толщина линии
                     activeDot={{ r: 10 }} // Увеличен размер активной точки
                     dot={{ r: 4 }} // Увеличены стандартные точки
@@ -289,7 +290,7 @@ export const LineGraph: React.FC<Props> = ({
               })}
 
               {/* Средние значения - утолщенные */}
-              {names.map((key) => {
+              {/* {names.map((key) => {
                 const stringKey = String(key);
                 return (
                   <Line
@@ -304,9 +305,9 @@ export const LineGraph: React.FC<Props> = ({
                     isAnimationActive={false}
                   />
                 );
-              })}
+              })} */}
 
-              {/* Референсные линии - утолщенные */}
+              {/* Референсные линии - утолщенные
               {referenceValues.map((value, index) => (
                 <ReferenceLine
                   key={`ref-line-${index}`}
@@ -322,7 +323,7 @@ export const LineGraph: React.FC<Props> = ({
                     fontWeight: 'bold'
                   }}
                 />
-              ))}
+              ))} */}
             </ComposedChart>
           </ResponsiveContainer>
         </div>

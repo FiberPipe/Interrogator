@@ -20,36 +20,7 @@ export function startSensorCollector(
 
   const BAUD_RATE = 9600;
   const RECONNECT_INTERVAL = 3000;
-  let t0: number | null = null;
-
-  function parseTimeToSeconds(hms: string): number {
-    const match = hms.match(/(\d{2}):(\d{2}):(\d{2})(?:.(\d+))?/);
-    if (!match) return 0;
-    const [, h, m, s, ms] = match;
-    return (
-      parseInt(h) * 3600 +
-      parseInt(m) * 60 +
-      parseInt(s) +
-      (ms ? parseInt(ms) / 1e3 : 0)
-    );
-  }
-
-  function appendToJsonFile(pkt: any) {
-    const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
-    data.push(pkt);
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
-  }
-
-  function parseMaybeNumber(v: any): number {
-    if (typeof v === "number") return v;
-    if (typeof v === "string") {
-      const s = v.trim();
-      if (s === "") return 0;
-      const n = parseFloat(s);
-      return isNaN(n) ? 0 : n;
-    }
-    return 0;
-  }
+ 
 
   function handleData(line: string) {
     line = line.trim();
@@ -68,25 +39,33 @@ export function startSensorCollector(
     const wavelengthsArr = Array.isArray(inputs.wavelengths) ? inputs.wavelengths : null;
 
     for (let i = 0; i < 16; i++) {
-      const key = `P${i}`;
-      const rawField = fieldsArr ? fieldsArr[i] : inputs[`field${i + 1}`];
-      const rawLambda = wavelengthsArr ? wavelengthsArr[i] : inputs[`wavelength${i + 1}`];
+  const key = `P${i + 1}`; // <-- было P${i}
+  const rawField = fieldsArr ? fieldsArr[i] : inputs[`field${i + 1}`];
+  const rawLambda = wavelengthsArr ? wavelengthsArr[i] : inputs[`lambdas_central${i + 1}`];
 
-      const sub = rawField ? parseFloat(rawField as string) : 0;
-      const lam = rawLambda ? parseFloat(rawLambda as string) : 0;
+  const sub = rawField ? parseFloat(rawField as string) : 0;
+  const lam = rawLambda ? parseFloat(rawLambda as string) : 0;
 
-      const val = pkt[key];
-      const num = typeof val === "number" ? val : parseFloat(val);
-      norm[key] = isNaN(num) ? 0 : num - sub;
-      lambdaCentral[key] = isNaN(lam) ? 0 : lam;
-    }
+  const val = pkt[key];
+  const num = typeof val === "number" ? val : parseFloat(val);
+  norm[key] = isNaN(num) ? 0 : num - sub;
+  lambdaCentral[key] = isNaN(lam) ? 0 : lam;
+}
 
     const lambdaResults: Record<string, number> = {};
     const sensorCount = Number(inputs.sensorCount) || 0;
-    const sensorP = inputs.sensorP ?? [];
+    const sensorP = inputs.sensorPorts ?? [];
 
     for (let s = 0; s < sensorCount; s++) {
-      const attached: string[] = Array.isArray(sensorP[s]) ? sensorP[s] : [];
+      const attached: string[] = Array.isArray(sensorP[s]) 
+  ? sensorP[s].slice().sort((a:string, b: string) => {
+      const na = parseInt(a.match(/\d+/)?.[0] ?? "0", 10);
+      const nb = parseInt(b.match(/\d+/)?.[0] ?? "0", 10);
+      return na - nb;
+    }) 
+  : [];
+
+      console.log(`12345678`,inputs,sensorCount);
       if (attached.length < 2) {
         lambdaResults[`wavelength${s}`] = NaN;
         console.log(`sensor_${s}: недостаточно данных для расчета λ`);
