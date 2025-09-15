@@ -34,26 +34,27 @@ export function startSensorCollector(
       return;
     }
 
-    console.log("📥 Получен пакет:", pkt);
+    // console.log("📥 Получен пакет:", pkt);
 
     const norm: Record<string, number> = {};
     const lambdaCentral: Record<string, number> = {};
     const fieldsArr = Array.isArray(inputs.fields) ? inputs.fields : null;
     const wavelengthsArr = Array.isArray(inputs.wavelengths) ? inputs.wavelengths : null;
+for (let i = 0; i < 16; i++) {
+  const key = `P${i+1}`; // JSON приходит с P0..P15
+  const rawField = fieldsArr ? fieldsArr[i] : inputs[`field${i + 1}`];
+  const rawLambda = wavelengthsArr ? wavelengthsArr[i] : inputs[`lambdas_central${i+1}`];
 
-    for (let i = 0; i < 16; i++) {
-      const key = `P${i}`; // JSON приходит с P0..P15
-      const rawField = fieldsArr ? fieldsArr[i] : inputs[`field${i + 1}`];
-      const rawLambda = wavelengthsArr ? wavelengthsArr[i] : inputs[`lambdas_central${i}`];
+  const sub = rawField ? parseFloat((rawField as string).replace(",", ".")) : 0;
+  const lam = rawLambda ? parseFloat((rawLambda as string).replace(",", ".")) : 0;
 
-      const sub = rawField ? parseFloat((rawField as string).replace(",", ".")) : 0;
-      const lam = rawLambda ? parseFloat((rawLambda as string).replace(",", ".")) : 0;
+  const val = pkt[key];
+  const num = typeof val === "number" ? val : parseFloat(val);
+  norm[key] = isNaN(num) ? 0 : Math.max(0, num - sub);
+  lambdaCentral[key] = isNaN(lam) ? 0 : lam;
 
-      const val = pkt[key];
-      const num = typeof val === "number" ? val : parseFloat(val);
-      norm[key] = isNaN(num) ? 0 : num - sub;
-      lambdaCentral[key] = isNaN(lam) ? 0 : lam;
-    }
+  console.log(`norm[${key}] = num (${num.toFixed(4)}) - sub (${sub.toFixed(4)}) = ${norm[key].toFixed(4)}`);
+}
 
     const lambdaResults: Record<string, number> = {};
     const sensorCount = Number(inputs.sensorCount) || 0;
@@ -86,6 +87,31 @@ export function startSensorCollector(
 
       lambdaResults[`wavelength${s}`] = lambda;
 
+            // Подробное логирование в "формульном" стиле
+      console.log(`\n📡 Sensor_${s} расчет λ`);
+      console.log("--------------------------------------------------");
+
+      // Формула для суммарного веса
+      console.log(`Σw = ${weights.map((w) => w.toFixed(4)).join(" + ")} = ${sumWeights.toFixed(4)}`);
+
+      // Формула для числителя (сумма wᵢ·λᵢ)
+      const numerator = weights.reduce(
+        (acc, w, i) => acc + (isFinite(w) ? w * (lambdas[i] ?? 0) : 0),
+        0
+      );
+
+      const terms = weights.map((w, i) => `${w.toFixed(4)}·${lambdas[i].toFixed(2)}`);
+      console.log(`Σ(wᵢ·λᵢ) = ${terms.join(" + ")} = ${numerator.toFixed(4)}`);
+
+      // Итоговое выражение
+      if (sumWeights > 0) {
+        console.log(`λ = Σ(wᵢ·λᵢ) / Σw = ${numerator.toFixed(4)} / ${sumWeights.toFixed(4)} = ${lambda.toFixed(6)}`);
+      } else {
+        console.log("λ = NaN (Σw = 0)");
+      }
+
+      console.log("--------------------------------------------------");
+
       // Подробное логирование
       console.log(`sensor_${s}:`);
       console.log(`  attached P: ${attached}`);
@@ -108,7 +134,7 @@ export function startSensorCollector(
       ...lambdaResults,
     };
 
-    console.log("📤 Записываю:", finalRecord);
+    //console.log("📤 Записываю:", finalRecord);
 
     data.push(finalRecord);
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");

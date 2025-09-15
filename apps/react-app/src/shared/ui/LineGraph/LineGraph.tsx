@@ -181,6 +181,13 @@ export const LineGraph: React.FC<Props> = ({
     }
   };
 
+  const colors = [
+  "#e91717", "#17e917", "#1717e9", "#e9e917",
+  "#e917e9", "#17e9e9", "#ff7f50", "#1e90ff",
+  "#32cd32", "#ff69b4", "#ffa500", "#8a2be2",
+  "#00ced1", "#dc143c", "#7fff00", "#ff4500"
+];
+
   const hasData = renderedData.length > 0;
 
   return (
@@ -234,25 +241,26 @@ export const LineGraph: React.FC<Props> = ({
               <Brush dataKey="name" height={30} stroke="#8884d8" />
 
               {/* Основные линии данных - утолщенные */}
-              {names.map((key) => {
-                console.log('egor',key)
-                const stringKey = String(key);
-                return (
-                  <Line
-                    key={`line-${stringKey}`}
-                    name={`Sensor ${stringKey}`}
-                    dataKey={stringKey}
-                    type="monotone"
-                    stroke={"#e91717ff"}
-                    strokeWidth={3.5} // Увеличена толщина линии
-                    activeDot={{ r: 10 }} // Увеличен размер активной точки
-                    dot={{ r: 4 }} // Увеличены стандартные точки
-                    connectNulls={true}
-                    isAnimationActive={false}
-                  />
-                );
-              })}
+              {names.map((key, index) => {
+  const stringKey = String(key);
+  const color = colors[index % colors.length]; // если графиков больше, чем цветов, повторяем цвета
+  console.log('egor', key, 'color', color);
 
+  return (
+    <Line
+      key={`line-${stringKey}`}
+      name={`Sensor ${stringKey}`}
+      dataKey={stringKey}
+      type="monotone"
+      stroke={color}
+      strokeWidth={3.5} // толщина линии
+      activeDot={{ r: 10 }} // размер активной точки
+      dot={{ r: 4 }} // стандартные точки
+      connectNulls={true}
+      isAnimationActive={false}
+    />
+  );
+})}
               {/* Ограничения макс - утолщенные */}
               {names.map((key) => {
                 const stringKey = String(key);
