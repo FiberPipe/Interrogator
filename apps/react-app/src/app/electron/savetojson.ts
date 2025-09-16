@@ -41,19 +41,28 @@ export function startSensorCollector(
     const fieldsArr = Array.isArray(inputs.fields) ? inputs.fields : null;
     const wavelengthsArr = Array.isArray(inputs.wavelengths) ? inputs.wavelengths : null;
 for (let i = 0; i < 16; i++) {
-  const key = `P${i+1}`; // JSON приходит с P0..P15
-  const rawField = fieldsArr ? fieldsArr[i] : inputs[`field${i + 1}`];
-  const rawLambda = wavelengthsArr ? wavelengthsArr[i] : inputs[`lambdas_central${i+1}`];
+  const key = `P${i}`; // JSON приходит P0..P15
+
+  const rawField = fieldsArr 
+    ? fieldsArr[i] 
+    : inputs[`field${i+1}`]; // field1..field16
+
+  const rawLambda = wavelengthsArr 
+    ? wavelengthsArr[i]          // массив с индексом 0..15
+    : inputs[`lambdas_central${i}`]; // lambdas_central0..15
 
   const sub = rawField ? parseFloat((rawField as string).replace(",", ".")) : 0;
   const lam = rawLambda ? parseFloat((rawLambda as string).replace(",", ".")) : 0;
 
   const val = pkt[key];
   const num = typeof val === "number" ? val : parseFloat(val);
+
   norm[key] = isNaN(num) ? 0 : Math.max(0, num - sub);
   lambdaCentral[key] = isNaN(lam) ? 0 : lam;
 
-  console.log(`norm[${key}] = num (${num.toFixed(4)}) - sub (${sub.toFixed(4)}) = ${norm[key].toFixed(4)}`);
+  console.log(
+    `norm[${key}] = num (${isNaN(num) ? "NaN" : num.toFixed(4)}) - sub (${sub.toFixed(4)}) = ${norm[key].toFixed(4)}, lambda=${lambdaCentral[key]}`
+  );
 }
 
     const lambdaResults: Record<string, number> = {};
