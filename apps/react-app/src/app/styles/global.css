@@ -7,3 +7,8 @@
   /* display: flex;
   flex-flow: row nowrap; */
 }
+/* Скрыть точки на графиках Recharts */
+.chart-pane .recharts-line .recharts-dot,
+.chart-pane .recharts-active-dot {
+  display: none;
+}

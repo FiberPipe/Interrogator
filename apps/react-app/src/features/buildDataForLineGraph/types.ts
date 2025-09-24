@@ -1,9 +1,9 @@
 export type OutputRecord = {
-    name: string;
-    [key: number]: number | undefined;
+  name: string;
+  [key: string]: number | string | undefined;
 };
 
 export type ProcessedData = {
-    uniqueIds: number[];
-    resultData: OutputRecord[];
+  uniqueIds: string[];    
+  resultData: OutputRecord[];
 };

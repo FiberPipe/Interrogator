@@ -1,28 +1,115 @@
 import * as fs from "node:fs";
+import * as path from "node:path";
+import * as os from "node:os";
 import { SerialPort } from "serialport";
 import { ReadlineParser } from "@serialport/parser-readline";
+import { createInterface } from "node:readline/promises";
+import { stdin as input, stdout as output } from "node:process";
+import { MLPredictor } from "./mlPredictor";
 
-export function startSensorCollector(
+type Method = "Analytical" | "ML";
+
+async function pickSerialPortInteractive(): Promise<string> {
+  let ports = await SerialPort.list();
+  while (!ports.length) {
+    console.log("Порты не найдены. Подключите устройство и Enter для повтора, или 'q' для выхода.");
+    const rl0 = createInterface({ input, output });
+    const ans = (await rl0.question("> ")).trim().toLowerCase();
+    rl0.close();
+    if (ans === "q" || ans === "й") throw new Error("Нет доступных последовательных портов.");
+    ports = await SerialPort.list();
+  }
+  console.log("\n Доступные порты:");
+  ports.forEach((p, i) => console.log(`  ${i + 1}. ${p.path}`));
+  const rl = createInterface({ input, output });
+  let chosen: string | undefined;
+  while (!chosen) {
+    const ans = (await rl.question(`\nВведите номер [1–${ports.length}] или путь к порту: `)).trim();
+    const n = Number.parseInt(ans, 10);
+    if (Number.isInteger(n) && n >= 1 && n <= ports.length) chosen = ports[n - 1].path;
+    else if (ans) chosen = ans;
+  }
+  rl.close();
+  return chosen!;
+}
+
+function ensureParentDir(filePath: string) {
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
+
+// работа с шапкой в data.json 
+function ensureMetaHeader(filePath: string): { meta: any; data: any[] } {
+  let arr: any[] = [];
+  try {
+    if (fs.existsSync(filePath)) {
+      const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      if (Array.isArray(parsed)) arr = parsed;
+      else if (parsed && Array.isArray(parsed.data)) arr = parsed.data;
+    }
+  } catch {}
+  if (!Array.isArray(arr) || arr.length === 0 || !arr[0]?.__meta) {
+    const defModel = path.join(path.dirname(filePath), "best_model_Exponential_04_05_25_run2.pkl");
+    arr = [{ __meta: { predictionMethods: {}, mlModelPath: defModel } }];
+    fs.writeFileSync(filePath, JSON.stringify(arr, null, 2), "utf8");
+  }
+  return { meta: arr[0].__meta, data: arr };
+}
+
+function readMeta(filePath: string) {
+  return ensureMetaHeader(filePath).meta as { predictionMethods?: Record<string, Method>; mlModelPath?: string };
+}
+
+export async function startSensorCollector(
   filePath: string,
-  serialPortPath: string = "COM13",
+  serialPortPath: string = "ASK",
   inputs: Record<string, any> = {}
 ) {
-  console.log("======================================");
-  console.log("📡 Запуск сборщика данных");
-  console.log("  Файл для записи:", filePath);
-  console.log("  Последовательный порт:", serialPortPath);
-  console.log("  Inputs:", inputs);
-  console.log("======================================");
-
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, "[]", "utf8");
+  if (!serialPortPath || serialPortPath.toUpperCase() === "ASK") {
+    serialPortPath = await pickSerialPortInteractive();
   }
+
+  console.log("Запуск сборщика данных");
+  console.log("Файл для записи:", filePath);
+  console.log("Последовательный порт:", serialPortPath);
+  console.log("Inputs:", inputs);
+
+  ensureParentDir(filePath);
+  ensureMetaHeader(filePath); 
 
   const BAUD_RATE = 9600;
   const RECONNECT_INTERVAL = 3000;
- 
 
-  function handleData(line: string) {
+  // ML 
+  let { mlModelPath, predictionMethods } = readMeta(filePath);
+  if (!mlModelPath) {
+    mlModelPath = path.join(path.dirname(filePath), "best_model_Exponential_04_05_25_run2.pkl");
+  }
+  const predictor = new MLPredictor({ python: "python3", modelPath: mlModelPath });
+
+  // подтягиваем изменения методов 
+  try {
+    fs.watchFile(filePath, { interval: 1000 }, () => {
+      try {
+        predictionMethods = readMeta(filePath).predictionMethods || {};
+      } catch {}
+    });
+  } catch {}
+
+  const queue: string[] = [];
+  let busy = false;
+
+  async function processQueue() {
+    if (busy) return;
+    busy = true;
+    while (queue.length) {
+      const line = queue.shift()!;
+      await handleDataAsync(line).catch((e) => console.error("handleData error:", e));
+    }
+    busy = false;
+  }
+
+  async function handleDataAsync(line: string) {
     line = line.trim();
     if (!line) return;
 
@@ -30,144 +117,107 @@ export function startSensorCollector(
     try {
       pkt = JSON.parse(line);
     } catch (err) {
-      console.error("❌ Ошибка JSON.parse:", err, "Исходная строка:", line);
+      console.error("Ошибка JSON.parse:", err, "Исходная строка:", line);
       return;
     }
-
-    // console.log("📥 Получен пакет:", pkt);
 
     const norm: Record<string, number> = {};
     const lambdaCentral: Record<string, number> = {};
     const fieldsArr = Array.isArray(inputs.fields) ? inputs.fields : null;
     const wavelengthsArr = Array.isArray(inputs.wavelengths) ? inputs.wavelengths : null;
-for (let i = 0; i < 16; i++) {
-  const key = `P${i}`; // JSON приходит P0..P15
 
-  const rawField = fieldsArr 
-    ? fieldsArr[i] 
-    : inputs[`field${i+1}`]; // field1..field16
+    for (let i = 0; i < 16; i++) {
+      const key = `P${i}`;
+      const rawField = fieldsArr ? fieldsArr[i] : inputs[`field${i + 1}`];
+      const rawLambda = wavelengthsArr ? wavelengthsArr[i] : inputs[`lambdas_central${i}`];
 
-  const rawLambda = wavelengthsArr 
-    ? wavelengthsArr[i]          // массив с индексом 0..15
-    : inputs[`lambdas_central${i}`]; // lambdas_central0..15
+      const sub = rawField ? parseFloat(String(rawField).replace(",", ".")) : 0;
+      const lam = rawLambda ? parseFloat(String(rawLambda).replace(",", ".")) : 0;
 
-  const sub = rawField ? parseFloat((rawField as string).replace(",", ".")) : 0;
-  const lam = rawLambda ? parseFloat((rawLambda as string).replace(",", ".")) : 0;
+      const val = pkt[key];
+      const num = typeof val === "number" ? val : parseFloat(val);
 
-  const val = pkt[key];
-  const num = typeof val === "number" ? val : parseFloat(val);
-
-  norm[key] = isNaN(num) ? 0 : Math.max(0, num - sub);
-  lambdaCentral[key] = isNaN(lam) ? 0 : lam;
-
-  console.log(
-    `norm[${key}] = num (${isNaN(num) ? "NaN" : num.toFixed(4)}) - sub (${sub.toFixed(4)}) = ${norm[key].toFixed(4)}, lambda=${lambdaCentral[key]}`
-  );
-}
+      norm[key] = isNaN(num) ? 0 : Math.max(0, num - sub);
+      lambdaCentral[key] = isNaN(lam) ? 0 : lam;
+    }
 
     const lambdaResults: Record<string, number> = {};
     const sensorCount = Number(inputs.sensorCount) || 0;
-    const sensorP = inputs.sensorPorts ?? {}; // это объект { "0": [...], "1": [...] }
+    const sensorP = inputs.sensorPorts ?? {}; // { "0": ["P..."], ... }
 
     for (let s = 0; s < sensorCount; s++) {
-      const attached: string[] = Array.isArray(sensorP[s])
-        ? sensorP[s].slice().sort((a: string, b: string) => {
-          const na = parseInt(a.match(/\d+/)?.[0] ?? "0", 10);
-          const nb = parseInt(b.match(/\d+/)?.[0] ?? "0", 10);
-          return na - nb;
-        })
+      const attached: string[] = Array.isArray((sensorP as any)[s])
+        ? (sensorP as any)[s].slice().sort((a: string, b: string) => {
+            const na = parseInt(a.match(/\d+/)?.[0] ?? "0", 10);
+            const nb = parseInt(b.match(/\d+/)?.[0] ?? "0", 10);
+            return na - nb;
+          })
         : [];
 
-      if (attached.length < 2) {
-        lambdaResults[`wavelength${s}`] = NaN;
-        console.log(`sensor_${s}: недостаточно данных для расчета λ`);
-        continue;
+      // аналитика по умолчанию
+      let lambda = NaN;
+      if (attached.length >= 2) {
+        const weights = attached.map((p) => norm[p] ?? NaN);
+        const lambdas = attached.map((p) => lambdaCentral[p] ?? 0);
+        const sumW = weights.reduce((acc, w) => acc + (isFinite(w) ? w : 0), 0);
+        lambda =
+          sumW > 0
+            ? weights.reduce((acc, w, i) => acc + (isFinite(w) ? w * (lambdas[i] ?? 0) : 0), 0) / sumW
+            : NaN;
       }
 
-      const weights = attached.map((p) => norm[p] ?? NaN);
-      const lambdas = attached.map((p) => lambdaCentral[p] ?? 0);
-      const sumWeights = weights.reduce((acc, w) => acc + (isFinite(w) ? w : 0), 0);
-
-      const lambda =
-        sumWeights > 0
-          ? weights.reduce((acc, w, i) => acc + (isFinite(w) ? w * (lambdas[i] ?? 0) : 0), 0) /
-          sumWeights
-          : NaN;
+      // если выбран ML 
+      const method = (predictionMethods?.[String(s)] as Method) || "Analytical";
+      if (method === "ML" && attached.length === 4) {
+        const feats = attached.map((p) => norm[p] ?? 0);
+        try {
+          const ml = await predictor.predict(feats);
+          lambda = ml;
+        } catch (e) {
+          console.warn(`ML для sensor_${s} не сработал, оставляю Analytical.`, e);
+        }
+      }
 
       lambdaResults[`wavelength${s}`] = lambda;
-
-            // Подробное логирование в "формульном" стиле
-      console.log(`\n📡 Sensor_${s} расчет λ`);
-      console.log("--------------------------------------------------");
-
-      // Формула для суммарного веса
-      console.log(`Σw = ${weights.map((w) => w.toFixed(4)).join(" + ")} = ${sumWeights.toFixed(4)}`);
-
-      // Формула для числителя (сумма wᵢ·λᵢ)
-      const numerator = weights.reduce(
-        (acc, w, i) => acc + (isFinite(w) ? w * (lambdas[i] ?? 0) : 0),
-        0
-      );
-
-      const terms = weights.map((w, i) => `${w.toFixed(4)}·${lambdas[i].toFixed(2)}`);
-      console.log(`Σ(wᵢ·λᵢ) = ${terms.join(" + ")} = ${numerator.toFixed(4)}`);
-
-      // Итоговое выражение
-      if (sumWeights > 0) {
-        console.log(`λ = Σ(wᵢ·λᵢ) / Σw = ${numerator.toFixed(4)} / ${sumWeights.toFixed(4)} = ${lambda.toFixed(6)}`);
-      } else {
-        console.log("λ = NaN (Σw = 0)");
-      }
-
-      console.log("--------------------------------------------------");
-
-      // Подробное логирование
-      console.log(`sensor_${s}:`);
-      console.log(`  attached P: ${attached}`);
-      console.log(`  weights (norm - subtrac): ${weights.map((w) => w.toFixed(4))}`);
-      console.log(`  lambdas (lambdaCentral): ${lambdas.map((l) => l.toFixed(4))}`);
-      console.log(`  sumWeights: ${sumWeights.toFixed(4)}`);
-      console.log(`  λ: ${lambda.toFixed(6)}`);
     }
 
-    let data: any[] = [];
+    // чтение + запись в файл 
+    let arr: any[] = [];
     try {
-      data = JSON.parse(fs.readFileSync(filePath, "utf8"));
-      if (!Array.isArray(data)) data = [];
+      arr = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      if (!Array.isArray(arr)) arr = [];
     } catch {
-      data = [];
+      arr = [];
+    }
+    if (!(arr[0]?.__meta)) {
+      const defModel = path.join(path.dirname(filePath), "best_model_Exponential_04_05_25_run2.pkl");
+      arr.unshift({ __meta: { predictionMethods: predictionMethods || {}, mlModelPath: defModel } });
     }
 
-    const finalRecord = {
-      ...pkt,
-      ...lambdaResults,
-    };
-
-    //console.log("📤 Записываю:", finalRecord);
-
-    data.push(finalRecord);
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+    const finalRecord = { ...pkt, ...lambdaResults };
+    arr.push(finalRecord);
+    fs.writeFileSync(filePath, JSON.stringify(arr, null, 2), "utf8");
   }
 
   function connectSerialPort() {
     const port = new SerialPort({ path: serialPortPath, baudRate: BAUD_RATE, autoOpen: false });
     port.open((err) => {
       if (err) {
-        console.error("❌ Ошибка при подключении:", err.message);
+        console.error("Ошибка при подключении:", err.message);
         setTimeout(connectSerialPort, RECONNECT_INTERVAL);
         return;
       }
-      console.log("✅ Успешно подключено к порту:", serialPortPath);
+      console.log("Успешно подключено к порту:", serialPortPath);
       const parser = port.pipe(new ReadlineParser({ delimiter: "\n" }));
-      parser.on("data", handleData);
+      parser.on("data", (line: string) => {
+        queue.push(line);
+        processQueue();
+      });
       port.on("close", () => {
-        console.warn("⚠️ Порт закрыт, переподключение...");
+        console.warn("Порт закрыт, переподключение...");
         setTimeout(connectSerialPort, RECONNECT_INTERVAL);
       });
     });
   }
-
   connectSerialPort();
 }
-
-
