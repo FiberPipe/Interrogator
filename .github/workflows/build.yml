@@ -1,43 +1,43 @@
-name: Build Windows EXE  # Имя workflow, отображается в Actions
+# name: Build Windows EXE  # Имя workflow, отображается в Actions
 
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+# on:
+#   push:
+#     branches: [ main ]
+#   workflow_dispatch:
 
-jobs:
-  build-win:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+# jobs:
+#   build-win:
+#     runs-on: windows-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: 20
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+#       - name: Install pnpm
+#         run: npm install -g pnpm
 
-      - name: Install dependencies
-        run: cd apps/react-app && pnpm install
+#       - name: Install dependencies
+#         run: cd apps/react-app && pnpm install
 
-      - name: Build application
-        run: cd apps/react-app && pnpm run build:win
+#       - name: Build application
+#         run: cd apps/react-app && pnpm run build:win
 
-      - name: Upload build artifacts
-        id: upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-build
-          path: apps/react-app/dist/*.exe
+#       - name: Upload build artifacts
+#         id: upload
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: windows-build
+#           path: apps/react-app/dist/*.exe
 
-      - name: Send Telegram notification
-        shell: bash
-        run: |
-          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          MESSAGE="✅ Сборка завершена!\nРепозиторий: ${{ github.repository }}\nБилд: $ARTIFACT_URL"
-          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
-            -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-            -d text="$MESSAGE"
+#       - name: Send Telegram notification
+#         shell: bash
+#         run: |
+#           ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+#           MESSAGE="✅ Сборка завершена!\nРепозиторий: ${{ github.repository }}\nБилд: $ARTIFACT_URL"
+#           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+#             -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+#             -d text="$MESSAGE"
