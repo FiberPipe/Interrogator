@@ -1,6 +1,30 @@
 import { defineConfig } from "@rsbuild/core";
 import { pluginReact } from "@rsbuild/plugin-react";
 
+const commonTags = [
+  {
+    tag: "meta",
+    attrs: {
+      "http-equiv": "Content-Security-Policy",
+      content: [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data:",
+        "font-src 'self' data:",
+        "connect-src 'self' ws:",
+      ].join("; "),
+    },
+  },
+  {
+    tag: "meta",
+    attrs: {
+      name: "viewport",
+      content: "width=device-width, initial-scale=1",
+    },
+  },
+];
+
 export default defineConfig({
   plugins: [pluginReact()],
   source: {
@@ -12,31 +36,15 @@ export default defineConfig({
     },
   },
 
-  html: {
-    title: "Interrogator",
-    tags: [
-      {
-        tag: "meta",
-        attrs: {
-          "http-equiv": "Content-Security-Policy",
-          content: [
-            "default-src 'self'",
-            "script-src 'self'",
-            "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data:",
-            "font-src 'self' data:",
-            "connect-src 'self' ws:",
-          ].join("; "),
-        },
-      },
-      {
-        tag: "meta",
-        attrs: {
-          name: "viewport",
-          content: "width=device-width, initial-scale=1",
-        },
-      },
-    ],
+   html: {
+    template: "./public/index.html",
+    title({ entryName }) {
+      if (entryName === "port-picker") {
+        return "Select Serial Port";
+      }
+      return "Interrogator";
+    },
+    tags: commonTags,
   },
 
   output: {
