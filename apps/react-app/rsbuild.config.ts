@@ -50,4 +50,14 @@ export default defineConfig({
     port: 3000,
     strictPort: true,
   },
+  tools: {
+    postcss: {
+      postcssOptions: {
+        plugins: [
+          require("@tailwindcss/postcss"),
+          require("autoprefixer"),
+        ],
+      },
+    },
+  },
 });

@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import "./styles/global.css";
-import { NextUIProvider } from "@nextui-org/react";
 import { AppRouter } from "./providers/router/AppRouter";
 import { Header } from "../widgets";
-import { PageContainer } from "../shared";
+import { InputProvider, PageContainer } from "../shared";
 import React from "react";
+import { HeroUIProvider } from "@heroui/react";
 
 const App = () => {
   const navigate = useNavigate();
@@ -16,17 +16,16 @@ const App = () => {
   }, []);
 
   return (
-    <>
-      <NextUIProvider navigate={navigate}>
+    <InputProvider initialInputs={{ someKey: "hello" }}>
+      <HeroUIProvider navigate={navigate}>
         <div className={"page"}>
           <Header />
-          {/* <AsideBar /> */}
           <PageContainer>
             <AppRouter />
           </PageContainer>
         </div>
-      </NextUIProvider>
-    </>
+      </HeroUIProvider>
+    </InputProvider>
   );
 };
 

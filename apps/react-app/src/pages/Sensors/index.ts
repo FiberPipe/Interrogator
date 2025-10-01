@@ -1,1 +1,1 @@
-export * from "./SensorsPage";
+export * from './Sensors';

@@ -14,7 +14,7 @@ import {
 } from 'recharts';
 import { processSensorData } from '../../features/buildDataForLineGraph/utils';
 import { useInputStore } from '../../shared';
-import { Button, Switch } from '@nextui-org/react'; // Предполагается, что вы используете NextUI
+import { Button, Switch } from '@heroui/react'; // Предполагается, что вы используете NextUI
 
 // Константы из Java класса
 const LAMBDA_0 = 1550.0; // Эталонная длина волны (нм)

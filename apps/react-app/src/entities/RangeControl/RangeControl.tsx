@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, Input } from "@nextui-org/react";
+import { Button, Input } from "@heroui/react";
 
 interface RangeControlProps {
     initialMin: number;

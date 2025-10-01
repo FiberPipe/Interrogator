@@ -9,7 +9,7 @@ import {
   Checkbox,
   Select,
   SelectItem,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useInputStore } from "../../shared";
 
 const SENSOR_TYPES = [

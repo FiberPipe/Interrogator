@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardBody, CardHeader, Divider, Input } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Divider, Input } from "@heroui/react";
 
 interface WavelengthFieldsProps {
 	values: string[];

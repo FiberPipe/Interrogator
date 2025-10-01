@@ -1,9 +1,13 @@
+"use client";
+
 import { ReactNode } from "react";
-import classes from "./pageContainer.module.css";
 
 type TPageContainer = {
   children: ReactNode;
 };
-export const PageContainer: React.FC<TPageContainer> = ({ children }) => {
-  return <main className={classes.main}>{children}</main>;
-};
+
+export const PageContainer = ({ children }: TPageContainer) => (
+  <main className="w-full h-[85vh] px-4">
+    {children}
+  </main>
+);

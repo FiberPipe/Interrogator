@@ -1,3 +1,3 @@
-export * from "./buildDataForBargraph";
 export * from "./buildDataForLineGraph";
-export * from "./buildDataForSensors";
+export * from './charts';
+export * from './tables';

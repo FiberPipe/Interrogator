@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { useInputStore } from "../../shared";
 import { processSensorData } from "./utils";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { LineGraphWithCheckbox } from "../../entities/LineGraphWithCheckbox/PowerLineGraphWithCheckbox";
 
 export const LineGraphDataBuilder: React.FC = () => {

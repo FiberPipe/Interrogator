@@ -1,4 +1,4 @@
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui-org/react";
 import { SensorData } from "@shared/types/sensor-data";
 import { TextInput } from "@gravity-ui/uikit";
 import { groupDataById } from "../utils";

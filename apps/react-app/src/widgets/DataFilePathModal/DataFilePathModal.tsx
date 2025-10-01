@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, CardBody, CardHeader, Divider, Input } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Divider, Input } from "@heroui/react";
 import { useInputStore } from "../../shared";
 import { SensorPortMapping } from "./SensorDataMapping";
 import { NormalizationFields } from "./NormalizationFields";

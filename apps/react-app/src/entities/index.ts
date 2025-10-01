@@ -1,5 +1,7 @@
-export * from "./NavbarLogo";
-export * from "./NavbarRoutes";
+export * from "./Navigation/NavbarLogo";
+export * from "./Navigation/NavbarRoutes";
 export * from "./LineGraphWithCheckbox";
-export * from "./WL_Data_Table";
-export * from "./FBGDataTable";
+export * from './Tables';
+export * from './Charts';
+
+

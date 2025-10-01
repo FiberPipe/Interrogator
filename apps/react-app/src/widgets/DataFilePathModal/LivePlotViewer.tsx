@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Card, CardBody, CardHeader, Divider } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Divider } from "@heroui/react";
 
 export const LivePlotViewer: React.FC = () => {
   const [imgSrc, setImgSrc] = useState<string>('');

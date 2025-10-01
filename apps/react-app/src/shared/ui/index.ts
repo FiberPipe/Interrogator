@@ -1,3 +1,3 @@
 export * from "./PageContainer";
-export * from "./LineGraph";
-export * from "./BarGraph";
+export * from "./ChartWrapper";
+export * from './LineChart';

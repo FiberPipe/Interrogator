@@ -1,12 +1,3 @@
-// apps/react-app/src/app/types/global.d.ts
-
-// поддержка CSS-модулей
-declare module "*.module.css" {
-  const content: Record<string, string>;
-  export default content;
-}
-
-// Listener — принимаем любой payload, т.к. события присылают объекты
 export type Listener = (value: any) => void;
 
 export interface FilePaths {
@@ -16,9 +7,24 @@ export interface FilePaths {
   [key: string]: string | undefined;
 }
 
-export interface TData {
-  [key: string]: any;
-}
+export type PowerFields = {
+  [key: `P${number}`]: number | undefined;
+};
+
+export type StdDevFields = {
+  [key: `stdDev${number}`]: number | undefined;
+};
+
+export type WavelengthFields = {
+  [key: `wavelength${number}`]: number | undefined;
+};
+
+export type BaseFields = {
+  id_record: number;
+  time: string;
+};
+
+export type ReceivedData = BaseFields & PowerFields & StdDevFields & WavelengthFields;
 
 export interface ScriptStatus {
   isRunning: boolean;
@@ -48,7 +54,7 @@ declare global {
       unsubscribe: (channel: string, listener: (...args: any[]) => void) => void;
 
       // доменные вызовы
-      getSensorsData: (path: string) => Promise<TData[]>;
+      getSensorsData: (path: string) => Promise<ReceivedData[]>;
       getInputs: () => Promise<Record<string, string>>;
       insertInput: (key: string, value: string) => Promise<void>;
 
@@ -81,4 +87,4 @@ declare global {
   }
 }
 
-export {};
+export { };
