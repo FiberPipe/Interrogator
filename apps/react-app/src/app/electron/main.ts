@@ -52,6 +52,31 @@ const ensureMeta = (file: string) => {
   return arr;
 };
 
+async function setupPortPickerHandlers(mainWindow: BrowserWindow) {
+  ipcMain.handle("pp:list", async () => {
+    const list = await SerialPort.list();
+    const score = (p: any) =>
+      (/usb|^com\d+/i.test(p.path) ? 0 : /bluetooth/i.test(p.path) ? 2 : 1);
+    return list.sort((a, b) => score(a) - score(b));
+  });
+
+  ipcMain.handle("pp:choose", async (_e, pathStr: string) => {
+    // сохраняем выбранный порт
+    const filePaths = readJSONFile<Record<string, string>>(DEFAULT_FILE_PATHS_PATH, {});
+    const updatedPaths = { ...filePaths, serialPortPath: pathStr };
+    writeJSONFile(DEFAULT_FILE_PATHS_PATH, updatedPaths);
+
+    mainWindow.webContents.send("port-chosen", pathStr);
+    return pathStr;
+  });
+
+  ipcMain.handle("pp:cancel", async () => {
+    mainWindow.webContents.send("port-picker-cancelled");
+    throw new Error("User cancelled port selection");
+  });
+}
+
+
 async function createMainWindow() {
   const mainWindow = new BrowserWindow({
     width: 1080,
@@ -64,8 +89,8 @@ async function createMainWindow() {
   globalShortcut.register("F12", () => mainWindow.webContents.toggleDevTools());
 
   const env = process.env.NODE_ENV || "development";
-  if (env === "production") await mainWindow.loadFile("build/index.html");
-  else await mainWindow.loadURL("http://localhost:3000/");
+  await mainWindow.loadFile("build/index.html");
+  await setupPortPickerHandlers(mainWindow);
 
   ipcMain.handle("selectFile", async () => {
     return new Promise((res) => {
@@ -160,65 +185,6 @@ async function createMainWindow() {
   return mainWindow;
 }
 
-// ОКНО ВЫБОРА ПОРТА 
-async function pickSerialPortWithWindow(): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    let resolved = false;
-
-    const picker = new BrowserWindow({
-      width: 560,
-      height: 520,
-      resizable: false,
-      minimizable: false,
-      maximizable: false,
-      title: "Select Serial Port",
-      modal: false,
-      show: false,
-      webPreferences: {
-        preload: join(app.getAppPath(), "build/src/app/electron/portpicker-preload.js"),
-        contextIsolation: true,
-        nodeIntegration: false,
-      },
-    });
-
-    picker.once("ready-to-show", () => picker.show());
-
-    ipcMain.handle("pp:list", async () => {
-      const list = await SerialPort.list();
-      const score = (p: any) => (/usb|^com\d+/i.test(p.path) ? 0 : /bluetooth/i.test(p.path) ? 2 : 1);
-      return list.sort((a, b) => score(a) - score(b));
-    });
-    ipcMain.handle("pp:choose", async (_e, pathStr: string) => {
-      if (resolved) return;
-      resolved = true;
-      cleanup();
-      try { picker.close(); } catch {}
-      resolve(pathStr);
-    });
-    ipcMain.handle("pp:cancel", async () => {
-      if (resolved) return;
-      resolved = true;
-      cleanup();
-      try { picker.close(); } catch {}
-      reject(new Error("User cancelled port selection"));
-    });
-
-    const cleanup = () => ["pp:list", "pp:choose", "pp:cancel"].forEach((ch) => {
-      try { /* @ts-ignore */ ipcMain.removeHandler(ch); } catch {}
-    });
-
-    picker.on("closed", () => {
-      if (!resolved) {
-        resolved = true; cleanup(); reject(new Error("Port picker window closed"));
-      }
-    });
-
-    const env = process.env.NODE_ENV || "development";
-    if (env === "production") picker.loadFile("build/port-picker.html");
-    else picker.loadURL("http://localhost:3000/port-picker.html");
-  });
-}
-
 app.whenReady().then(async () => {
   const filePaths = readJSONFile<Record<string, string>>(DEFAULT_FILE_PATHS_PATH, {});
   const inputs = readJSONFile<Record<string, any>>(DEFAULT_INPUTS_PATH, {});
@@ -233,29 +199,19 @@ app.whenReady().then(async () => {
     console.error("Не удалось подготовить data.json:", e);
   }
 
-  // Выбор порта
-  let chosenPort: string;
-  try { chosenPort = await pickSerialPortWithWindow(); }
-  catch (e) { console.error("Выбор порта отменён:", e); app.quit(); return; }
-
-  // Сохраним порт/путь и стартанём сборщик
-  const updatedPaths = { ...filePaths, serialPortPath: chosenPort, sensorDataFilePath };
-  writeJSONFile(DEFAULT_FILE_PATHS_PATH, updatedPaths);
-
-  await startSensorCollector(sensorDataFilePath, chosenPort, inputs);
-
-  // Основное окно + API
   let window = await createMainWindow();
 
-  app.on("activate", async () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      window = await createMainWindow();
-    }
+  ipcMain.handle("start-collector", async (_e, chosenPort: string) => {
+    const updatedPaths = { ...filePaths, serialPortPath: chosenPort, sensorDataFilePath };
+    writeJSONFile(DEFAULT_FILE_PATHS_PATH, updatedPaths);
+    await startSensorCollector(sensorDataFilePath, chosenPort, inputs);
+    return true;
   });
 
   const apiService = new ApiService(window);
   apiService.start();
 });
+
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
