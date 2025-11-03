@@ -2,6 +2,8 @@ import { Suspense, useCallback, useEffect, useRef } from "react";
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import { RouteCustomProps, routerConfig } from "./routerConfig";
 import { useInputStore } from "../../../shared";
+import { AppErrorBoundary } from "../AppErrorBoundary";
+import { AppSuspenseFallback } from "../AppSuspenseFallback";
 
 export const AppRouter = () => {
   const navigate = useNavigate();
@@ -12,19 +14,19 @@ export const AppRouter = () => {
   useEffect(() => {
     const checkFilePath = async () => {
       if (initialCheckDone.current) return;
-      
+
       const savedPaths = await window.electron.getFilePaths();
-      
+
       if (savedPaths.sensorDataFilePath) {
         setFilePaths(savedPaths);
         initialCheckDone.current = true;
-        return; 
+        return;
       }
-      
+
       if (location.pathname !== '/settings') {
         navigate('/settings');
       }
-      
+
       initialCheckDone.current = true;
     };
 
@@ -33,7 +35,7 @@ export const AppRouter = () => {
 
   useEffect(() => {
     if (!initialCheckDone.current) return;
-    
+
     if (!filePaths?.sensorDataFilePath && location.pathname !== '/settings') {
       navigate('/settings');
     }
@@ -41,7 +43,7 @@ export const AppRouter = () => {
 
   const renderWithWrapper = useCallback((route: RouteCustomProps) => {
     const element = (
-      <Suspense fallback={<h1>Loader</h1>}>{route.element}</Suspense>
+      <Suspense fallback={<AppSuspenseFallback message="Загрузка приложения..." />}>{route.element}</Suspense>
     );
 
     return route.indexPage ? (
@@ -54,8 +56,11 @@ export const AppRouter = () => {
   }, []);
 
   return (
-    <Suspense fallback={<h1>Loader</h1>}>
-      <Routes>{Object.values(routerConfig).map(renderWithWrapper)}</Routes>
-    </Suspense>
+    <AppErrorBoundary>
+      <Suspense fallback={<AppSuspenseFallback message="Загрузка приложения..." />}>
+        <Routes>{Object.values(routerConfig).map(renderWithWrapper)}</Routes>
+      </Suspense>
+
+    </AppErrorBoundary>
   );
 };

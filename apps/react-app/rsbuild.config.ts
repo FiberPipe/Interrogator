@@ -5,10 +5,7 @@ export default defineConfig({
   plugins: [pluginReact()],
   source: {
     entry: {
-      // основное приложение
       index: "./src/index.tsx",
-      // отдельный рендерер для окна выбора порта
-      "port-picker": "./src/port-picker/index.tsx",
     },
   },
 

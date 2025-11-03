@@ -10,6 +10,7 @@ import {
     Spacer,
     Code,
 } from '@heroui/react';
+import { ChartWrapper, LineChart } from '../../../../shared';
 
 // Константы по умолчанию
 const DEFAULT_LAMBDA_0 = 1550.0; // нм
@@ -104,60 +105,63 @@ export const DisplacementChart: React.FC<Props> = ({
     }, [data, showDisplacement, lambda0, fiberLengthMm]);
 
     return (
-        <div className="w-full h-[70vh]">
-                    <ChartWrapper>
-                        <LineChart data={chartData} />
-                    </ChartWrapper>
-                </div>
-        <Card className="w-full h-full">
-            <CardHeader className="flex items-center justify-between gap-3">
-                <div className="flex flex-col">
-                    <span className="text-lg font-semibold">{title}</span>
-                    <span className="text-default-500 text-sm">
-                        Переключайтесь между длиной волны и рассчитанным смещением
-                    </span>
-                </div>
-                <div className="flex items-center gap-3">
-                    <span className={showDisplacement ? 'text-default-500' : 'font-semibold'}>Длина волны (нм)</span>
-                    <Switch
-                        size="sm"
-                        isSelected={showDisplacement}
-                        onValueChange={setShowDisplacement}
-                        aria-label="Переключить режим отображения"
-                    />
-                    <span className={showDisplacement ? 'font-semibold' : 'text-default-500'}>Смещение (мм)</span>
-                </div>
-            </CardHeader>
+        <>
+            <div className="w-full h-[70vh]">
+                <ChartWrapper>
+                    <LineChart data={chartData} />
+                </ChartWrapper>
+            </div>
+            <Card className="w-full h-full">
+                <CardHeader className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col">
+                        <span className="text-lg font-semibold">{title}</span>
+                        <span className="text-default-500 text-sm">
+                            Переключайтесь между длиной волны и рассчитанным смещением
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <span className={showDisplacement ? 'text-default-500' : 'font-semibold'}>Длина волны (нм)</span>
+                        <Switch
+                            size="sm"
+                            isSelected={showDisplacement}
+                            onValueChange={setShowDisplacement}
+                            aria-label="Переключить режим отображения"
+                        />
+                        <span className={showDisplacement ? 'font-semibold' : 'text-default-500'}>Смещение (мм)</span>
+                    </div>
+                </CardHeader>
 
-            <Divider />
+                <Divider />
 
-            <CardBody className="gap-3">
-                <div className={`flex flex-wrap items-center gap-2 ${showDisplacement ? '' : ''}`}>
-                    <Chip variant="flat" color="primary" size="sm">
-                        λ₀: {lambda0} нм
-                    </Chip>
-                    <Chip variant="flat" color="secondary" size="sm">
-                        L: {fiberLengthMm} мм
-                    </Chip>
-                    {showDisplacement && (
-                        <Chip variant="bordered" color="success" size="sm">
-                            Формула: Смещение = L × (λ − λ₀) / λ₀
+                <CardBody className="gap-3">
+                    <div className={`flex flex-wrap items-center gap-2 ${showDisplacement ? '' : ''}`}>
+                        <Chip variant="flat" color="primary" size="sm">
+                            λ₀: {lambda0} нм
                         </Chip>
-                    )}
-                </div>
+                        <Chip variant="flat" color="secondary" size="sm">
+                            L: {fiberLengthMm} мм
+                        </Chip>
+                        {showDisplacement && (
+                            <Chip variant="bordered" color="success" size="sm">
+                                Формула: Смещение = L × (λ − λ₀) / λ₀
+                            </Chip>
+                        )}
+                    </div>
 
-                <Spacer y={1} />
-            </CardBody>
+                    <Spacer y={1} />
+                </CardBody>
 
-            <Divider />
+                <Divider />
 
-            <CardFooter className="text-sm text-default-600 flex flex-col gap-1">
-                <div>
-                    Формула расчета: <Code>Смещение = L × (λ − λ₀) / λ₀</Code>
-                </div>
-                <div>где L — длина волокна, λ — измеренная длина волны, λ₀ — эталонная длина волны.</div>
-                <div>Переключатель сверху меняет режим отображения между исходной длиной волны и смещением.</div>
-            </CardFooter>
-        </Card>
+                <CardFooter className="text-sm text-default-600 flex flex-col gap-1">
+                    <div>
+                        Формула расчета: <Code>Смещение = L × (λ − λ₀) / λ₀</Code>
+                    </div>
+                    <div>где L — длина волокна, λ — измеренная длина волны, λ₀ — эталонная длина волны.</div>
+                    <div>Переключатель сверху меняет режим отображения между исходной длиной волны и смещением.</div>
+                </CardFooter>
+            </Card>
+        </>
+
     );
 };

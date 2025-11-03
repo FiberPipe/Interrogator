@@ -9,8 +9,6 @@ export const DataFilePathModal: React.FC = () => {
   const { filePaths, setFilePaths } = useInputStore();
 
   const [sensorDataFilePath, setSensorDataFilePath] = useState<string>(filePaths?.sensorDataFilePath || "");
-
-  // динамические поля — берём аккуратно через any, чтобы TS не ругался на индексацию
   const [fieldValues, setFieldValues] = useState<string[]>(
     Array.from({ length: 16 }, (_, i) => ((filePaths as any)?.[`field${i}`] as string) || "")
   );
@@ -21,21 +19,15 @@ export const DataFilePathModal: React.FC = () => {
   useEffect(() => {
     const loadSavedPaths = async () => {
       const savedPaths = await window.electron.getFilePaths();
-
-      if (savedPaths.sensorDataFilePath) {
-        setSensorDataFilePath(savedPaths.sensorDataFilePath);
-      }
+      if (savedPaths.sensorDataFilePath) setSensorDataFilePath(savedPaths.sensorDataFilePath);
 
       setFieldValues((prev) => prev.map((_, i) => ((savedPaths as any)[`field${i}`] as string) || ""));
       setWavelengthValues((prev) => prev.map((_, i) => ((savedPaths as any)[`lambdas_central${i}`] as string) || ""));
-
-      // локальный стор, чтобы остальной UI мгновенно узнал о путях
       setFilePaths(savedPaths);
     };
 
     loadSavedPaths();
 
-    // слушаем «мгновенные» апдейты из main
     const unsub1 = window.electron.subscribe("file-paths-updated", (_: any, updated: any) => {
       if (updated?.sensorDataFilePath) setSensorDataFilePath(updated.sensorDataFilePath);
       setFilePaths(updated || {});
@@ -48,30 +40,20 @@ export const DataFilePathModal: React.FC = () => {
 
   const onSubmit = async () => {
     const updatedPaths: Record<string, string> = {};
-
     if (sensorDataFilePath) updatedPaths.sensorDataFilePath = sensorDataFilePath;
-
     fieldValues.forEach((val, i) => { if (val) updatedPaths[`field${i}`] = val; });
     wavelengthValues.forEach((val, i) => { if (val) updatedPaths[`lambdas_central${i}`] = val; });
 
     if (Object.keys(updatedPaths).length > 0) {
-      // мгновенно меняем локальный стор
       setFilePaths({ ...(filePaths || {}), ...updatedPaths });
-
-      // отправляем в main — он сам разошлёт событие по всем окнам
       const saved = await window.electron.setFilePaths(updatedPaths);
-
-      // дополнительная синхронизация (на случай, если main что-то дополнил)
       if (saved) setFilePaths(saved);
     }
   };
 
   const onClearJson = async () => {
     const ok = await window.electron.clearJson(sensorDataFilePath);
-    if (!ok) {
-      // можно показать тост, но не навязываю UI
-      console.warn("clearJson failed");
-    }
+    if (!ok) console.warn("clearJson failed");
   };
 
   const selectSensorsDataFilePath = async (e: React.MouseEvent) => {
@@ -82,20 +64,46 @@ export const DataFilePathModal: React.FC = () => {
   };
 
   return (
-    <div className="gap-6">
-      <Card className="w-[420px]">
-        <CardHeader>Укажите путь до файла c данными сенсоров</CardHeader>
+    <div className="flex flex-col gap-8 p-4 w-full max-w-5xl mx-auto">
+
+      <Card>
+        <CardHeader className="font-semibold text-lg">Путь к файлу данных сенсоров</CardHeader>
         <Divider />
         <CardBody onClick={selectSensorsDataFilePath}>
-          <Input placeholder="Sensors Data File Path" value={sensorDataFilePath} readOnly />
+          <Input
+            placeholder="Выберите файл с данными сенсоров"
+            value={sensorDataFilePath}
+            readOnly
+            fullWidth
+          />
         </CardBody>
       </Card>
 
-      <SensorPortMapping />
+      <Card>
+        <CardHeader className="font-semibold text-lg">Настройка датчиков</CardHeader>
+        <Divider />
+        <CardBody>
+          <SensorPortMapping />
+        </CardBody>
+      </Card>
 
-      <div className="flex flex-row flex-wrap gap-6">
-        <NormalizationFields values={fieldValues} onChange={setFieldValues} />
-        <WavelengthFields values={wavelengthValues} onChange={setWavelengthValues} />
+      {/* === Группа 3: Калибровка и параметры === */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader className="font-semibold text-lg">Нормализация</CardHeader>
+          <Divider />
+          <CardBody>
+            <NormalizationFields values={fieldValues} onChange={setFieldValues} />
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader className="font-semibold text-lg">Длины волн</CardHeader>
+          <Divider />
+          <CardBody>
+            <WavelengthFields values={wavelengthValues} onChange={setWavelengthValues} />
+          </CardBody>
+        </Card>
       </div>
 
       <div className="w-full flex justify-end gap-3">
@@ -107,7 +115,6 @@ export const DataFilePathModal: React.FC = () => {
         >
           Очистить JSON
         </Button>
-
         <Button
           color="primary"
           isDisabled={!sensorDataFilePath}
