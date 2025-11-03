@@ -4,13 +4,11 @@
   "version": "1.0.0",
   "main": "build/src/app/electron/main.js",
   "scripts": {
-    "dev:react": "rsbuild dev --port 3000",
-    "dev:web": "npm run dev:react -- --open",
-    "dev:electron": "concurrently \"pnpm dev:react\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ -w\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ && electron .\"",
-    "dev": "npm run dev:web",
+    "dev:web": "rsbuild dev --port 3000",
+    "dev:electron": "concurrently \"pnpm dev:web\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ -w\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ && electron .\"",
     "build:web": "rsbuild build",
-    "build:electron": "npm run build:web && tsc -p ./src/app/electron/ && electron-builder",
-    "build:win": "npm run build:web && tsc -p ./src/app/electron/ && electron-builder --win --x64"
+    "build:electron": "tsc -p . && electron-builder",
+    "build:win": "pnpm build:web && pnpm build:electron --win"
   },
   "dependencies": {
     "@emotion/react": "^11.13.0",
@@ -25,7 +23,7 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.25.1",
     "recharts": "^2.12.7",
-    "serialport": "13.0.0",
+    "serialport": "11.0.0",
     "zustand": "4.5.4"
   },
   "devDependencies": {
@@ -37,8 +35,8 @@
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.19",
     "concurrently": "8.2.2",
-    "electron": "31.3.0",
-    "electron-builder": "26.0.12",
+    "electron": "^32.3.3",
+    "electron-builder": "^26.0.12",
     "electronmon": "2.0.3",
     "framer-motion": "^11.3.19",
     "postcss": "^8.4.40",
@@ -48,12 +46,20 @@
     "wait-on": "7.2.0"
   },
   "build": {
-    "extends": null,
-    "files": [
-      "build/**/*"
-    ],
+    "asar": false,
+    "appId": "com.example.myelectronapp",
+    "productName": "MyElectronApp",
     "directories": {
+      "output": "release",
       "buildResources": "assets"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "assets/icon.ico"
     }
   }
 }

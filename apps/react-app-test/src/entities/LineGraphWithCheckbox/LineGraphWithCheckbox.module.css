@@ -1,0 +1,25 @@
+.chartsWidget {
+  display: flex;
+  flex-flow: row nowrap;
+  gap: 15px;
+  height: 100%;
+}
+
+.toggler {
+  width: 75px;
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 5px;
+  padding: 7px 0;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.charts {
+  flex: 10 10 auto;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 7px;
+}

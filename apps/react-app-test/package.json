@@ -1,0 +1,47 @@
+{
+  "name": "my-electron-app",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/electron/main.js",
+  "scripts": {
+    "dev:web": "rsbuild dev --port 3000",
+    "dev:electron": "concurrently \"pnpm dev:web\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/electron/ -w\" \"wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ && electron .\"",
+    "build:web": "rsbuild build",
+    "build:electron": "tsc -p . && electron-builder",
+    "build:win": "pnpm build:web && pnpm build:electron --win"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "serialport": "11.0.0"
+  },
+  "devDependencies": {
+    "@rsbuild/core": "^1.5.17",
+    "@rsbuild/plugin-react": "^1.0.1-beta.5",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "concurrently": "^9.0.1",
+    "electron": "^32.3.3",
+    "electron-builder": "^26.0.12",
+    "typescript": "^5.5.2",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.example.myelectronapp",
+    "productName": "MyElectronApp",
+    "directories": {
+      "output": "release",
+      "buildResources": "assets"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.ico"
+    }
+  }
+}

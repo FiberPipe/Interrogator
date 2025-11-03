@@ -12,6 +12,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@electron/windows-sign": "2.0.2",
+    "cross-env": "10.0.0",
+    "electron-rebuild": "3.2.9",
     "nx": "^19.5.3"
   }
 }
