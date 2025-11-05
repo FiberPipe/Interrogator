@@ -94,44 +94,49 @@ export function startSensorCollector(
           ? weights.reduce((acc, w, i) => acc + (isFinite(w) ? w * (lambdas[i] ?? 0) : 0), 0) / sumWeights
           : NaN;
 
+      const fileName = `wavelength${s}.csv`;
+
       try {
-        const csvRaw = fs.readFileSync("data.csv", "utf-8");
-        const lines = csvRaw.trim().split("\n");
+        if (!fs.existsSync(fileName)) {
+          console.warn(`⚠️ Файл ${fileName} не найден, оставляем λ=${lambda}`);
+          lambdaResults[`wavelength${s}`] = lambda;
+        } else {
+          const csvRaw = fs.readFileSync(fileName, "utf-8");
+          const lines = csvRaw.trim().split("\n");
 
-        const headers = lines[0].split(",").map((h) => h.trim());
-        const records = lines.slice(1).map((line) => {
-          const values = line.split(",").map((v) => v.trim());
-          return Object.fromEntries(headers.map((h, i) => [h, values[i]]));
-        });
+          const headers = lines[0].split(",").map((h) => h.trim());
+          const records = lines.slice(1).map((line) => {
+            const values = line.split(",").map((v) => v.trim());
+            return Object.fromEntries(headers.map((h, i) => [h, values[i]]));
+          });
 
-        // 🔍 Ищем ближайшее значение к λ по wl_calc
-        let closest = null;
-        let minDiff = Infinity;
+          // 🔍 Ищем ближайшее значение к λ по wl_calc
+          let closest = null;
+          let minDiff = Infinity;
 
-        for (const row of records) {
-          const wl = parseFloat(row.wl_calc);
-          const diff = Math.abs(wl - lambda);
-          if (diff < minDiff) {
-            minDiff = diff;
-            closest = row;
+          for (const row of records) {
+            const wl = parseFloat(row.wl_calc);
+            const diff = Math.abs(wl - lambda);
+            if (diff < minDiff) {
+              minDiff = diff;
+              closest = row;
+            }
+          }
+
+          if (closest) {
+            console.log(
+              `✅ ${fileName}: ближайшее значение найдено: wl_calc=${closest.wl_calc} (разница ${minDiff}) → заменяем на ${closest.spectrum_peak_nm_fit}`
+            );
+            lambdaResults[`wavelength${s}`] = parseFloat(closest.spectrum_peak_nm_fit);
+          } else {
+            console.warn(`⚠️ ${fileName}: совпадений не найдено, оставляем λ=${lambda}`);
+            lambdaResults[`wavelength${s}`] = lambda;
           }
         }
-
-        if (closest) {
-          console.log(
-            `✅ Ближайшее значение найдено: wl_calc=${closest.wl_calc} (разница ${minDiff}) → заменяем на ${closest.spectrum_peak_nm_fit}`
-          );
-          lambdaResults[`wavelength${s}`] = parseFloat(closest.spectrum_peak_nm_fit);
-        } else {
-          console.warn(`⚠️ Не найдено ни одного значения, оставляем λ=${lambda}`);
-          lambdaResults[`wavelength${s}`] = lambda;
-        }
-
       } catch (err) {
-        console.error("❌ Ошибка при чтении CSV:", err);
+        console.error(`❌ Ошибка при обработке ${fileName}:`, err);
+        lambdaResults[`wavelength${s}`] = lambda; // оставляем текущее значение
       }
-
-
 
       // Подробное логирование в "формульном" стиле
       console.log(`\n📡 Sensor_${s} расчет λ`);
