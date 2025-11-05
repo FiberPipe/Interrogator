@@ -9,7 +9,7 @@ import {
   Checkbox,
   Select,
   SelectItem,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useInputStore } from "../../shared";
 
 const SENSOR_TYPES = [
@@ -22,15 +22,15 @@ export const SensorPortMapping: React.FC = () => {
   const { filePaths, setFilePaths } = useInputStore();
 
   const [sensorCount, setSensorCount] = useState<number>(
-       //@ts-expect-error
+    //@ts-expect-error
     filePaths?.sensorCount || 0
   );
   const [sensorPorts, setSensorPorts] = useState<Record<number, string[]>>(
-       //@ts-expect-error
+    //@ts-expect-error
     filePaths?.sensorPorts || {}
   );
   const [sensorTypes, setSensorTypes] = useState<Record<number, string>>(
-       //@ts-expect-error\
+    //@ts-expect-error\
     filePaths?.sensorTypes || {}
   );
 
@@ -41,17 +41,17 @@ export const SensorPortMapping: React.FC = () => {
     const loadSaved = async () => {
       const savedInputs = await window.electron.getInputs();
       if (savedInputs.sensorCount) {
-         //@ts-expect-error
+        //@ts-expect-error
         setSensorCount(savedInputs.sensorCount);
       }
       if (savedInputs.sensorPorts) {
-         //@ts-expect-error
+        //@ts-expect-error
         setSensorPorts(savedInputs.sensorPorts);
       }
       if (savedInputs.sensorTypes) {
         setSensorTypes(savedInputs.sensorTypes);
       }
-       //@ts-expect-error
+      //@ts-expect-error
       setFilePaths(savedInputs);
     };
     loadSaved();

@@ -17,4 +17,14 @@ export default defineConfig({
   html: {
     title: "My Electron App",
   },
+  tools: {
+    postcss: {
+      postcssOptions: {
+        plugins: [
+          require("@tailwindcss/postcss"),
+          require("autoprefixer"),
+        ],
+      },
+    },
+  },
 });

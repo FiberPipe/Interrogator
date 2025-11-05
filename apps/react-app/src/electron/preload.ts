@@ -1,6 +1,5 @@
 import type { IpcRendererEvent } from "electron";
- //@ts-expect-error
-import type { FilePaths } from "../types/global";
+import type { FilePaths } from "../app/types/global";
 
 const { ipcRenderer, contextBridge } = require("electron");
 type Method = "Analytical" | "ML";

@@ -1,4 +1,4 @@
-import { NavbarBrand, NavbarContent } from "@nextui-org/react";
+import { NavbarBrand, NavbarContent } from "@heroui/react";
 import { Logo } from "../../shared/assets";
 import styles from "./Navbar.module.css";
 

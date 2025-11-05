@@ -1,4 +1,4 @@
-import { Button, Navbar } from "@nextui-org/react";
+import { Button, Navbar } from "@heroui/react";
 import { NavbarLogo, NavbarRoutes } from "../../entities";
 
 export const Header: React.FC = () => {

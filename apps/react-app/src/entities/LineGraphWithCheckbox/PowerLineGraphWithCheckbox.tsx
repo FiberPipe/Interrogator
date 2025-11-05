@@ -1,4 +1,4 @@
-import { Checkbox } from "@nextui-org/react";
+import { Checkbox } from "@heroui/react";
 import React, { useState, useCallback, useEffect } from "react";
 import classes from "./LineGraphWithCheckbox.module.css";
 import { TTransformedData } from "../../shared";

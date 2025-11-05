@@ -78,7 +78,13 @@ declare global {
         cb: (pm: Record<string, Method>) => void
       ) => () => void;
     };
+    portPicker: {
+      list: () => Promise<PortInfo[]>;
+      choose: (p: string) => Promise<void>;
+      cancel: () => Promise<void>;
+    };
   }
 }
+
 
 export {};

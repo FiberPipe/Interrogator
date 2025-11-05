@@ -1,4 +1,4 @@
-import { Checkbox } from "@nextui-org/react";
+import { Checkbox } from "@heroui/react";
 import React, { useState, useCallback } from "react";
 import classes from "./LineGraphWithCheckbox.module.css";
 import { LineGraph } from "../../shared/ui/LineGraph/LineGraph";
@@ -61,7 +61,7 @@ export const LineGraphWithCheckbox: React.FC<LineGraphWithCheckboxProps> = ({
         </div>
         <div className={classes.charts}>
           <LineGraph names={
-             //@ts-expect-error
+            //@ts-expect-error
             names.map((name) => String(name))} data={filteredData as TTransformedData[]} sensorsConstraints={sensorsConstraints} />
         </div>
       </div>

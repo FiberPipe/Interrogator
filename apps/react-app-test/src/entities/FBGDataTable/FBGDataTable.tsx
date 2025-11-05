@@ -6,7 +6,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { TData, useInputStore } from "../../shared";
 import { FBG_HEADER_CELL_NAMES } from "./utils";
 import { useEffect } from "react";

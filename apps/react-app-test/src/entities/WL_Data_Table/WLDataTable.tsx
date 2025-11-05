@@ -8,7 +8,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { TData, useInputStore } from "../../shared";
 import { WL_HEADER_CELL_NAMES } from "./utils";
 import { groupDataById, GroupedItem } from "../utils";

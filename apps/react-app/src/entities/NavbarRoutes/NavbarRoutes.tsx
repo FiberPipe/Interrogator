@@ -1,4 +1,4 @@
-import { Button, Link, NavbarContent, NavbarItem } from "@nextui-org/react";
+import { Button, Link, NavbarContent, NavbarItem } from "@heroui/react";
 import { redirect, useLocation, useNavigate } from "react-router-dom";
 import { DEFAULT_NAVBAR_ROUTES_LIST, getRouteColor } from "./utils";
 import { Gear } from '@gravity-ui/icons';

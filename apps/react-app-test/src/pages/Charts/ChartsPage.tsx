@@ -2,7 +2,7 @@ import React from "react";
 import { LineGraphDataBuilder } from "../../features";
 import { useInputStore } from "../../shared";
 import { processSensorData } from "../../features/buildDataForLineGraph/utils";
-import { Card, CardBody, RadioGroup, Radio } from "@nextui-org/react";
+import { Card, CardBody, RadioGroup, Radio } from "@heroui/react";
 
 type Method = "Analytical" | "ML";
 

@@ -9,7 +9,7 @@ import {
     Textarea,
     Button,
     Divider
-} from '@nextui-org/react';
+} from '@heroui/react';
 import { useState, useEffect } from 'react';
 
 interface Script {
@@ -85,7 +85,7 @@ export const ScriptCard = ({
                         </Chip>
                     )}
                     <Chip
-                    //@ts-expect-error
+                        //@ts-expect-error
                         color={statusColor}
                         variant="flat"
                     >

@@ -1,4 +1,4 @@
-const { nextui } = require("@nextui-org/react");
+const { nextui } = require("@heroui/react");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {

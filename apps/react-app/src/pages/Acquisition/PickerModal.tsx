@@ -11,7 +11,7 @@ import {
   Spinner,
   Card,
   CardBody,
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 
 type PortInfo = {

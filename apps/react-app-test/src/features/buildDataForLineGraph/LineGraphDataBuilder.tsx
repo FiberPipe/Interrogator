@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { LineGraphWithCheckbox } from "../../entities";
 import { useInputStore } from "../../shared";
 import { processSensorData } from "./utils";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 
 export const LineGraphDataBuilder: React.FC = () => {
   const [transformedData, setTransformedData] = useState({

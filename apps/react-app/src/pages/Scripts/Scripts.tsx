@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ScriptModal } from './ScriptsModal';
 import { Plus } from '@gravity-ui/icons';
-import { Button } from '@nextui-org/react';
+import { Button } from '@heroui/react';
 import { ScriptCard } from './ScriptCard';
 
 interface Script {

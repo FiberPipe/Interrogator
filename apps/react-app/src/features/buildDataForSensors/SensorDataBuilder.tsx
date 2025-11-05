@@ -1,14 +1,14 @@
 import { FBGDataTable, WLDataTable } from "../../entities";
-import { Tab, Tabs } from "@nextui-org/react";
+import { Tab, Tabs } from "@heroui/react";
 import { useEffect, useState } from "react";
-import {TData, useInputStore} from "../../shared";
+import { TData, useInputStore } from "../../shared";
 import { TemperatureTable } from "../../entities/TemperatureTable";
 import { DisplacementTable } from "../../entities/DisplacementTable";
 
 export const SensorDataBuilder = () => {
   const [transformedData, setTransformedData] = useState<TData[]>([]);
-  const {filePaths} = useInputStore();
-  const {sensorDataFilePath = ''} = filePaths ?? {};
+  const { filePaths } = useInputStore();
+  const { sensorDataFilePath = '' } = filePaths ?? {};
 
   useEffect(() => {
     const fetchInputs = async () => {

@@ -8,7 +8,7 @@ import {
     Divider,
     Chip,
     Switch
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState, useEffect } from "react";
 
 export const LightManagement = () => {

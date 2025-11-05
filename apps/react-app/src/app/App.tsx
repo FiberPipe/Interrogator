@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import "./styles/global.css";
-import { NextUIProvider } from "@nextui-org/react";
+import { HeroUIProvider } from "@heroui/react";
 import { AppRouter } from "./providers/router/AppRouter";
 import { Header } from "../widgets";
 import { PageContainer } from "../shared";
@@ -17,7 +17,7 @@ const App = () => {
 
   return (
     <>
-      <NextUIProvider navigate={navigate}>
+      <HeroUIProvider navigate={navigate}>
         <div className={"page"}>
           <Header />
           {/* <AsideBar /> */}
@@ -25,7 +25,7 @@ const App = () => {
             <AppRouter />
           </PageContainer>
         </div>
-      </NextUIProvider>
+      </HeroUIProvider>
     </>
   );
 };

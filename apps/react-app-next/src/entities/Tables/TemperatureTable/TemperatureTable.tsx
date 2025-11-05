@@ -5,7 +5,7 @@ import {
     TableColumn,
     TableHeader,
     TableRow,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Fragment } from "react";
 import { SensorData } from "@shared/types/sensor-data";
 import { groupDataById } from "../utils";
