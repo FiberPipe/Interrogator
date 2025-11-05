@@ -148,7 +148,7 @@ function waitForSensorDataPathAndStart() {
     const filePaths = readJSONFile<Record<string, string>>(DEFAULT_FILE_PATHS_PATH, {});
     const inputs = readJSONFile<Record<string, string>>(DEFAULT_INPUTS_PATH, {});
     const sensorDataFilePath = filePaths["sensorDataFilePath"];
-    const serialPortPath = filePaths["serialPortPath"] || "COM13"; 
+    const serialPortPath = filePaths["serialPortPath"] || "COM8";
 
     console.log(12345, filePaths, inputs)
 

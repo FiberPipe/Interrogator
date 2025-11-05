@@ -18,7 +18,7 @@ const DEFAULT_FILE_PATHS_PATH = path.join(
   "Interrogator",
   "file_paths.json"
 );
-    // содержит настройки inputs
+// содержит настройки inputs
 
 // Утилита для чтения JSON
 function readJSONFile<T>(path: string, defaultValue: T): T {
@@ -74,7 +74,7 @@ function waitForConfigAndStart() {
     const inputsRaw = readJSONFile<Inputs>(DEFAULT_INPUTS_PATH, {});
 
     const sensorDataFilePath = filePaths["sensorDataFilePath"];
-    const serialPortPath = filePaths["serialPortPath"] || "COM13";
+    const serialPortPath = filePaths["serialPortPath"] || "COM8";
 
     if (sensorDataFilePath && !started) {
       console.log("sensorDataFilePath найден:", sensorDataFilePath);

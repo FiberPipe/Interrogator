@@ -4,7 +4,7 @@ import { ReadlineParser } from "@serialport/parser-readline";
 
 export function startSensorCollector(
   filePath: string,
-  serialPortPath: string = "COM13",
+  serialPortPath: string = "COM8",
   inputs: Record<string, any> = {}
 ) {
   console.log("======================================");

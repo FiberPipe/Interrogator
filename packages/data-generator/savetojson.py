@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib                 ; matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-SERIAL_PORT = 'COM13'
+SERIAL_PORT = 'COM8'
 BAUD_RATE   = 9600
 SAVE_FILE   = r'C:/Users/koval/OneDrive/Рабочий стол/Стартапы/Fiber Pipe/ПО/alg_new/alg_v9_A2_IKEKIK2025-05-02-v01/data.json'
 WINDOW_SEC  = 60# «скользящее» окно по времени (с)

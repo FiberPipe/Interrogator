@@ -46,7 +46,7 @@ class FakeSerialPort extends EventEmitter {
   }
 
   public open() {
-    console.log("Эмулятор COM13: порт открыт");
+    console.log("Эмулятор COM8: порт открыт");
     this.interval = setInterval(() => {
       const pkt = this.generatePacket();
       this.emit("data", JSON.stringify(pkt));
@@ -54,7 +54,7 @@ class FakeSerialPort extends EventEmitter {
   }
 
   public close() {
-    console.log("Эмулятор COM13: порт закрыт");
+    console.log("Эмулятор COM8: порт закрыт");
   }
 }
 
@@ -67,7 +67,7 @@ parser.on("data", (line: string) => {
   console.log(line);
 });
 
-// "Открываем" эмулятор вместо реального COM13
+// "Открываем" эмулятор вместо реального COM8
 port.open();
 
 // Обработка выхода
