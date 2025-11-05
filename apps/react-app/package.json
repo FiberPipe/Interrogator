@@ -26,6 +26,7 @@
     "react-router-dom": "^6.25.1",
     "recharts": "^2.12.7",
     "serialport": "13.0.0",
+    "sync@latest": "link:csv-parse/sync@latest",
     "zustand": "4.5.4"
   },
   "devDependencies": {
