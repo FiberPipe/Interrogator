@@ -109,25 +109,33 @@ export function startSensorCollector(
           return Object.fromEntries(headers.map((h, i) => [h, values[i]]));
         });
 
-        console.log("📄 CSV data:");
-        console.table(records);
+        // 🔍 Ищем ближайшее значение к λ по wl_calc
+        let closest = null;
+        let minDiff = Infinity;
 
-        // 🔍 Ищем совпадение по wl_calc с точностью до тысячной (0.001)
-        const match = records.find(
-          (row) => Math.abs(parseFloat(row.wl_calc) - lambda) < 0.001
-        );
+        for (const row of records) {
+          const wl = parseFloat(row.wl_calc);
+          const diff = Math.abs(wl - lambda);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closest = row;
+          }
+        }
 
-        if (match) {
-          console.log(`✅ Найдено совпадение λ=${lambda.toFixed(3)} → заменяем на ${match.spectrum_peak_nm_fit}`);
-          lambdaResults[`wavelength${s}`] = parseFloat(match.spectrum_peak_nm_fit);
+        if (closest) {
+          console.log(
+            `✅ Ближайшее значение найдено: wl_calc=${closest.wl_calc} (разница ${minDiff}) → заменяем на ${closest.spectrum_peak_nm_fit}`
+          );
+          lambdaResults[`wavelength${s}`] = parseFloat(closest.spectrum_peak_nm_fit);
         } else {
-          console.warn(`⚠️ Совпадение для λ=${lambda.toFixed(3)} не найдено, оставляем как есть`);
+          console.warn(`⚠️ Не найдено ни одного значения, оставляем λ=${lambda}`);
           lambdaResults[`wavelength${s}`] = lambda;
         }
 
       } catch (err) {
         console.error("❌ Ошибка при чтении CSV:", err);
       }
+
 
 
       // Подробное логирование в "формульном" стиле
