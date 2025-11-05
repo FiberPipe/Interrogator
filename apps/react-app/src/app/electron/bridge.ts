@@ -65,7 +65,8 @@ const electron = {
       productId?: string;
     }[]
   > => ipcRenderer.invoke("listSerialPorts"),
-   startSensorCollector: (filePath: any) => ipcRenderer.send("start-sensor-collector", filePath),
+  startSensorCollector: (filePath: any) => ipcRenderer.send("start-sensor-collector", filePath),
+  clearJson: (filePath?: string): Promise<boolean> => ipcRenderer.invoke("clear-json", filePath),
 };
 
 contextBridge.exposeInMainWorld("electron", electron);

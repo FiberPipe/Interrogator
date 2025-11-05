@@ -94,11 +94,6 @@ export function startSensorCollector(
           ? weights.reduce((acc, w, i) => acc + (isFinite(w) ? w * (lambdas[i] ?? 0) : 0), 0) / sumWeights
           : NaN;
 
-      const lambda =
-        sumWeights > 0
-          ? weights.reduce((acc, w, i) => acc + (isFinite(w) ? w * (lambdas[i] ?? 0) : 0), 0) / sumWeights
-          : NaN;
-
       try {
         const csvRaw = fs.readFileSync("data.csv", "utf-8");
         const lines = csvRaw.trim().split("\n");

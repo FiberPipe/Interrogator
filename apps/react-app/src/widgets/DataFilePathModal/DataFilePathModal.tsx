@@ -27,6 +27,14 @@ export const DataFilePathModal: React.FC = () => {
 		Array.from({ length: 16 }, (_, i) => filePaths?.[`lambdas_central${i}`] || "")
 	);
 
+
+  const onClearJson = async () => {
+    const ok = await window.electron.clearJson(sensorDataFilePath);
+    if (!ok) {
+      console.warn("clearJson failed");
+    }
+  };
+
 	useEffect(() => {
 		const loadSavedPaths = async () => {
 			const savedPaths = await window.electron.getFilePaths();
@@ -73,6 +81,7 @@ export const DataFilePathModal: React.FC = () => {
 			}
 		}
 	};
+
 	const selectSensorsDataFilePath = async (e: React.MouseEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
@@ -80,6 +89,15 @@ export const DataFilePathModal: React.FC = () => {
 		if (path) {
 			setSensorDataFilePath(path);
 		}
+	};
+
+	// 🧹 Очистка выбранного файла
+	const clearFilePath = async () => {
+		setSensorDataFilePath("");
+		const updatedPaths = { ...filePaths, sensorDataFilePath: "" };
+		setFilePaths(updatedPaths);
+		await window.electron.setFilePaths(updatedPaths);
+		console.log("🧹 Путь к файлу очищен");
 	};
 
 	return (
@@ -106,10 +124,19 @@ export const DataFilePathModal: React.FC = () => {
 				/>
 			</div>
 
-			<div className="w-full flex justify-end">
+			<div className="w-full flex justify-end gap-3">
 				<Button
+					variant="flat"
+					color="danger"
 					isDisabled={!sensorDataFilePath}
+					onClick={onClearJson}
+				>
+					Очистить JSON
+				</Button>
+
+				<Button
 					color="primary"
+					isDisabled={!sensorDataFilePath}
 					onClick={onSubmit}
 				>
 					Сохранить

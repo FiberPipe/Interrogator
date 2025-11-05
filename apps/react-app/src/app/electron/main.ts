@@ -118,6 +118,41 @@ ipcMain.handle(
   }
 );
 
+
+function writeJSONFile(filePath: string, data: any): void {
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+}
+
+const getDataFilePath = () => {
+  const fp = readJSONFile<Record<string, string>>(DEFAULT_FILE_PATHS_PATH, {});
+  return fp.sensorDataFilePath || path.join(os.homedir(), "Documents", "Interrogator", "data.json");
+};
+
+
+  ipcMain.handle("clear-json", async (_e, providedPath?: string) => {
+    try {
+      let filePath = providedPath || getDataFilePath();
+
+      if (!fs.existsSync(filePath)) writeJSONFile(filePath, []);
+      else {
+        let arr: any[] = [];
+        try { arr = JSON.parse(fs.readFileSync(filePath, "utf-8")); } catch { arr = []; }
+        const keepMeta = Array.isArray(arr) && arr[0] && arr[0].__meta ? [arr[0]] : [];
+        writeJSONFile(filePath, keepMeta);
+      }
+
+      BrowserWindow.getAllWindows().forEach((w) =>
+        w.webContents.send("data-file-cleared", filePath)
+      );
+      return true;
+    } catch (e) {
+      console.error("clear-json error:", e);
+      return false;
+    }
+  });
+
 ipcMain.handle("getFilePaths", async () => {
   return readDataFileInputs(DEFAULT_FILE_PATHS_PATH, {});
 });

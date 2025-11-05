@@ -41,6 +41,7 @@ export declare global {
       setFilePaths: (filePaths: FilePaths) => Promise<FilePaths>;
 
       runPythonScript: (scriptPath: string, args?: string[]) => Promise<string>;
+      clearJson: (filePath?: string) => Promise<boolean>;
     };
   }
 }
