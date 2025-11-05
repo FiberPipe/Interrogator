@@ -88,7 +88,6 @@ export function startSensorCollector(
       const lambdas = attached.map((p) => lambdaCentral[p] ?? 0);
       const sumWeights = weights.reduce((acc, w) => acc + (isFinite(w) ? w : 0), 0);
 
-
       const lambda =
         sumWeights > 0
           ? weights.reduce((acc, w, i) => acc + (isFinite(w) ? w * (lambdas[i] ?? 0) : 0), 0) / sumWeights
@@ -129,11 +128,8 @@ export function startSensorCollector(
 
       } catch (err) {
         console.error("❌ Ошибка при чтении CSV:", err);
+        lambdaResults[`wavelength${s}`] = lambda;
       }
-
-      // Подробное логирование в "формульном" стиле
-      console.log(`\n📡 Sensor_${s} расчет λ`);
-      console.log("--------------------------------------------------");
 
       // Формула для суммарного веса
       console.log(`Σw = ${weights.map((w) => w.toFixed(4)).join(" + ")} = ${sumWeights.toFixed(4)}`);
