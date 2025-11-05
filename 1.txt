@@ -1,0 +1,945 @@
+[2] norm[P3] = num (1.9475) - sub (0.0000) = 1.9475, lambda=0
+[2] norm[P4] = num (2.1359) - sub (0.0000) = 2.1359, lambda=0
+[2] norm[P5] = num (3.0664) - sub (1.8944) = 1.1720, lambda=1542.8898
+[2] norm[P6] = num (2.6788) - sub (1.9071) = 0.7717, lambda=1543.4514
+[2] norm[P7] = num (2.0161) - sub (1.8966) = 0.1195, lambda=1544.1822
+[2] norm[P8] = num (1.9783) - sub (1.9306) = 0.0477, lambda=1544.9862
+[2] norm[P9] = num (1.9316) - sub (1.9116) = 0.0200, lambda=1545.8376
+[2] norm[P10] = num (1.9297) - sub (1.9122) = 0.0175, lambda=1546.6014
+[2] norm[P11] = num (1.9427) - sub (1.9278) = 0.0149, lambda=1547.3958
+[2] norm[P12] = num (1.9097) - sub (1.8000) = 0.1097, lambda=1548.2
+[2] norm[P13] = num (1.8973) - sub (1.8000) = 0.0973, lambda=1549.6
+[2] norm[P14] = num (1.9046) - sub (1.8000) = 0.1046, lambda=1550.4
+[2] norm[P15] = num (1.9236) - sub (1.8000) = 0.1236, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.5161815259434661) → заменяем на 1543.0407
+960233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] --------------------------------------------------
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2] Σw = 1.1720 + 0.7717 + 0.1195 + 0.0477 + 0.0200 + 0.0175 + 0.0149 = 2.1632
+[2] Σ(wᵢ·λᵢ) = 1.1720·1542.89 + 0.7717·1543.45 + 0.1195·1544.18 + 0.0477·1544.99 + 0.0200·1545.84 + 0.0175·1546.60 + 0.0149·1547.40 = 3338.4164
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3338.4164 / 2.1632 = 1543.296052
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1720,0.7717,0.1195,0.0477,0.0200,0.0175,0.0149
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1632
+[2]   λ: 1543.296052
+[2]
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1097 + 0.0973 + 0.1046 + 0.1236 = 0.4351
+[2] Σ(wᵢ·λᵢ) = 0.1097·1548.20 + 0.0973·1549.60 + 0.1046·1550.40 + 0.1236·1551.20 = 674.3853
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 674.3853 / 0.4351 = 1549.894062
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1097,0.0973,0.1046,0.1236
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4351
+[2]   λ: 1549.894062
+[2] norm[P0] = num (1.9281) - sub (0.0000) = 1.9281, lambda=0
+[2] norm[P1] = num (1.9414) - sub (0.0000) = 1.9414, lambda=0
+[2] norm[P2] = num (1.9338) - sub (0.0000) = 1.9338, lambda=0
+[2] norm[P3] = num (1.9490) - sub (0.0000) = 1.9490, lambda=0
+[2] norm[P4] = num (2.1352) - sub (0.0000) = 2.1352, lambda=0
+[2] norm[P5] = num (3.0689) - sub (1.8944) = 1.1745, lambda=1542.8898
+[2] norm[P6] = num (2.6753) - sub (1.9071) = 0.7682, lambda=1543.4514
+[2] norm[P7] = num (2.0167) - sub (1.8966) = 0.1201, lambda=1544.1822
+[2] norm[P8] = num (1.9773) - sub (1.9306) = 0.0467, lambda=1544.9862
+[2] norm[P9] = num (1.9316) - sub (1.9116) = 0.0200, lambda=1545.8376
+[2] norm[P10] = num (1.9287) - sub (1.9122) = 0.0165, lambda=1546.6014
+[2] norm[P11] = num (1.9440) - sub (1.9278) = 0.0162, lambda=1547.3958
+[2] norm[P12] = num (1.9087) - sub (1.8000) = 0.1087, lambda=1548.2
+[2] norm[P13] = num (1.8966) - sub (1.8000) = 0.0966, lambda=1549.6
+[2] norm[P14] = num (1.9049) - sub (1.8000) = 0.1049, lambda=1550.4
+[2] norm[P15] = num (1.9233) - sub (1.8000) = 0.1233, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.5164414307917014) → заменяем на 1543.0407
+960233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] --------------------------------------------------
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2] Σw = 1.1745 + 0.7682 + 0.1201 + 0.0467 + 0.0200 + 0.0165 + 0.0162 = 2.1622
+[2] Σ(wᵢ·λᵢ) = 1.1745·1542.89 + 0.7682·1543.45 + 0.1201·1544.18 + 0.0467·1544.99 + 0.0200·1545.84 + 0.0165·1546.60 + 0.0162·1547.40 = 3336.9466
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3336.9466 / 2.1622 = 1543.295792
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1745,0.7682,0.1201,0.0467,0.0200,0.0165,0.0162
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1622
+[2]   λ: 1543.295792
+[2]
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1087 + 0.0966 + 0.1049 + 0.1233 = 0.4335
+[2] Σ(wᵢ·λᵢ) = 0.1087·1548.20 + 0.0966·1549.60 + 0.1049·1550.40 + 0.1233·1551.20 = 671.9271
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 671.9271 / 0.4335 = 1549.897633
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1087,0.0966,0.1049,0.1233
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4335
+[2]   λ: 1549.897633
+[2] {
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\data.json'
+[2] }
+[2] norm[P0] = num (1.9287) - sub (0.0000) = 1.9287, lambda=0
+[2] norm[P1] = num (1.9402) - sub (0.0000) = 1.9402, lambda=0
+[2] norm[P2] = num (1.9335) - sub (0.0000) = 1.9335, lambda=0
+[2] norm[P3] = num (1.9468) - sub (0.0000) = 1.9468, lambda=0
+[2] norm[P4] = num (2.1374) - sub (0.0000) = 2.1374, lambda=0
+[2] norm[P5] = num (3.0686) - sub (1.8944) = 1.1742, lambda=1542.8898
+[2] norm[P6] = num (2.6750) - sub (1.9071) = 0.7679, lambda=1543.4514
+[2] norm[P7] = num (2.0174) - sub (1.8966) = 0.1207, lambda=1544.1822
+[2] norm[P8] = num (1.9786) - sub (1.9306) = 0.0480, lambda=1544.9862
+[2] norm[P9] = num (1.9306) - sub (1.9116) = 0.0191, lambda=1545.8376
+[2] norm[P10] = num (1.9278) - sub (1.9122) = 0.0156, lambda=1546.6014
+[2] norm[P11] = num (1.9414) - sub (1.9278) = 0.0137, lambda=1547.3958
+[2] norm[P12] = num (1.9084) - sub (1.8000) = 0.1084, lambda=1548.2
+[2] norm[P13] = num (1.8960) - sub (1.8000) = 0.0960, lambda=1549.6
+[2] norm[P14] = num (1.9052) - sub (1.8000) = 0.1052, lambda=1550.4
+[2] norm[P15] = num (1.9227) - sub (1.8000) = 0.1227, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.5225592590747965) → заменяем на 1543.0407
+960233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 1.1742 + 0.7679 + 0.1207 + 0.0480 + 0.0191 + 0.0156 + 0.0137 = 2.1590
+[2] Σ(wᵢ·λᵢ) = 1.1742·1542.89 + 0.7679·1543.45 + 0.1207·1544.18 + 0.0480·1544.99 + 0.0191·1545.84 + 0.0156·1546.60 + 0.0137·1547.40 = 3332.0272
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3332.0272 / 2.1590 = 1543.289674
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1742,0.7679,0.1207,0.0480,0.0191,0.0156,0.0137
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1590
+[2]   λ: 1543.289674
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2] 
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1084 + 0.0960 + 0.1052 + 0.1227 = 0.4323
+[2] Σ(wᵢ·λᵢ) = 0.1084·1548.20 + 0.0960·1549.60 + 0.1052·1550.40 + 0.1227·1551.20 = 669.9542
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 669.9542 / 0.4323 = 1549.897772
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1084,0.0960,0.1052,0.1227
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4323
+[2]   λ: 1549.897772
+[2] {
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\data.json'
+[2] }
+[2] norm[P0] = num (1.9278) - sub (0.0000) = 1.9278, lambda=0
+[2] norm[P1] = num (1.9389) - sub (0.0000) = 1.9389, lambda=0
+[2] norm[P2] = num (1.9335) - sub (0.0000) = 1.9335, lambda=0
+[2] norm[P3] = num (1.9459) - sub (0.0000) = 1.9459, lambda=0
+[2] norm[P4] = num (2.1352) - sub (0.0000) = 2.1352, lambda=0
+[2] norm[P5] = num (3.0689) - sub (1.8944) = 1.1745, lambda=1542.8898
+[2] norm[P6] = num (2.6750) - sub (1.9071) = 0.7679, lambda=1543.4514
+[2] norm[P7] = num (2.0177) - sub (1.8966) = 0.1210, lambda=1544.1822
+[2] norm[P8] = num (1.9780) - sub (1.9306) = 0.0473, lambda=1544.9862
+[2] norm[P9] = num (1.9300) - sub (1.9116) = 0.0184, lambda=1545.8376
+[2] norm[P10] = num (1.9297) - sub (1.9122) = 0.0175, lambda=1546.6014
+[2] norm[P11] = num (1.9443) - sub (1.9278) = 0.0165, lambda=1547.3958
+[2] norm[P12] = num (1.9093) - sub (1.8000) = 0.1093, lambda=1548.2
+[2] norm[P13] = num (1.8966) - sub (1.8000) = 0.0966, lambda=1549.6
+[2] norm[P14] = num (1.9052) - sub (1.8000) = 0.1052, lambda=1550.4
+[2] norm[P15] = num (1.9220) - sub (1.8000) = 0.1220, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.5153879058100301) → заменяем на 1543.0407
+960233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 1.1745 + 0.7679 + 0.1210 + 0.0473 + 0.0184 + 0.0175 + 0.0165 = 2.1632
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2] Σ(wᵢ·λᵢ) = 1.1745·1542.89 + 0.7679·1543.45 + 0.1210·1544.18 + 0.0473·1544.99 + 0.0184·1545.84 + 0.0175·1546.60 + 0.0165·1547.40 = 3338.4165
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3338.4165 / 2.1632 = 1543.296846
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1745,0.7679,0.1210,0.0473,0.0184,0.0175,0.0165
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1632
+[2]   λ: 1543.296846
+[2]
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1093 + 0.0966 + 0.1052 + 0.1220 = 0.4332
+[2] Σ(wᵢ·λᵢ) = 0.1093·1548.20 + 0.0966·1549.60 + 0.1052·1550.40 + 0.1220·1551.20 = 671.4301
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 671.4301 / 0.4332 = 1549.891691
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1093,0.0966,0.1052,0.1220
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4332
+[2]   λ: 1549.891691
+[2] norm[P0] = num (1.9284) - sub (0.0000) = 1.9284, lambda=0
+[2] norm[P1] = num (1.9402) - sub (0.0000) = 1.9402, lambda=0
+[2] norm[P2] = num (1.9338) - sub (0.0000) = 1.9338, lambda=0
+[2] norm[P3] = num (1.9468) - sub (0.0000) = 1.9468, lambda=0
+[2] norm[P4] = num (2.1362) - sub (0.0000) = 2.1362, lambda=0
+[2] norm[P5] = num (3.0680) - sub (1.8944) = 1.1736, lambda=1542.8898
+[2] norm[P6] = num (2.6775) - sub (1.9071) = 0.7704, lambda=1543.4514
+[2] norm[P7] = num (2.0170) - sub (1.8966) = 0.1204, lambda=1544.1822
+[2] norm[P8] = num (1.9770) - sub (1.9306) = 0.0464, lambda=1544.9862
+[2] norm[P9] = num (1.9290) - sub (1.9116) = 0.0175, lambda=1545.8376
+[2] norm[P10] = num (1.9278) - sub (1.9122) = 0.0156, lambda=1546.6014
+[2] norm[P11] = num (1.9398) - sub (1.9278) = 0.0121, lambda=1547.3958
+[2] norm[P12] = num (1.9081) - sub (1.8000) = 0.1081, lambda=1548.2
+[2] norm[P13] = num (1.8954) - sub (1.8000) = 0.0954, lambda=1549.6
+[2] norm[P14] = num (1.9049) - sub (1.8000) = 0.1049, lambda=1550.4
+[2] norm[P15] = num (1.9233) - sub (1.8000) = 0.1233, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.5285345073564258) → заменяем на 1543.0407
+960233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] --------------------------------------------------
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2] Σw = 1.1736 + 0.7704 + 0.1204 + 0.0464 + 0.0175 + 0.0156 + 0.0121 = 2.1559
+[2] Σ(wᵢ·λᵢ) = 1.1736·1542.89 + 0.7704·1543.45 + 0.1204·1544.18 + 0.0464·1544.99 + 0.0175·1545.84 + 0.0156·1546.60 + 0.0121·1547.40 = 3327.1098
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3327.1098 / 2.1559 = 1543.283699
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1736,0.7704,0.1204,0.0464,0.0175,0.0156,0.0121
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1559
+[2]   λ: 1543.283699
+[2]
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1081 + 0.0954 + 0.1049 + 0.1233 = 0.4316
+[2] Σ(wᵢ·λᵢ) = 0.1081·1548.20 + 0.0954·1549.60 + 0.1049·1550.40 + 0.1233·1551.20 = 668.9745
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 668.9745 / 0.4316 = 1549.901007
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1081,0.0954,0.1049,0.1233
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4316
+[2]   λ: 1549.901007
+[2] {
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\data.json'
+[2] }
+[2] norm[P0] = num (1.9284) - sub (0.0000) = 1.9284, lambda=0
+[2] norm[P1] = num (1.9395) - sub (0.0000) = 1.9395, lambda=0
+[2] norm[P2] = num (1.9328) - sub (0.0000) = 1.9328, lambda=0
+[2] norm[P3] = num (1.9459) - sub (0.0000) = 1.9459, lambda=0
+[2] norm[P4] = num (2.1362) - sub (0.0000) = 2.1362, lambda=0
+[2] norm[P5] = num (3.0692) - sub (1.8944) = 1.1748, lambda=1542.8898
+[2] norm[P6] = num (2.6728) - sub (1.9071) = 0.7656, lambda=1543.4514
+[2] norm[P7] = num (2.0164) - sub (1.8966) = 0.1198, lambda=1544.1822
+[2] norm[P8] = num (1.9802) - sub (1.9306) = 0.0496, lambda=1544.9862
+[2] norm[P9] = num (1.9303) - sub (1.9116) = 0.0187, lambda=1545.8376
+[2] norm[P10] = num (1.9293) - sub (1.9122) = 0.0172, lambda=1546.6014
+[2] norm[P11] = num (1.9411) - sub (1.9278) = 0.0133, lambda=1547.3958
+[2] norm[P12] = num (1.9093) - sub (1.8000) = 0.1093, lambda=1548.2
+[2] norm[P13] = num (1.8960) - sub (1.8000) = 0.0960, lambda=1549.6
+[2] norm[P14] = num (1.9043) - sub (1.8000) = 0.1043, lambda=1550.4
+[2] norm[P15] = num (1.9233) - sub (1.8000) = 0.1233, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.5205296310748508) → заменяем на 1543.0407
+960233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] --------------------------------------------------
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2] Σw = 1.1748 + 0.7656 + 0.1198 + 0.0496 + 0.0187 + 0.0172 + 0.0133 = 2.1590
+[2] Σ(wᵢ·λᵢ) = 1.1748·1542.89 + 0.7656·1543.45 + 0.1198·1544.18 + 0.0496·1544.99 + 0.0187·1545.84 + 0.0172·1546.60 + 0.0133·1547.40 = 3332.0332
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3332.0332 / 2.1590 = 1543.291704
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1748,0.7656,0.1198,0.0496,0.0187,0.0172,0.0133
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1590
+[2]   λ: 1543.291704
+[2]
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1093 + 0.0960 + 0.1043 + 0.1233 = 0.4329
+[2] Σ(wᵢ·λᵢ) = 0.1093·1548.20 + 0.0960·1549.60 + 0.1043·1550.40 + 0.1233·1551.20 = 670.9386
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 670.9386 / 0.4329 = 1549.894842
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1093,0.0960,0.1043,0.1233
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4329
+[2]   λ: 1549.894842
+[2] {
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\data.json'
+[2] }
+[2] norm[P0] = num (1.9284) - sub (0.0000) = 1.9284, lambda=0
+[2] norm[P1] = num (1.9389) - sub (0.0000) = 1.9389, lambda=0
+[2] norm[P2] = num (1.9332) - sub (0.0000) = 1.9332, lambda=0
+[2] norm[P3] = num (1.9465) - sub (0.0000) = 1.9465, lambda=0
+[2] norm[P4] = num (2.1359) - sub (0.0000) = 2.1359, lambda=0
+[2] norm[P5] = num (3.0699) - sub (1.8944) = 1.1755, lambda=1542.8898
+[2] norm[P6] = num (2.6728) - sub (1.9071) = 0.7656, lambda=1543.4514
+[2] norm[P7] = num (2.0167) - sub (1.8966) = 0.1201, lambda=1544.1822
+[2] norm[P8] = num (1.9783) - sub (1.9306) = 0.0477, lambda=1544.9862
+[2] norm[P9] = num (1.9300) - sub (1.9116) = 0.0184, lambda=1545.8376
+[2] norm[P10] = num (1.9297) - sub (1.9122) = 0.0175, lambda=1546.6014
+[2] norm[P11] = num (1.9424) - sub (1.9278) = 0.0146, lambda=1547.3958
+[2] norm[P12] = num (1.9081) - sub (1.8000) = 0.1081, lambda=1548.2
+[2] norm[P13] = num (1.8957) - sub (1.8000) = 0.0957, lambda=1549.6
+[2] norm[P14] = num (1.9046) - sub (1.8000) = 0.1046, lambda=1550.4
+[2] norm[P15] = num (1.9227) - sub (1.8000) = 0.1227, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.519486702950644) → заменяем на 1543.04079
+60233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] --------------------------------------------------
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2] Σw = 1.1755 + 0.7656 + 0.1201 + 0.0477 + 0.0184 + 0.0175 + 0.0146 = 2.1594
+[2] Σ(wᵢ·λᵢ) = 1.1755·1542.89 + 0.7656·1543.45 + 0.1201·1544.18 + 0.0477·1544.99 + 0.0184·1545.84 + 0.0175·1546.60 + 0.0146·1547.40 = 3332.5246
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3332.5246 / 2.1594 = 1543.292747
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1755,0.7656,0.1201,0.0477,0.0184,0.0175,0.0146
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1594
+[2]   λ: 1543.292747
+[2]
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1081 + 0.0957 + 0.1046 + 0.1227 = 0.4310
+[2] Σ(wᵢ·λᵢ) = 0.1081·1548.20 + 0.0957·1549.60 + 0.1046·1550.40 + 0.1227·1551.20 = 667.9861
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 667.9861 / 0.4310 = 1549.898500
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1081,0.0957,0.1046,0.1227
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4310
+[2]   λ: 1549.898500
+[2] norm[P0] = num (1.9281) - sub (0.0000) = 1.9281, lambda=0
+[2] norm[P1] = num (1.9376) - sub (0.0000) = 1.9376, lambda=0
+[2] norm[P2] = num (1.9325) - sub (0.0000) = 1.9325, lambda=0
+[2] norm[P3] = num (1.9462) - sub (0.0000) = 1.9462, lambda=0
+[2] norm[P4] = num (2.1352) - sub (0.0000) = 2.1352, lambda=0
+[2] norm[P5] = num (3.0689) - sub (1.8944) = 1.1745, lambda=1542.8898
+[2] norm[P6] = num (2.6740) - sub (1.9071) = 0.7669, lambda=1543.4514
+[2] norm[P7] = num (2.0177) - sub (1.8966) = 0.1210, lambda=1544.1822
+[2] norm[P8] = num (1.9776) - sub (1.9306) = 0.0470, lambda=1544.9862
+[2] norm[P9] = num (1.9309) - sub (1.9116) = 0.0194, lambda=1545.8376
+[2] norm[P10] = num (1.9281) - sub (1.9122) = 0.0159, lambda=1546.6014
+[2] norm[P11] = num (1.9414) - sub (1.9278) = 0.0137, lambda=1547.3958
+[2] norm[P12] = num (1.9087) - sub (1.8000) = 0.1087, lambda=1548.2
+[2] norm[P13] = num (1.8960) - sub (1.8000) = 0.0960, lambda=1549.6
+[2] norm[P14] = num (1.9036) - sub (1.8000) = 0.1036, lambda=1550.4
+[2] norm[P15] = num (1.9243) - sub (1.8000) = 0.1243, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.5224454351616714) → заменяем на 1543.0407
+960233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 1.1745 + 0.7669 + 0.1210 + 0.0470 + 0.0194 + 0.0159 + 0.0137 = 2.1584
+[2] Σ(wᵢ·λᵢ) = 1.1745·1542.89 + 0.7669·1543.45 + 0.1210·1544.18 + 0.0470·1544.99 + 0.0194·1545.84 + 0.0159·1546.60 + 0.0137·1547.40 = 3331.0459
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3331.0459 / 2.1584 = 1543.289788
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1745,0.7669,0.1210,0.0470,0.0194,0.0159,0.0137
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1584
+[2]   λ: 1543.289788
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2]
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1087 + 0.0960 + 0.1036 + 0.1243 = 0.4326
+[2] Σ(wᵢ·λᵢ) = 0.1087·1548.20 + 0.0960·1549.60 + 0.1036·1550.40 + 0.1243·1551.20 = 670.4493
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 670.4493 / 0.4326 = 1549.899464
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1087,0.0960,0.1036,0.1243
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4326
+[2]   λ: 1549.899464
+[2] {
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\data.json'
+[2] }
+[2] norm[P0] = num (1.9278) - sub (0.0000) = 1.9278, lambda=0
+[2] norm[P1] = num (1.9386) - sub (0.0000) = 1.9386, lambda=0
+[2] norm[P2] = num (1.9338) - sub (0.0000) = 1.9338, lambda=0
+[2] norm[P3] = num (1.9468) - sub (0.0000) = 1.9468, lambda=0
+[2] norm[P4] = num (2.1352) - sub (0.0000) = 2.1352, lambda=0
+[2] norm[P5] = num (3.0696) - sub (1.8944) = 1.1751, lambda=1542.8898
+[2] norm[P6] = num (2.6740) - sub (1.9071) = 0.7669, lambda=1543.4514
+[2] norm[P7] = num (2.0161) - sub (1.8966) = 0.1195, lambda=1544.1822
+[2] norm[P8] = num (1.9767) - sub (1.9306) = 0.0461, lambda=1544.9862
+[2] norm[P9] = num (1.9297) - sub (1.9116) = 0.0181, lambda=1545.8376
+[2] norm[P10] = num (1.9281) - sub (1.9122) = 0.0159, lambda=1546.6014
+[2] norm[P11] = num (1.9421) - sub (1.9278) = 0.0143, lambda=1547.3958
+[2] norm[P12] = num (1.9081) - sub (1.8000) = 0.1081, lambda=1548.2
+[2] norm[P13] = num (1.8950) - sub (1.8000) = 0.0950, lambda=1549.6
+[2] norm[P14] = num (1.9039) - sub (1.8000) = 0.1039, lambda=1550.4
+[2] norm[P15] = num (1.9224) - sub (1.8000) = 0.1224, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.5242600751785176) → заменяем на 1543.0407
+960233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2] --------------------------------------------------
+[2] Σw = 1.1751 + 0.7669 + 0.1195 + 0.0461 + 0.0181 + 0.0159 + 0.0143 = 2.1559
+[2] Σ(wᵢ·λᵢ) = 1.1751·1542.89 + 0.7669·1543.45 + 0.1195·1544.18 + 0.0461·1544.99 + 0.0181·1545.84 + 0.0159·1546.60 + 0.0143·1547.40 = 3327.1221
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3327.1221 / 2.1559 = 1543.287973
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1751,0.7669,0.1195,0.0461,0.0181,0.0159,0.0143
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1559
+[2]   λ: 1543.287973
+[2]
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1081 + 0.0950 + 0.1039 + 0.1224 = 0.4294
+[2] Σ(wᵢ·λᵢ) = 0.1081·1548.20 + 0.0950·1549.60 + 0.1039·1550.40 + 0.1224·1551.20 = 665.5259
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 665.5259 / 0.4294 = 1549.897239
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1081,0.0950,0.1039,0.1224
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4294
+[2]   λ: 1549.897239
+[2] {
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\data.json'
+[2] }
+[2] norm[P0] = num (1.9281) - sub (0.0000) = 1.9281, lambda=0
+[2] norm[P1] = num (1.9395) - sub (0.0000) = 1.9395, lambda=0
+[2] norm[P2] = num (1.9335) - sub (0.0000) = 1.9335, lambda=0
+[2] norm[P3] = num (1.9475) - sub (0.0000) = 1.9475, lambda=0
+[2] norm[P4] = num (2.1352) - sub (0.0000) = 2.1352, lambda=0
+[2] norm[P5] = num (3.0696) - sub (1.8944) = 1.1751, lambda=1542.8898
+[2] norm[P6] = num (2.6737) - sub (1.9071) = 0.7666, lambda=1543.4514
+[2] norm[P7] = num (2.0151) - sub (1.8966) = 0.1185, lambda=1544.1822
+[2] norm[P8] = num (1.9773) - sub (1.9306) = 0.0467, lambda=1544.9862
+[2] norm[P9] = num (1.9300) - sub (1.9116) = 0.0184, lambda=1545.8376
+[2] norm[P10] = num (1.9284) - sub (1.9122) = 0.0162, lambda=1546.6014
+[2] norm[P11] = num (1.9414) - sub (1.9278) = 0.0137, lambda=1547.3958
+[2] norm[P12] = num (1.9090) - sub (1.8000) = 0.1090, lambda=1548.2
+[2] norm[P13] = num (1.8957) - sub (1.8000) = 0.0957, lambda=1549.6
+[2] norm[P14] = num (1.9043) - sub (1.8000) = 0.1043, lambda=1550.4
+[2] norm[P15] = num (1.9239) - sub (1.8000) = 0.1239, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.5245275502950335) → заменяем на 1543.0407
+960233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 1.1751 + 0.7666 + 0.1185 + 0.0467 + 0.0184 + 0.0162 + 0.0137 = 2.1552
+[2] Σ(wᵢ·λᵢ) = 1.1751·1542.89 + 0.7666·1543.45 + 0.1185·1544.18 + 0.0467·1544.99 + 0.0184·1545.84 + 0.0162·1546.60 + 0.0137·1547.40 = 3326.1384
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3326.1384 / 2.1552 = 1543.287706
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1751,0.7666,0.1185,0.0467,0.0184,0.0162,0.0137
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1552
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2]   λ: 1543.287706
+[2]
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1090 + 0.0957 + 0.1043 + 0.1239 = 0.4329
+[2] Σ(wᵢ·λᵢ) = 0.1090·1548.20 + 0.0957·1549.60 + 0.1043·1550.40 + 0.1239·1551.20 = 670.9401
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 670.9401 / 0.4329 = 1549.898214
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1090,0.0957,0.1043,0.1239
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4329
+[2]   λ: 1549.898214
+[2] norm[P0] = num (1.9281) - sub (0.0000) = 1.9281, lambda=0
+[2] norm[P1] = num (1.9389) - sub (0.0000) = 1.9389, lambda=0
+[2] norm[P2] = num (1.9328) - sub (0.0000) = 1.9328, lambda=0
+[2] norm[P3] = num (1.9471) - sub (0.0000) = 1.9471, lambda=0
+[2] norm[P4] = num (2.1374) - sub (0.0000) = 2.1374, lambda=0
+[2] norm[P5] = num (3.0699) - sub (1.8944) = 1.1755, lambda=1542.8898
+[2] norm[P6] = num (2.6740) - sub (1.9071) = 0.7669, lambda=1543.4514
+[2] norm[P7] = num (2.0164) - sub (1.8966) = 0.1198, lambda=1544.1822
+[2] norm[P8] = num (1.9770) - sub (1.9306) = 0.0464, lambda=1544.9862
+[2] norm[P9] = num (1.9297) - sub (1.9116) = 0.0181, lambda=1545.8376
+[2] norm[P10] = num (1.9278) - sub (1.9122) = 0.0156, lambda=1546.6014
+[2] norm[P11] = num (1.9443) - sub (1.9278) = 0.0165, lambda=1547.3958
+[2] norm[P12] = num (1.9084) - sub (1.8000) = 0.1084, lambda=1548.2
+[2] norm[P13] = num (1.8963) - sub (1.8000) = 0.0963, lambda=1549.6
+[2] norm[P14] = num (1.9046) - sub (1.8000) = 0.1046, lambda=1550.4
+[2] norm[P15] = num (1.9239) - sub (1.8000) = 0.1239, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.5201948744620495) → заменяем на 1543.0407
+960233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2] --------------------------------------------------
+[2] Σw = 1.1755 + 0.7669 + 0.1198 + 0.0464 + 0.0181 + 0.0156 + 0.0165 = 2.1587
+[2] Σ(wᵢ·λᵢ) = 1.1755·1542.89 + 0.7669·1543.45 + 0.1198·1544.18 + 0.0464·1544.99 + 0.0181·1545.84 + 0.0156·1546.60 + 0.0165·1547.40 = 3331.5416
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3331.5416 / 2.1587 = 1543.292039
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1755,0.7669,0.1198,0.0464,0.0181,0.0156,0.0165
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1587
+[2]   λ: 1543.292039
+[2]
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1084 + 0.0963 + 0.1046 + 0.1239 = 0.4332
+[2] Σ(wᵢ·λᵢ) = 0.1084·1548.20 + 0.0963·1549.60 + 0.1046·1550.40 + 0.1239·1551.20 = 671.4340
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 671.4340 / 0.4332 = 1549.900638
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1084,0.0963,0.1046,0.1239
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4332
+[2]   λ: 1549.900638
+[2] {
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\data.json'
+[2] }
+[2] norm[P0] = num (1.9290) - sub (0.0000) = 1.9290, lambda=0
+[2] norm[P1] = num (1.9424) - sub (0.0000) = 1.9424, lambda=0
+[2] norm[P2] = num (1.9338) - sub (0.0000) = 1.9338, lambda=0
+[2] norm[P3] = num (1.9478) - sub (0.0000) = 1.9478, lambda=0
+[2] norm[P4] = num (2.1362) - sub (0.0000) = 2.1362, lambda=0
+[2] norm[P5] = num (3.0715) - sub (1.8944) = 1.1771, lambda=1542.8898
+[2] norm[P6] = num (2.6743) - sub (1.9071) = 0.7672, lambda=1543.4514
+[2] norm[P7] = num (2.0180) - sub (1.8966) = 0.1214, lambda=1544.1822
+[2] norm[P8] = num (1.9773) - sub (1.9306) = 0.0467, lambda=1544.9862
+[2] norm[P9] = num (1.9300) - sub (1.9116) = 0.0184, lambda=1545.8376
+[2] norm[P10] = num (1.9278) - sub (1.9122) = 0.0156, lambda=1546.6014
+[2] norm[P11] = num (1.9395) - sub (1.9278) = 0.0118, lambda=1547.3958
+[2] norm[P12] = num (1.9084) - sub (1.8000) = 0.1084, lambda=1548.2
+[2] norm[P13] = num (1.8963) - sub (1.8000) = 0.0963, lambda=1549.6
+[2] norm[P14] = num (1.9055) - sub (1.8000) = 0.1055, lambda=1550.4
+[2] norm[P15] = num (1.9249) - sub (1.8000) = 0.1249, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.5282505888953892) → заменяем на 1543.0407
+960233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2] --------------------------------------------------
+[2] Σw = 1.1771 + 0.7672 + 0.1214 + 0.0467 + 0.0184 + 0.0156 + 0.0118 = 2.1581
+[2] Σ(wᵢ·λᵢ) = 1.1771·1542.89 + 0.7672·1543.45 + 0.1214·1544.18 + 0.0467·1544.99 + 0.0184·1545.84 + 0.0156·1546.60 + 0.0118·1547.40 = 3330.5411
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3330.5411 / 2.1581 = 1543.283983
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1771,0.7672,0.1214,0.0467,0.0184,0.0156,0.0118
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1581
+[2]   λ: 1543.283983
+[2]
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1084 + 0.0963 + 0.1055 + 0.1249 = 0.4351
+[2] Σ(wᵢ·λᵢ) = 0.1084·1548.20 + 0.0963·1549.60 + 0.1055·1550.40 + 0.1249·1551.20 = 674.3898
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 674.3898 / 0.4351 = 1549.904577
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1084,0.0963,0.1055,0.1249
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4351
+[2]   λ: 1549.904577
+[2] {
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\data.json'
+[2] }
+[2] norm[P0] = num (1.9284) - sub (0.0000) = 1.9284, lambda=0
+[2] norm[P1] = num (1.9392) - sub (0.0000) = 1.9392, lambda=0
+[2] norm[P2] = num (1.9328) - sub (0.0000) = 1.9328, lambda=0
+[2] norm[P3] = num (1.9468) - sub (0.0000) = 1.9468, lambda=0
+[2] norm[P4] = num (2.1371) - sub (0.0000) = 2.1371, lambda=0
+[2] norm[P5] = num (3.0692) - sub (1.8944) = 1.1748, lambda=1542.8898
+[2] norm[P6] = num (2.6737) - sub (1.9071) = 0.7666, lambda=1543.4514
+[2] norm[P7] = num (2.0170) - sub (1.8966) = 0.1204, lambda=1544.1822
+[2] norm[P8] = num (1.9773) - sub (1.9306) = 0.0467, lambda=1544.9862
+[2] norm[P9] = num (1.9293) - sub (1.9116) = 0.0178, lambda=1545.8376
+[2] norm[P10] = num (1.9278) - sub (1.9122) = 0.0156, lambda=1546.6014
+[2] norm[P11] = num (1.9405) - sub (1.9278) = 0.0127, lambda=1547.3958
+[2] norm[P12] = num (1.9084) - sub (1.8000) = 0.1084, lambda=1548.2
+[2] norm[P13] = num (1.8947) - sub (1.8000) = 0.0947, lambda=1549.6
+[2] norm[P14] = num (1.9043) - sub (1.8000) = 0.1043, lambda=1550.4
+[2] norm[P15] = num (1.9224) - sub (1.8000) = 0.1224, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.5272234491615109) → заменяем на 1543.0407
+960233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] --------------------------------------------------
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2] Σw = 1.1748 + 0.7666 + 0.1204 + 0.0467 + 0.0178 + 0.0156 + 0.0127 = 2.1546
+[2] Σ(wᵢ·λᵢ) = 1.1748·1542.89 + 0.7666·1543.45 + 0.1204·1544.18 + 0.0467·1544.99 + 0.0178·1545.84 + 0.0156·1546.60 + 0.0127·1547.40 = 3325.1526
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3325.1526 / 2.1546 = 1543.285010
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1748,0.7666,0.1204,0.0467,0.0178,0.0156,0.0127
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1546
+[2]   λ: 1543.285010
+[2]
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1084 + 0.0947 + 0.1043 + 0.1224 = 0.4297
+[2] Σ(wᵢ·λᵢ) = 0.1084·1548.20 + 0.0947·1549.60 + 0.1043·1550.40 + 0.1224·1551.20 = 666.0154
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 666.0154 / 0.4297 = 1549.896578
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1084,0.0947,0.1043,0.1224
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4297
+[2]   λ: 1549.896578
+[2] {
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\data.json'
+[2] }
+[2] norm[P0] = num (1.9281) - sub (0.0000) = 1.9281, lambda=0
+[2] norm[P1] = num (1.9392) - sub (0.0000) = 1.9392, lambda=0
+[2] norm[P2] = num (1.9332) - sub (0.0000) = 1.9332, lambda=0
+[2] norm[P3] = num (1.9449) - sub (0.0000) = 1.9449, lambda=0
+[2] norm[P4] = num (2.1352) - sub (0.0000) = 2.1352, lambda=0
+[2] norm[P5] = num (3.0696) - sub (1.8944) = 1.1751, lambda=1542.8898
+[2] norm[P6] = num (2.6740) - sub (1.9071) = 0.7669, lambda=1543.4514
+[2] norm[P7] = num (2.0167) - sub (1.8966) = 0.1201, lambda=1544.1822
+[2] norm[P8] = num (1.9786) - sub (1.9306) = 0.0480, lambda=1544.9862
+[2] norm[P9] = num (1.9313) - sub (1.9116) = 0.0197, lambda=1545.8376
+[2] norm[P10] = num (1.9284) - sub (1.9122) = 0.0162, lambda=1546.6014
+[2] norm[P11] = num (1.9392) - sub (1.9278) = 0.0114, lambda=1547.3958
+[2] norm[P12] = num (1.9084) - sub (1.8000) = 0.1084, lambda=1548.2
+[2] norm[P13] = num (1.8954) - sub (1.8000) = 0.0954, lambda=1549.6
+[2] norm[P14] = num (1.9039) - sub (1.8000) = 0.1039, lambda=1550.4
+[2] norm[P15] = num (1.9230) - sub (1.8000) = 0.1230, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.5255766081841102) → заменяем на 1543.0407
+960233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 1.1751 + 0.7669 + 0.1201 + 0.0480 + 0.0197 + 0.0162 + 0.0114 = 2.1575
+[2] Σ(wᵢ·λᵢ) = 1.1751·1542.89 + 0.7669·1543.45 + 0.1201·1544.18 + 0.0480·1544.99 + 0.0197·1545.84 + 0.0162·1546.60 + 0.0114·1547.40 = 3329.5700
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3329.5700 / 2.1575 = 1543.286657
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1751,0.7669,0.1201,0.0480,0.0197,0.0162,0.0114
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1575
+[2]   λ: 1543.286657
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2]
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1084 + 0.0954 + 0.1039 + 0.1230 = 0.4307
+[2] Σ(wᵢ·λᵢ) = 0.1084·1548.20 + 0.0954·1549.60 + 0.1039·1550.40 + 0.1230·1551.20 = 667.4944
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 667.4944 / 0.4307 = 1549.897692
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1084,0.0954,0.1039,0.1230
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4307
+[2]   λ: 1549.897692
+[2] norm[P0] = num (1.9287) - sub (0.0000) = 1.9287, lambda=0
+[2] norm[P1] = num (1.9395) - sub (0.0000) = 1.9395, lambda=0
+[2] norm[P2] = num (1.9332) - sub (0.0000) = 1.9332, lambda=0
+[2] norm[P3] = num (1.9471) - sub (0.0000) = 1.9471, lambda=0
+[2] norm[P4] = num (2.1359) - sub (0.0000) = 2.1359, lambda=0
+[2] norm[P5] = num (3.0705) - sub (1.8944) = 1.1761, lambda=1542.8898
+[2] norm[P6] = num (2.6721) - sub (1.9071) = 0.7650, lambda=1543.4514
+[2] norm[P7] = num (2.0151) - sub (1.8966) = 0.1185, lambda=1544.1822
+[2] norm[P8] = num (1.9773) - sub (1.9306) = 0.0467, lambda=1544.9862
+[2] norm[P9] = num (1.9306) - sub (1.9116) = 0.0191, lambda=1545.8376
+[2] norm[P10] = num (1.9281) - sub (1.9122) = 0.0159, lambda=1546.6014
+[2] norm[P11] = num (1.9414) - sub (1.9278) = 0.0137, lambda=1547.3958
+[2] norm[P12] = num (1.9084) - sub (1.8000) = 0.1084, lambda=1548.2
+[2] norm[P13] = num (1.8954) - sub (1.8000) = 0.0954, lambda=1549.6
+[2] norm[P14] = num (1.9043) - sub (1.8000) = 0.1043, lambda=1550.4
+[2] norm[P15] = num (1.9227) - sub (1.8000) = 0.1227, lambda=1551.2
+[2] ✅ Ближайшее значение найдено: wl_calc=1544.81223350015 (разница 1.524559790167359) → заменяем на 1543.04079
+60233038
+[2]
+[2] 📡 Sensor_0 расчет λ
+[2] ❌ Ошибка при чтении CSV: Error: ENOENT: no such file or directory, open 'C:\Users\user\Documents\Interrogat
+orRepo\Interrogator\apps\react-app\wavelength1.csv'
+[2]     at Object.readFileSync (node:fs:448:20)
+[2]     at t.readFileSync (node:electron/js2c/node_init:2:10245)
+[2]     at ReadlineParser.handleData (C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app\build\src\app\electron\savetojson.js:77:35)
+[2]     at ReadlineParser.emit (node:events:519:28)
+[2]     at addChunk (node:internal/streams/readable:559:12)
+[2]     at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+[2]     at Readable.push (node:internal/streams/readable:390:5)
+[2]     at ReadlineParser._transform (C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\@serialport+parser-delimiter@13.0.0\node_modules\@serialport\parser-delimiter\dist\index.js:31:18)
+[2]     at Transform._write (node:internal/streams/transform:171:8)
+[2]     at writeOrBuffer (node:internal/streams/writable:564:12) {
+[2]   errno: -4058,
+[2]   code: 'ENOENT',
+[2]   syscall: 'open',
+[2]   path: 'C:\\Users\\user\\Documents\\InterrogatorRepo\\Interrogator\\apps\\react-app\\wavelength1.csv'     
+[2] }
+[2] --------------------------------------------------
+[2] Σw = 1.1761 + 0.7650 + 0.1185 + 0.0467 + 0.0191 + 0.0159 + 0.0137 = 2.1549
+[2] Σ(wᵢ·λᵢ) = 1.1761·1542.89 + 0.7650·1543.45 + 0.1185·1544.18 + 0.0467·1544.99 + 0.0191·1545.84 + 0.0159·1546.60 + 0.0137·1547.40 = 3325.6507
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 3325.6507 / 2.1549 = 1543.287674
+[2] --------------------------------------------------
+[2] sensor_0:
+[2]   attached P: P5,P6,P7,P8,P9,P10,P11
+[2]   weights (norm - subtrac): 1.1761,0.7650,0.1185,0.0467,0.0191,0.0159,0.0137
+[2]   lambdas (lambdaCentral): 1542.8898,1543.4514,1544.1822,1544.9862,1545.8376,1546.6014,1547.3958
+[2]   sumWeights: 2.1549
+[2]   λ: 1543.287674
+[2]
+[2] 📡 Sensor_1 расчет λ
+[2] --------------------------------------------------
+[2] Σw = 0.1084 + 0.0954 + 0.1043 + 0.1227 = 0.4307
+[2] Σ(wᵢ·λᵢ) = 0.1084·1548.20 + 0.0954·1549.60 + 0.1043·1550.40 + 0.1227·1551.20 = 667.4926
+[2] λ = Σ(wᵢ·λᵢ) / Σw = 667.4926 / 0.4307 = 1549.897100
+[2] --------------------------------------------------
+[2] sensor_1:
+[2]   attached P: P12,P13,P14,P15
+[2]   weights (norm - subtrac): 0.1084,0.0954,0.1043,0.1227
+[2]   lambdas (lambdaCentral): 1548.2000,1549.6000,1550.4000,1551.2000
+[2]   sumWeights: 0.4307
+[2]   λ: 1549.897100
+(base) PS C:\Users\user\Documents\InterrogatorRepo\Interrogator\apps\react-app> [0] Terminate batch job (Y/N)? 
+^CTerminate batch job (Y/N)? C:\Users\user\Documents\InterrogatorRepo\Interrogator\node_modules\.pnpm\electron@31.3.0\node_modules\electron\dist\electron.exe exited with signal SIGINT
+[2] Terminate batch job (Y/N)? wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ -w exited with code 
+1
+[2] wait-on http://127.0.0.1:3000 && tsc -p ./src/app/electron/ && electron . exited with code 1
+[0] pnpm dev:react exited with code 1
