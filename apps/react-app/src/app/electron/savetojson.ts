@@ -94,8 +94,13 @@ export function startSensorCollector(
           ? weights.reduce((acc, w, i) => acc + (isFinite(w) ? w * (lambdas[i] ?? 0) : 0), 0) / sumWeights
           : NaN;
 
+      const lambda =
+        sumWeights > 0
+          ? weights.reduce((acc, w, i) => acc + (isFinite(w) ? w * (lambdas[i] ?? 0) : 0), 0) / sumWeights
+          : NaN;
+
       try {
-        const csvRaw = fs.readFileSync("data.csv", "utf-8"); // путь к CSV
+        const csvRaw = fs.readFileSync("data.csv", "utf-8");
         const lines = csvRaw.trim().split("\n");
 
         const headers = lines[0].split(",").map((h) => h.trim());
@@ -107,22 +112,23 @@ export function startSensorCollector(
         console.log("📄 CSV data:");
         console.table(records);
 
-        // 🔍 Ищем совпадение по первому столбцу (wl_calc)
+        // 🔍 Ищем совпадение по wl_calc с точностью до тысячной (0.001)
         const match = records.find(
-          (row) => Math.abs(parseFloat(row.wl_calc) - lambda) < 1e-9 // допускаем плавающее сравнение
+          (row) => Math.abs(parseFloat(row.wl_calc) - lambda) < 0.001
         );
 
         if (match) {
-          console.log(`✅ Найдено совпадение λ=${lambda} → заменяем на ${match.spectrum_peak_nm_fit}`);
+          console.log(`✅ Найдено совпадение λ=${lambda.toFixed(3)} → заменяем на ${match.spectrum_peak_nm_fit}`);
           lambdaResults[`wavelength${s}`] = parseFloat(match.spectrum_peak_nm_fit);
         } else {
-          console.warn(`⚠️ Совпадение для λ=${lambda} не найдено, оставляем как есть`);
+          console.warn(`⚠️ Совпадение для λ=${lambda.toFixed(3)} не найдено, оставляем как есть`);
           lambdaResults[`wavelength${s}`] = lambda;
         }
 
       } catch (err) {
         console.error("❌ Ошибка при чтении CSV:", err);
       }
+
 
       // Подробное логирование в "формульном" стиле
       console.log(`\n📡 Sensor_${s} расчет λ`);
