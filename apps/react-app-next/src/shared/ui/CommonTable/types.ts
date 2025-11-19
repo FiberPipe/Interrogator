@@ -1,1 +1,0 @@
-export type TableCellConfig = { id: string; hasInput?: boolean };
