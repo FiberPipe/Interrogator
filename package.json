@@ -1,14 +1,43 @@
 {
-  "name": "@interrogator",
+  "name": "@interrogator/app",
+  "private": true,
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "main": "build/electron/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev:react": "rsbuild dev --port 3000",
+    "dev:electron": "wait-on http://127.0.0.1:3000 && tsc -p tsconfig.electron.json && electron .",
+    "dev": "concurrently \"npm run dev:react\" \"npm run dev:electron\"",
+    "build:web": "rsbuild build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build": "npm run build:web && npm run build:electron",
+    "dist": "npm run build && electron-builder"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "dependencies": {
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "serialport": "13.0.0",
+    "@heroui/react": "2.8.4",
+    "@heroui/system": "2.4.22",
+    "@heroui/theme": "2.4.22"
+  },
   "devDependencies": {
+    "@rsbuild/core": "1.5.12",
+    "@rsbuild/plugin-react": "1.4.1",
+    "@types/node": "24.5.2",
+    "@types/react": "19.1.14",
+    "@types/react-dom": "19.1.9",
+    "concurrently": "9.2.1",
+    "electron": "38.1.2",
+    "electron-builder": "26.0.12",
+    "typescript": "5.9.2",
+    "wait-on": "9.0.1",
+    "autoprefixer": "10.4.21",
+    "@tailwindcss/postcss": "4.1.13"
+  },
+  "build": {
+    "files": ["build/**/*"],
+    "directories": {
+      "buildResources": "assets"
+    }
   }
 }

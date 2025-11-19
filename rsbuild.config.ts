@@ -1,14 +1,13 @@
 import { defineConfig } from "@rsbuild/core";
 import { pluginReact } from "@rsbuild/plugin-react";
+import autoprefixer from "autoprefixer";
+import tailwindcss from "@tailwindcss/postcss";
 
 export default defineConfig({
   plugins: [pluginReact()],
   source: {
-    entry: {
-      index: "./src/index.tsx",
-    },
+    entry: { index: "./src/index.tsx" }
   },
-
   html: {
     title: "Interrogator",
     tags: [
@@ -22,39 +21,23 @@ export default defineConfig({
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data:",
             "font-src 'self' data:",
-            "connect-src 'self' ws:",
-          ].join("; "),
-        },
+            "connect-src 'self' ws:"
+          ].join("; ")
+        }
       },
-      {
-        tag: "meta",
-        attrs: {
-          name: "viewport",
-          content: "width=device-width, initial-scale=1",
-        },
-      },
-    ],
+      { tag: "meta", attrs: { name: "viewport", content: "width=device-width, initial-scale=1" } }
+    ]
   },
-
   output: {
     assetPrefix: "./",
-    distPath: {
-      root: "./build",
-    },
+    distPath: { root: "./build" }
   },
-
-  server: {
-    port: 3000,
-    strictPort: true,
-  },
+  server: { port: 3000, strictPort: true },
   tools: {
     postcss: {
       postcssOptions: {
-        plugins: [
-          require("@tailwindcss/postcss"),
-          require("autoprefixer"),
-        ],
-      },
-    },
-  },
+        plugins: [tailwindcss, autoprefixer]
+      }
+    }
+  }
 });
