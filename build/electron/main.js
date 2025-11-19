@@ -1,21 +1,30 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const electron_1 = require("electron");
-const node_path_1 = __importDefault(require("node:path"));
+const node_path_1 = require("node:path");
 const ipc_1 = require("./ipc");
+const node_fs_1 = require("node:fs");
 let win = null;
+const preloadPath = (0, node_path_1.join)(__dirname, "preload.js");
 async function createWindow() {
     win = new electron_1.BrowserWindow({
-        width: 1200,
-        height: 800,
+        fullscreen: true,
         webPreferences: {
-            preload: node_path_1.default.join(__dirname, "preload.js"),
+            preload: (0, node_path_1.join)(__dirname, "preload.js"),
+            contextIsolation: true,
+            nodeIntegration: false,
         },
     });
     (0, ipc_1.registerIpc)(win);
     await win.loadURL("http://localhost:3000");
 }
+console.log("Preload path:", preloadPath, "exists:", (0, node_fs_1.existsSync)(preloadPath));
 electron_1.app.whenReady().then(createWindow);
+electron_1.app.on("window-all-closed", () => {
+    if (process.platform !== "darwin")
+        electron_1.app.quit();
+});
+electron_1.app.on("activate", () => {
+    if (electron_1.BrowserWindow.getAllWindows().length === 0)
+        createWindow();
+});

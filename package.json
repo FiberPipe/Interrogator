@@ -13,29 +13,34 @@
     "dist": "npm run build && electron-builder"
   },
   "dependencies": {
-    "react": "19.1.1",
-    "react-dom": "19.1.1",
-    "serialport": "13.0.0",
     "@heroui/react": "2.8.4",
     "@heroui/system": "2.4.22",
-    "@heroui/theme": "2.4.22"
+    "@heroui/theme": "2.4.22",
+    "lucide-react": "^0.554.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "react-router-dom": "^7.9.6",
+    "serialport": "13.0.0",
+    "tailwindcss": "^4.1.17"
   },
   "devDependencies": {
     "@rsbuild/core": "1.5.12",
     "@rsbuild/plugin-react": "1.4.1",
+    "@tailwindcss/postcss": "4.1.13",
     "@types/node": "24.5.2",
     "@types/react": "19.1.14",
     "@types/react-dom": "19.1.9",
+    "autoprefixer": "10.4.21",
     "concurrently": "9.2.1",
     "electron": "38.1.2",
     "electron-builder": "26.0.12",
     "typescript": "5.9.2",
-    "wait-on": "9.0.1",
-    "autoprefixer": "10.4.21",
-    "@tailwindcss/postcss": "4.1.13"
+    "wait-on": "9.0.1"
   },
   "build": {
-    "files": ["build/**/*"],
+    "files": [
+      "build/**/*"
+    ],
     "directories": {
       "buildResources": "assets"
     }

@@ -5,9 +5,7 @@ import tailwindcss from "@tailwindcss/postcss";
 
 export default defineConfig({
   plugins: [pluginReact()],
-  source: {
-    entry: { index: "./src/index.tsx" }
-  },
+  source: { entry: { index: "./src/app/index.tsx" } },
   html: {
     title: "Interrogator",
     tags: [
@@ -20,23 +18,19 @@ export default defineConfig({
             "script-src 'self'",
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data:",
-            "font-src 'self' data:",
-            "connect-src 'self' ws:"
+            "font-src 'self' data:"
           ].join("; ")
         }
       },
       { tag: "meta", attrs: { name: "viewport", content: "width=device-width, initial-scale=1" } }
     ]
   },
-  output: {
-    assetPrefix: "./",
-    distPath: { root: "./build" }
-  },
+  output: { assetPrefix: "./", distPath: { root: "./build" } },
   server: { port: 3000, strictPort: true },
   tools: {
     postcss: {
       postcssOptions: {
-        plugins: [tailwindcss, autoprefixer]
+        plugins: [tailwindcss(), autoprefixer()]
       }
     }
   }
