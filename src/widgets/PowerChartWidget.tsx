@@ -1,5 +1,5 @@
-import { Card } from "@heroui/react";
-import { LineChartWithConfidence } from "../shared/ui";
+import { Card } from '@heroui/react';
+import { LineChartWithConfidence } from '../shared/ui';
 
 const sampleSeries = Array.from({ length: 5 }, (_, i) => ({
   key: `p${i + 1}`,
@@ -10,7 +10,7 @@ const sampleSeries = Array.from({ length: 5 }, (_, i) => ({
     yMin: Math.sin((j + i) / 10) * 10 + 50 - 3,
     yMax: Math.sin((j + i) / 10) * 10 + 50 + 3,
   })),
-  color: ["#4f46e5","#e11d48","#059669","#f97316","#8b5cf6"][i],
+  color: ['#4f46e5', '#e11d48', '#059669', '#f97316', '#8b5cf6'][i],
   showConfidence: true,
 }));
 

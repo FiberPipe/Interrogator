@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback } from 'react';
 
 interface UseZoomProps {
   series: { data: { y: number }[] }[];
@@ -8,8 +8,8 @@ interface UseZoomProps {
 }
 
 export const useZoom = ({ series, initialMin, initialMax, factor = 0.05 }: UseZoomProps) => {
-  const globalMin = Math.min(...series.flatMap(s => s.data.map(d => d.y)));
-  const globalMax = Math.max(...series.flatMap(s => s.data.map(d => d.y)));
+  const globalMin = Math.min(...series.flatMap((s) => s.data.map((d) => d.y)));
+  const globalMax = Math.max(...series.flatMap((s) => s.data.map((d) => d.y)));
 
   const [yMin, setYMin] = useState<number | undefined>(initialMin);
   const [yMax, setYMax] = useState<number | undefined>(initialMax);
@@ -22,7 +22,7 @@ export const useZoom = ({ series, initialMin, initialMax, factor = 0.05 }: UseZo
       setYMin(min + delta);
       setYMax(max - delta);
     },
-    [yMin, yMax, factor, globalMin, globalMax]
+    [yMin, yMax, factor, globalMin, globalMax],
   );
 
   return { yMin, yMax, setYMin, setYMax, handleWheel };

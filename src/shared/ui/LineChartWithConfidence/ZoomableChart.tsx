@@ -1,5 +1,5 @@
-import React from "react";
-import { useZoom } from "./useZoom";
+import React from 'react';
+import { useZoom } from './useZoom';
 
 interface ZoomableChartProps {
   children: React.ReactNode;
@@ -16,5 +16,9 @@ export const ZoomableChart: React.FC<ZoomableChartProps> = ({
 }) => {
   const { handleWheel } = useZoom({ series, initialMin, initialMax });
 
-  return <div style={{ height: "100%" }} onWheel={handleWheel}>{children}</div>;
+  return (
+    <div style={{ height: '100%' }} onWheel={handleWheel}>
+      {children}
+    </div>
+  );
 };

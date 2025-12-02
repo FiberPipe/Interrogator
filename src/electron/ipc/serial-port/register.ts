@@ -1,9 +1,9 @@
-import { ipcMain } from "electron";
-import { SerialPort } from "serialport";
-import { activePorts } from "../../state";
+import { ipcMain } from 'electron';
+import { SerialPort } from 'serialport';
+import { activePorts } from '../../state';
 
 export function registerGetPorts() {
-  ipcMain.handle("serial:getPorts", async () => {
+  ipcMain.handle('serial:getPorts', async () => {
     const ports = await SerialPort.list();
 
     return ports.map((p) => ({

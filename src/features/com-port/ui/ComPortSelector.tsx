@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { Card, Select, SelectItem, Button, Alert } from "@heroui/react";
-import { SerialPortInfo, getPorts } from "../model";
+import { useEffect, useState } from 'react';
+import { Card, Select, SelectItem, Button, Alert } from '@heroui/react';
+import { SerialPortInfo, getPorts } from '../model';
 
 interface ComPortSelectorProps {
   selectedPort: string | null;
@@ -22,9 +22,7 @@ export const ComPortSelector = ({ selectedPort, onSelectPort }: ComPortSelectorP
   return (
     <Card className="p-6 flex flex-col gap-4">
       <h3 className="text-xl font-semibold">COM-порт</h3>
-      <p className="text-sm text-default-500">
-        Выберите COM-порт для подключения к устройству.
-      </p>
+      <p className="text-sm text-default-500">Выберите COM-порт для подключения к устройству.</p>
 
       {!selectedPort && (
         <Alert color="warning" title="COM-порт не выбран">

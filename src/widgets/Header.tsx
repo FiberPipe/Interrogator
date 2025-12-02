@@ -1,8 +1,16 @@
-import { useState } from "react";
-import { Button } from "@heroui/button";
-import { Navbar, NavbarBrand, NavbarMenu, NavbarMenuItem, NavbarContent, NavbarItem, NavbarMenuToggle } from "@heroui/navbar";
-import { Switch } from "@heroui/switch";
-import { MoonIcon, SunIcon } from "lucide-react";
+import { useState } from 'react';
+import { Button } from '@heroui/button';
+import {
+  Navbar,
+  NavbarBrand,
+  NavbarMenu,
+  NavbarMenuItem,
+  NavbarContent,
+  NavbarItem,
+  NavbarMenuToggle,
+} from '@heroui/navbar';
+import { Switch } from '@heroui/switch';
+import { MoonIcon, SunIcon } from 'lucide-react';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,7 +21,7 @@ export default function Header() {
       maxWidth="xl"
       isBordered
       onMenuOpenChange={setIsMenuOpen}
-      className={`${darkMode ? "dark" : ""}`}
+      className={`${darkMode ? 'dark' : ''}`}
     >
       {/* Left section — brand */}
       <NavbarContent>
@@ -56,12 +64,7 @@ export default function Header() {
           }
         />
 
-        <Button
-          color="primary"
-          radius="full"
-          variant="shadow"
-          className="hidden sm:flex"
-        >
+        <Button color="primary" radius="full" variant="shadow" className="hidden sm:flex">
           Login
         </Button>
       </NavbarContent>
@@ -69,13 +72,19 @@ export default function Header() {
       {/* Mobile Menu */}
       <NavbarMenu>
         <NavbarMenuItem>
-          <a className="w-full text-lg py-2" href="#">Dashboard</a>
+          <a className="w-full text-lg py-2" href="#">
+            Dashboard
+          </a>
         </NavbarMenuItem>
         <NavbarMenuItem>
-          <a className="w-full text-lg py-2" href="#">Settings</a>
+          <a className="w-full text-lg py-2" href="#">
+            Settings
+          </a>
         </NavbarMenuItem>
         <NavbarMenuItem>
-          <a className="w-full text-lg py-2" href="#">Reports</a>
+          <a className="w-full text-lg py-2" href="#">
+            Reports
+          </a>
         </NavbarMenuItem>
 
         <NavbarMenuItem className="mt-4">

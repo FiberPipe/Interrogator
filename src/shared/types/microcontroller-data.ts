@@ -1,7 +1,7 @@
 interface IdPower {
-    id: string;
-};
+  id: string;
+}
 
 export interface Power extends IdPower {
-    [key: `P${number}`]: number;
+  [key: `P${number}`]: number;
 }

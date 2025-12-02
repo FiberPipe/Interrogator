@@ -1,9 +1,9 @@
-import { Suspense, useCallback, useEffect, useRef } from "react";
-import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
-import { RouteCustomProps, routerConfig } from "./routerConfig";
-import { useInputStore } from "../../../shared";
-import { AppErrorBoundary } from "../AppErrorBoundary";
-import { AppSuspenseFallback } from "../AppSuspenseFallback";
+import { Suspense, useCallback, useEffect, useRef } from 'react';
+import { Route, Routes, useNavigate, useLocation } from 'react-router-dom';
+import { RouteCustomProps, routerConfig } from './routerConfig';
+import { useInputStore } from '../../../shared';
+import { AppErrorBoundary } from '../AppErrorBoundary';
+import { AppSuspenseFallback } from '../AppSuspenseFallback';
 
 export const AppRouter = () => {
   const navigate = useNavigate();
@@ -43,7 +43,9 @@ export const AppRouter = () => {
 
   const renderWithWrapper = useCallback((route: RouteCustomProps) => {
     const element = (
-      <Suspense fallback={<AppSuspenseFallback message="Загрузка приложения..." />}>{route.element}</Suspense>
+      <Suspense fallback={<AppSuspenseFallback message="Загрузка приложения..." />}>
+        {route.element}
+      </Suspense>
     );
 
     return route.indexPage ? (
@@ -60,7 +62,6 @@ export const AppRouter = () => {
       <Suspense fallback={<AppSuspenseFallback message="Загрузка приложения..." />}>
         <Routes>{Object.values(routerConfig).map(renderWithWrapper)}</Routes>
       </Suspense>
-
     </AppErrorBoundary>
   );
 };

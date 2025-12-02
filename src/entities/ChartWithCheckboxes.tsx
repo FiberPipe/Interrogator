@@ -1,3 +1,3 @@
 export const ChartWithCheckboxes = () => {
-    return (<></>)
-}
+  return <></>;
+};
