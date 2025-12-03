@@ -1,19 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Card, Alert, Select, SelectItem, Button } from '@heroui/react';
+import { useState } from 'react';
+import { Card, Alert } from '@heroui/react';
 import { ComPortSelector, LanguageSelector, ThemeSelector } from '../features';
 import { SettingsTabs } from '../widgets';
-import { addDangerToaster, addSuccessToaster } from '../shared/ui';
-
-const LANGUAGES = [
-  { key: 'en', label: 'English' },
-  { key: 'ru', label: 'Русский' },
-  { key: 'es', label: 'Español' },
-];
-
-const THEMES = [
-  { key: 'light', label: 'Светлая' },
-  { key: 'dark', label: 'Тёмная' },
-];
 
 const SettingsDashboard = () => {
   const [activeSection, setActiveSection] = useState('main');

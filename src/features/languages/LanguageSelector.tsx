@@ -1,13 +1,15 @@
 import { Card, Select, SelectItem } from '@heroui/react';
 import { useLanguage } from './useLanguage';
+import { useTranslation } from 'react-i18next';
 
 export const LanguageSelector = () => {
     const { language, setLanguage, loading, LANGUAGES } = useLanguage();
+    const { t } = useTranslation();
 
     return (
         <Card className="p-6 flex flex-col gap-4">
-            <h3 className="text-xl font-semibold">Язык интерфейса</h3>
-            <p className="text-sm text-default-500">Выберите язык приложения</p>
+            <h3 className="text-xl font-semibold">{t('language.title')}</h3>
+            <p className="text-sm text-default-500">{t('language.description')}</p>
 
             <Select
                 label="Язык"

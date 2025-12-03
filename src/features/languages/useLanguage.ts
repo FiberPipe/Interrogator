@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { addDangerToaster, addSuccessToaster } from '../../shared/ui';
+import i18n from '../../shared/i18n';
 
 const LANGUAGES = [
   { key: 'en', label: 'English' },
@@ -26,6 +27,7 @@ export const useLanguage = () => {
 
   const saveLanguage = useCallback(async (lang: string) => {
     setLanguage(lang);
+    i18n.changeLanguage(lang);
     setLoading(true);
     try {
       await window.appData.set('language', lang);

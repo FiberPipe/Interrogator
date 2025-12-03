@@ -1,0 +1,21 @@
+{
+  "comPort": {
+    "title": "COM Port",
+    "description": "Select a COM port to connect your device",
+    "notSelected": "COM port not selected. Please choose one."
+  },
+  "language": {
+    "title": "Interface Language",
+    "description": "Select the language of the application"
+  },
+  "theme": {
+    "title": "Theme",
+    "description": "Choose light or dark theme",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "buttons": {
+    "save": "Save",
+    "refresh": "Refresh ports"
+  }
+}
