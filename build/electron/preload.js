@@ -1,11 +1,22 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const electron_1 = require("electron");
-const types_1 = require("./ipc/serial-port/types");
-electron_1.contextBridge.exposeInMainWorld("serial", {
-    getPorts: () => electron_1.ipcRenderer.invoke(types_1.SerialChannels.GetPorts),
-    open: (path, baud) => electron_1.ipcRenderer.invoke(types_1.SerialChannels.Open, path, baud),
-    close: (path) => electron_1.ipcRenderer.invoke(types_1.SerialChannels.Close, path),
-    onData: (cb) => electron_1.ipcRenderer.on(types_1.SerialChannels.Data, (_, d) => cb(d)),
-    onClosed: (cb) => electron_1.ipcRenderer.on(types_1.SerialChannels.Closed, (_, p) => cb(p)),
+const { ipcRenderer, contextBridge } = require("electron");
+// -------------------- Serial API --------------------
+contextBridge.exposeInMainWorld('serial', {
+    getPorts: () => ipcRenderer.invoke('serial:getPorts'),
+    open: (path, baud) => ipcRenderer.invoke('serial:open', path, baud),
+    close: (path) => ipcRenderer.invoke('serial:close', path),
+    onData: (cb) => {
+        ipcRenderer.on('serial:data', (_event, data) => cb(data));
+    },
+    onClosed: (cb) => {
+        ipcRenderer.on('serial:closed', (_event, port) => cb(port));
+    },
 });
+// -------------------- AppData API --------------------
+contextBridge.exposeInMainWorld('appData', {
+    getAll: () => ipcRenderer.invoke('app-data:get-all'),
+    set: (key, value) => ipcRenderer.invoke('app-data:set', key, value),
+    delete: (key) => ipcRenderer.invoke('app-data:delete', key),
+    patch: (patch) => ipcRenderer.invoke('app-data:patch', patch),
+});
+console.log('Preload loaded');

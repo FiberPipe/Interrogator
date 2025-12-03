@@ -115,7 +115,6 @@ export const LineChartWithConfidence = ({ series, height = 400 }: LineChartWithC
         </ZoomableChart>
       </div>
 
-      {/* Таймлайн */}
       <Slider
         label=""
         minValue={0}
@@ -123,7 +122,6 @@ export const LineChartWithConfidence = ({ series, height = 400 }: LineChartWithC
         value={range}
         onChange={(val) => setRange(val as [number, number])}
         step={1}
-        range
       />
     </div>
   );

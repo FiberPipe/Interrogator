@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs';
 
 let win: BrowserWindow | null = null;
 
-const preloadPath = join(__dirname, 'preload.js');
+console.log('Preload path exists:', existsSync(join(__dirname, 'preload.js')), join(__dirname, 'preload.js'));
 
 async function createWindow() {
   win = new BrowserWindow({
@@ -13,16 +13,19 @@ async function createWindow() {
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
       contextIsolation: true,
-      nodeIntegration: false,
-    },
+      nodeIntegration: false
+    }
   });
 
   registerIpc(win);
 
   await win.loadURL('http://localhost:3000');
+
+  win.webContents.openDevTools({ mode: 'right' });
+
+  
 }
 
-console.log('Preload path:', preloadPath, 'exists:', existsSync(preloadPath));
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
