@@ -1,4 +1,4 @@
-import type { SerialPortInfo } from './serial';
+import { SerialPortInfo } from "../../shared/types/serial";
 
 export interface SerialAPI {
   getPorts(): Promise<SerialPortInfo[]>;

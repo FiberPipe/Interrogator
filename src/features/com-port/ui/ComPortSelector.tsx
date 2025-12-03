@@ -1,31 +1,8 @@
-import { useEffect, useState } from 'react';
 import { Card, Select, SelectItem, Button, Alert } from '@heroui/react';
-import { SerialPortInfo, getPorts } from '../model';
-
+import { useComPort } from './useComport';
 
 export const ComPortSelector = () => {
-  const [ports, setPorts] = useState<SerialPortInfo[]>([]);
-  const [selectedPort, setSelectedPort] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const loadPorts = async () => {
-    setLoading(true);
-    try {
-      const list = await getPorts();
-      setPorts(list);
-      if (selectedPort && !list.find((p) => p.path === selectedPort)) {
-        setSelectedPort('');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadPorts();
-  }, []);
-
-  console.log(window.serial)
+  const { ports, selectedPort, loading, loadPorts, handlePortChange } = useComPort();
 
   return (
     <Card className="p-6 flex flex-col gap-4">
@@ -44,7 +21,7 @@ export const ComPortSelector = () => {
         label="COM-порт"
         placeholder="Выберите порт"
         selectedKeys={selectedPort ? [selectedPort] : []}
-        onSelectionChange={(keys) => onSelectPort(Array.from(keys)[0] as string)}
+        onSelectionChange={(keys) => handlePortChange(Array.from(keys)[0] as string)}
         disabled={loading}
       >
         {ports.map((port) => (
