@@ -1,4 +1,5 @@
-import { BrowserWindow } from 'electron';
+import type { BrowserWindow } from 'electron';
+
 import { registerSerialPortIpc } from './serial-port';
 import { registerAppDataIpc } from './app-data';
 

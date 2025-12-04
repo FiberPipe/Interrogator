@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+
 import { addDangerToaster, addSuccessToaster } from '../../shared/ui';
 
 const THEMES = [

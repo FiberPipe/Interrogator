@@ -1,4 +1,4 @@
-import { SerialPortInfo } from "../../shared/types/serial";
+import type { SerialPortInfo } from '../../shared/types/serial';
 
 export interface SerialAPI {
   getPorts(): Promise<SerialPortInfo[]>;
@@ -22,4 +22,4 @@ declare global {
   }
 }
 
-export { };
+export {};

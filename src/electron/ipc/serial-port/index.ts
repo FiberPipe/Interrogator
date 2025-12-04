@@ -1,4 +1,5 @@
-import { BrowserWindow } from 'electron';
+import type { BrowserWindow } from 'electron';
+
 import { registerClosePort } from './close';
 import { registerOpenPort } from './open';
 import { registerGetPorts } from './register';

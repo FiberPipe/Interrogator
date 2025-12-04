@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import './styles/global.css';
 import { HeroUIProvider, ToastProvider } from '@heroui/react';
+
 import { ErrorWrapper } from './providers/ErrorWrapper';
 import { AppRoutes } from '../shared/types/routes';
 import { Charts } from '../pages';

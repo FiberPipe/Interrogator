@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron';
 import { SerialPort } from 'serialport';
+
 import { activePorts } from '../../state';
 
 export function registerGetPorts() {

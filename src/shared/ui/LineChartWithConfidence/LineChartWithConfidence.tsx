@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { Slider, Button } from '@heroui/react';
 import React from 'react';
+
 import { ZoomableChart } from './ZoomableChart';
 
 interface SeriesData {

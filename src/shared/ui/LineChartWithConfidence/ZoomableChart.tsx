@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { useZoom } from './useZoom';
 
 interface ZoomableChartProps {

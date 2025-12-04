@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { SerialPortInfo } from '../model';
+
+import type { SerialPortInfo } from '../model';
 import { addSuccessToaster, addDangerToaster } from '../../../shared/ui';
 
 export const useComPort = () => {

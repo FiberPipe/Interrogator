@@ -1,6 +1,8 @@
 import { Suspense, useCallback, useEffect, useRef } from 'react';
 import { Route, Routes, useNavigate, useLocation } from 'react-router-dom';
-import { RouteCustomProps, routerConfig } from './routerConfig';
+
+import type { RouteCustomProps } from './routerConfig';
+import { routerConfig } from './routerConfig';
 import { useInputStore } from '../../../shared';
 import { AppErrorBoundary } from '../AppErrorBoundary';
 import { AppSuspenseFallback } from '../AppSuspenseFallback';

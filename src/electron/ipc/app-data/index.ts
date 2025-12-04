@@ -1,11 +1,12 @@
-import { ipcMain } from "electron";
-import { appStorage } from "../../storage/app-storage";
+import { ipcMain } from 'electron';
+
+import { appStorage } from '../../storage/app-storage';
 
 export enum AppDataChannel {
-  GetAllAppData = "app-data:get-all",
-  SetAppData = "app-data:set",
-  DeleteAppData = "app-data:delete",
-  PatchAppData = "app-data:patch",
+  GetAllAppData = 'app-data:get-all',
+  SetAppData = 'app-data:set',
+  DeleteAppData = 'app-data:delete',
+  PatchAppData = 'app-data:patch',
 }
 
 export function registerAppDataIpc() {

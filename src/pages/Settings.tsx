@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Card, Alert } from '@heroui/react';
+
 import { ComPortSelector, LanguageSelector, ThemeSelector } from '../features';
 import { SettingsTabs } from '../widgets';
 

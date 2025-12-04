@@ -1,6 +1,7 @@
-import { RouteProps } from 'react-router-dom';
+import type { RouteProps } from 'react-router-dom';
+import type { JSX } from 'react';
+
 import { SensorsPage, Settings } from '../../../pages';
-import { JSX } from 'react';
 
 type CustomRouteProps = {
   indexPage?: JSX.Element;

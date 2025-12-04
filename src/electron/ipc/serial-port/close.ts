@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+
 import { activePorts } from '../../state';
 
 export function registerClosePort() {

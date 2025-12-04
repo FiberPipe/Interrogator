@@ -1,8 +1,9 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, Button, Divider } from '@heroui/react';
-import { AppRoutes } from '../shared/types/routes';
 import { Settings, BarChart2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
+
+import { AppRoutes } from '../shared/types/routes';
 
 const menuItems = [
   { label: 'Настройки', icon: <Settings size={18} />, path: AppRoutes.SETTINGS },

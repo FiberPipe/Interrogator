@@ -1,4 +1,5 @@
 import { Card, Select, SelectItem, Button, Alert } from '@heroui/react';
+
 import { useComPort } from './useComport';
 
 export const ComPortSelector = () => {
@@ -7,9 +8,7 @@ export const ComPortSelector = () => {
   return (
     <Card className="p-6 flex flex-col gap-4">
       <h3 className="text-xl font-semibold">COM-порт</h3>
-      <p className="text-sm text-default-500">
-        Выберите COM-порт для подключения к устройству.
-      </p>
+      <p className="text-sm text-default-500">Выберите COM-порт для подключения к устройству.</p>
 
       {!selectedPort && (
         <Alert color="warning" title="COM-порт не выбран">
@@ -25,9 +24,7 @@ export const ComPortSelector = () => {
         disabled={loading}
       >
         {ports.map((port) => (
-          <SelectItem key={port.path}>
-            {port.friendlyName ?? port.path}
-          </SelectItem>
+          <SelectItem key={port.path}>{port.friendlyName ?? port.path}</SelectItem>
         ))}
       </Select>
 

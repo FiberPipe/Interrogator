@@ -1,5 +1,7 @@
-import { ipcMain, BrowserWindow } from 'electron';
+import type { BrowserWindow } from 'electron';
+import { ipcMain } from 'electron';
 import { SerialPort } from 'serialport';
+
 import { activePorts } from '../../state';
 import { appStorage } from '../../storage/app-storage';
 

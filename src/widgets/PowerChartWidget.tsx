@@ -1,4 +1,5 @@
 import { Card } from '@heroui/react';
+
 import { LineChartWithConfidence } from '../shared/ui';
 
 const sampleSeries = Array.from({ length: 5 }, (_, i) => ({

@@ -1,11 +1,16 @@
 import { app, BrowserWindow } from 'electron';
 import { join } from 'node:path';
-import { registerIpc } from './ipc';
 import { existsSync } from 'node:fs';
+
+import { registerIpc } from './ipc';
 
 let win: BrowserWindow | null = null;
 
-console.log('Preload path exists:', existsSync(join(__dirname, 'preload.js')), join(__dirname, 'preload.js'));
+console.log(
+  'Preload path exists:',
+  existsSync(join(__dirname, 'preload.js')),
+  join(__dirname, 'preload.js'),
+);
 
 async function createWindow() {
   win = new BrowserWindow({
@@ -13,8 +18,8 @@ async function createWindow() {
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
       contextIsolation: true,
-      nodeIntegration: false
-    }
+      nodeIntegration: false,
+    },
   });
 
   registerIpc(win);
@@ -22,8 +27,6 @@ async function createWindow() {
   await win.loadURL('http://localhost:3000');
 
   win.webContents.openDevTools({ mode: 'right' });
-
-  
 }
 
 app.whenReady().then(createWindow);

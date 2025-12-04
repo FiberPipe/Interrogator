@@ -1,11 +1,12 @@
-import { BrowserWindow } from 'electron';
+import type { BrowserWindow } from 'electron';
 import { SerialPort } from 'serialport';
+
 import { appStorage } from '../../storage/app-storage';
 import { activePorts } from '../../state';
 
 export async function autoConnectSerial(win: BrowserWindow) {
-const lastPort = appStorage.get<string>("lastPort") ?? "";
-const lastBaud = appStorage.get<number>("baudRate") ?? 115200;
+  const lastPort = appStorage.get<string>('lastPort') ?? '';
+  const lastBaud = appStorage.get<number>('baudRate') ?? 115200;
 
   if (!lastPort) {
     win.webContents.send('serial:auto-connect-none');
