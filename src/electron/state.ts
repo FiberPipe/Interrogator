@@ -1,3 +1,3 @@
-import type { SerialPort } from 'serialport';
+import { ISerialPort } from "./ipc/serial-port/types";
 
-export const activePorts: Map<string, SerialPort> = new Map();
+export const activePorts = new Map<string, ISerialPort>();

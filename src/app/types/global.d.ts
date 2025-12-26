@@ -1,11 +1,30 @@
-import type { SerialPortInfo } from '../../shared/types/serial';
+// src/preload/types.d.ts
+export interface SerialPortInfo {
+  path: string;
+  manufacturer?: string;
+  serialNumber?: string;
+  vendorId?: string;
+  productId?: string;
+  busy: boolean;
+}
+
+export interface SerialOpenResult {
+  ok?: boolean;
+  error?: string;
+}
+
+export interface SerialDataEvent {
+  port: string;
+  data: string;
+}
 
 export interface SerialAPI {
   getPorts(): Promise<SerialPortInfo[]>;
-  open(path: string, baud: number): Promise<void>;
-  close(path: string): Promise<void>;
-  onData(cb: (data: unknown) => void): void;
-  onClosed(cb: (port: string) => void): void;
+  open(path: string, baud: number): Promise<SerialOpenResult>;
+  close(path: string): Promise<SerialOpenResult>;
+  onData(cb: (data: SerialDataEvent) => void): () => void;
+  onClosed(cb: (port: string) => void): () => void;
+  onError(cb: (data: { port: string; error: string }) => void): () => void;
 }
 
 export interface AppDataAPI {
@@ -21,5 +40,3 @@ declare global {
     appData: AppDataAPI;
   }
 }
-
-export {};
