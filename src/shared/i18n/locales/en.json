@@ -1,21 +1,140 @@
 {
-  "comPort": {
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage application parameters",
+    "tabs": {
+      "main": "Main",
+      "sensors": "Sensors",
+      "advanced": "Advanced",
+      "about": "About"
+    },
+    "sections": {
+      "connection": "Connection",
+      "interface": "Interface",
+      "system": "System"
+    },
+    "language": {
+      "title": "Interface Language",
+      "description": "Select interface display language",
+      "russian": "Русский",
+      "english": "English",
+      "changed": "Language changed",
+      "changedDescription": "Interface language changed to {{language}}"
+    },
+    "theme": {
+      "title": "Theme",
+      "description": "Choose light, dark or system theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System",
+      "changed": "Theme changed",
+      "changedDescription": "Theme changed to {{theme}}"
+    },
+    "reset": {
+      "title": "Reset Settings",
+      "description": "Reset all settings to factory defaults",
+      "button": "Reset to Factory",
+      "confirm": "Confirm Action",
+      "confirmDescription": "Are you sure you want to reset all settings? This action cannot be undone.",
+      "cancel": "Cancel",
+      "reset": "Reset",
+      "success": "Settings reset",
+      "successDescription": "All settings have been reset to factory defaults"
+    },
+    "sensors": {
+      "title": "Sensor Configuration",
+      "description": "Configure number and parameters of sensors",
+      "notAvailable": "Not Available Yet",
+      "notAvailableDescription": "This section will be available after sensor configuration logic is added",
+      "channelCount": "Channel Count",
+      "channelCountDescription": "Specify the number of active sensor channels",
+      "samplingRate": "Sampling Rate",
+      "samplingRateDescription": "Data acquisition frequency from sensors (Hz)",
+      "calibration": "Calibration",
+      "calibrationDescription": "Sensor calibration settings"
+    }
+  },
+  "onboarding": {
+    "welcome": "Welcome!",
+    "step": "Step {{current}} of {{total}}",
+    "language": {
+      "title": "Choose Language",
+      "subtitle": "You can change this later in settings",
+      "ru": "Русский",
+      "en": "English"
+    },
+    "theme": {
+      "title": "Choose Theme",
+      "subtitle": "Customize the look of your application",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "port": {
+      "title": "Connection Setup",
+      "subtitle": "Select a COM port to work with the device",
+      "selectPort": "Select port",
+      "noports": "No available ports",
+      "busy": "busy",
+      "connect": "Connect",
+      "connected": "Connected",
+      "activeConnection": "Active connection to port:",
+      "error": "Connection error"
+    },
+    "buttons": {
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish",
+      "skip": "Skip"
+    }
+  },
+  "serialPort": {
     "title": "COM Port",
-    "description": "Select a COM port to connect your device",
-    "notSelected": "COM port not selected. Please choose one."
-  },
-  "language": {
-    "title": "Interface Language",
-    "description": "Select the language of the application"
-  },
-  "theme": {
-    "title": "Theme",
-    "description": "Choose light or dark theme",
-    "light": "Light",
-    "dark": "Dark"
-  },
-  "buttons": {
-    "save": "Save",
-    "refresh": "Refresh ports"
+    "description": "Select COM port to connect to device",
+    "selectPort": "Select port",
+    "noPorts": "No available ports",
+    "portsFound": "Ports found: {{count}}",
+    "selectedPort": "Selected port",
+    "status": {
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "connecting": "Connecting...",
+      "busy": "busy",
+      "free": "Free"
+    },
+    "alerts": {
+      "notSelected": "COM port not selected",
+      "notSelectedDesc": "Please select a port for the application to work correctly",
+      "connectedTo": "Active connection to port:",
+      "error": "Error"
+    },
+    "buttons": {
+      "refresh": "Refresh",
+      "refreshing": "Refreshing...",
+      "connect": "Connect",
+      "connecting": "Connecting...",
+      "disconnect": "Disconnect",
+      "showData": "Show data",
+      "hideData": "Hide data"
+    },
+    "autoConnect": {
+      "title": "Auto-connect",
+      "description": "Automatically connect when opening the page"
+    },
+    "info": {
+      "path": "Path",
+      "manufacturer": "Manufacturer",
+      "serialNumber": "Serial Number",
+      "vendorId": "Vendor ID",
+      "productId": "Product ID",
+      "status": "Status",
+      "unknown": "Unknown"
+    },
+    "dataPreview": {
+      "title": "Data Preview",
+      "noData": "No data",
+      "lastUpdate": "Last update",
+      "receivedPackets": "Received packets: {{count}}"
+    }
   }
 }

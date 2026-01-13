@@ -35,6 +35,7 @@ interface AppDataAPI {
   set(key: string, value: unknown): Promise<void>;
   delete(key: string): Promise<void>;
   patch(patch: Record<string, unknown>): Promise<void>;
+  resetToFactory(patch: Record<string, unknown>): Promise<void>;
 }
 
 // -------------------- Serial API --------------------
@@ -140,6 +141,14 @@ const appDataAPI: AppDataAPI = {
     console.log('[Preload] 🔧 patch called:', patch);
     return ipcRenderer.invoke('app-data:patch', patch);
   },
+
+  resetToFactory: () => ipcRenderer.invoke('app-data:patch', {
+    isFirstLaunch: true,
+    theme: 'system',
+    language: 'ru',
+    lastPort: null,
+    baudRate: 9600,
+  }),
 };
 
 contextBridge.exposeInMainWorld('serial', serialAPI);

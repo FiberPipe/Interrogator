@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs';
 
 import { registerIpc } from './ipc';
 import { activePorts } from './state';
+import { appStorage } from './storage/app-storage';
 
 let win: BrowserWindow | null = null;
 
@@ -12,6 +13,21 @@ console.log(
   existsSync(join(__dirname, 'preload.js')),
   join(__dirname, 'preload.js'),
 );
+
+function initAppStorage() {
+  const isFirstLaunch = appStorage.get<boolean>('isFirstLaunch');
+
+  if (isFirstLaunch === undefined) {
+    console.log('[Main] First app launch detected');
+
+    appStorage.patch({
+      isFirstLaunch: true,
+      theme: 'system',
+      language: 'ru',
+      baudRate: 9600,
+    });
+  }
+}
 
 async function createWindow() {
   win = new BrowserWindow({
@@ -30,10 +46,9 @@ async function createWindow() {
   win.webContents.openDevTools({ mode: 'right' });
 }
 
-app.whenReady().then(createWindow);
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+app.whenReady().then(() => {
+  initAppStorage();
+  createWindow();
 });
 
 app.on('activate', () => {

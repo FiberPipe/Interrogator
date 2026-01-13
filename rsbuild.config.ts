@@ -2,9 +2,10 @@ import { defineConfig } from "@rsbuild/core";
 import { pluginReact } from "@rsbuild/plugin-react";
 import autoprefixer from "autoprefixer";
 import tailwindcss from "@tailwindcss/postcss";
+import { pluginNodePolyfill } from "@rsbuild/plugin-node-polyfill";
 
 export default defineConfig({
-  plugins: [pluginReact()],
+  plugins: [pluginReact(), pluginNodePolyfill()],
   source: { entry: { index: "./src/app/index.tsx" } },
   html: {
     title: "Interrogator",

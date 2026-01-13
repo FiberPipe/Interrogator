@@ -11,6 +11,9 @@
     "build:electron": "tsc -p tsconfig.electron.json && cp electron.cjs.package.json build/electron/package.json",
     "build": "npm run build:web && npm run build:electron",
     "dist": "npm run build && electron-builder",
+    "deps:ci": "pnpm install --frozen-lockfile",
+    "deps:truncate": "pnpm prune --prod",
+    "deps:clean": "rm -rf node_modules && rm -rf ~/.pnpm",
     "lint": "eslint 'src/**/*.{ts,tsx}'",
     "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
     "format:check": "prettier --check 'src/**/*.{ts,tsx,js,jsx,json,css,md}'",
@@ -21,17 +24,18 @@
     "@heroui/react": "2.8.4",
     "@heroui/system": "2.4.22",
     "@heroui/theme": "2.4.22",
-    "drizzle-orm": "^0.44.7",
-    "electron-store": "^8.2.0",
-    "eslint": "^9.39.1",
-    "i18next": "^25.7.1",
-    "i18next-browser-languagedetector": "^8.2.0",
-    "lucide-react": "^0.554.0",
+    "@rsbuild/plugin-node-polyfill": "^1.4.2",
+    "drizzle-orm": "0.44.7",
+    "electron-store": "8.2.0",
+    "eslint": "9.39.1",
+    "i18next": "25.7.1",
+    "i18next-browser-languagedetector": "8.2.0",
+    "lucide-react": "0.554.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "react-i18next": "^16.3.5",
     "react-router-dom": "^7.9.6",
-    "recharts": "^3.5.1",
+    "recharts": "3.5.1",
     "serialport": "13.0.0",
     "tailwindcss": "^4.1.17"
   },
@@ -56,10 +60,12 @@
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "framer-motion": "^12.26.1",
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "jiti": "^2.6.1",
     "lint-staged": "^16.2.7",
+    "motion": "^12.26.1",
     "prettier": "^3.7.3",
     "typescript": "5.9.2",
     "typescript-eslint": "^8.48.1",
@@ -73,7 +79,7 @@
       "buildResources": "assets"
     }
   },
-    "lint-staged": {
+  "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
       "eslint --fix",
       "prettier --write"
