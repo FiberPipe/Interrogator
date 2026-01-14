@@ -1,10 +1,18 @@
-import { Card, Button, Chip } from '@heroui/react';
-import { useEffect, useRef, useMemo, useCallback } from 'react';
-
-import { useSerialData } from './hooks/useSerialData';
+import { Card, CardBody, CardHeader, Chip, Alert, Divider } from '@heroui/react';
+import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Activity, AlertCircle } from 'lucide-react';
+import { ChartSeries, ViewType } from '../entities/chart/model/types';
 import { RowData } from '../shared/types/microcontroller-data';
+import { useSerialConnection } from '../features/serial-connection/model/useSerialConnection';
+import { useSerialData } from './hooks/useSerialData';
+import { ViewTypeSelector } from '../features/data-visualization/ViewTypeSelector';
+import { ChartControls } from '../features/data-visualization/ChartsControls';
+import { ChartStats } from '../entities/chart/ui/ChartStats';
 import { LineChartWithConfidence } from '../shared/ui';
-import { useComPort } from '../features/com-port/ui/useComport';
+import { ChartLegend } from '../entities/chart/ui/ChartLegend';
+
 
 const COLORS = [
   '#4f46e5', '#e11d48', '#059669', '#f97316', '#8b5cf6',
@@ -12,49 +20,28 @@ const COLORS = [
   '#10b981', '#ef4444', '#3b82f6', '#f43f5e', '#a855f7', '#84cc16'
 ];
 
-export const PowerChartWidget: React.FC = () => {
-  const {
-    selectedPort,
-    connectedPort,
-    connectToPort,
-    disconnectPort,
-  } = useComPort();
+const CHANNELS = Array.from({ length: 16 }, (_, i) => i);
 
+export const PowerChartWidget: React.FC = () => {
+  const { t } = useTranslation();
+  const { connectedPort } = useSerialConnection();
   const { dataBuffer, isReceiving, clearBuffer, latestData } = useSerialData(connectedPort);
 
-  const wasConnectedRef = useRef(false);
-  const isConnectingRef = useRef(false);
-
-  // Автоподключение
-  useEffect(() => {
-    if (connectedPort || !selectedPort || isConnectingRef.current) return;
-
-    isConnectingRef.current = true;
-
-    const doConnect = async () => {
-      try {
-        const success = await connectToPort(selectedPort);
-        if (success) wasConnectedRef.current = true;
-      } finally {
-        isConnectingRef.current = false;
-      }
-    };
-
-    doConnect();
-  }, [selectedPort, connectedPort, connectToPort]);
+  const [selectedChannels, setSelectedChannels] = useState<number[]>(CHANNELS.slice(0, 4)); // По умолчанию P0-P3
+  const [viewType, setViewType] = useState<ViewType>('chart');
 
   // Мемоизируем серии для графика
-  const series = useMemo(() => {
+  const series = useMemo((): ChartSeries[] => {
     if (dataBuffer.length === 0) return [];
 
-    return Array.from({ length: 16 }, (_, i) => {
-      const pKey = `P${i}` as keyof RowData;
-      const stdDevKey = `stdDev${i}` as keyof RowData;
+    return selectedChannels.map((channelIndex) => {
+      const pKey = `P${channelIndex}` as keyof RowData;
+      const stdDevKey = `stdDev${channelIndex}` as keyof RowData;
 
       return {
-        key: `P${i}`,
-        label: `P${i}`,
-        color: COLORS[i],
+        key: `P${channelIndex}`,
+        label: t('charts.power.channel', { index: channelIndex }),
+        color: COLORS[channelIndex],
         showConfidence: true,
         data: dataBuffer.map((point, idx) => {
           const yValue = point[pKey] as number;
@@ -69,127 +56,187 @@ export const PowerChartWidget: React.FC = () => {
         }),
       };
     });
-  }, [dataBuffer]);
+  }, [dataBuffer, selectedChannels, t]);
 
   const averagePower = useMemo(() => {
-    if (!latestData) return 0;
-    return (latestData.P0 + latestData.P1 + latestData.P2 + latestData.P3) / 4;
-  }, [latestData]);
+    if (!latestData || selectedChannels.length === 0) return 0;
 
-  const handleClearBuffer = useCallback(() => {
-    clearBuffer();
-  }, [clearBuffer]);
+    const sum = selectedChannels.reduce((acc, idx) => {
+      const key = `P${idx}` as keyof RowData;
+      return acc + (latestData[key] as number || 0);
+    }, 0);
+
+    return sum / selectedChannels.length;
+  }, [latestData, selectedChannels]);
+
+  const handleToggleChannel = useCallback((channel: number) => {
+    setSelectedChannels((prev) =>
+      prev.includes(channel)
+        ? prev.filter((c) => c !== channel)
+        : [...prev, channel].sort((a, b) => a - b)
+    );
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    setSelectedChannels(CHANNELS);
+  }, []);
+
+  const handleDeselectAll = useCallback(() => {
+    setSelectedChannels([]);
+  }, []);
 
   return (
-    <Card className="p-6 flex flex-col gap-4">
-      {/* Заголовок */}
-      <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold">Power (P) - Real-time</h3>
-        <div className="flex gap-2 items-center">
-          {isReceiving && (
-            <Chip color="success" size="sm" variant="dot">
-              🔴 LIVE ({dataBuffer.length}/200)
-            </Chip>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Card className="shadow-lg">
+        <CardHeader className="flex flex-col gap-4 pb-4">
+          {/* Заголовок и статус */}
+          <div className="flex justify-between items-start w-full">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-3">
+                <h3 className="text-2xl font-bold">{t('charts.power.title')}</h3>
+                {isReceiving && (
+                  <Chip
+                    color="success"
+                    size="sm"
+                    variant="dot"
+                    startContent={<Activity className="w-3 h-3 animate-pulse" />}
+                  >
+                    {t('charts.status.live')}
+                  </Chip>
+                )}
+                {connectedPort && !isReceiving && (
+                  <Chip color="warning" size="sm" variant="dot">
+                    {t('charts.status.waiting')}
+                  </Chip>
+                )}
+              </div>
+              <p className="text-sm text-default-500">{t('charts.power.subtitle')}</p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <ViewTypeSelector activeView={viewType} onViewChange={setViewType} />
+              <ChartControls onClear={clearBuffer} />
+            </div>
+          </div>
+
+          {/* Статистика */}
+          <ChartStats
+            isReceiving={isReceiving}
+            bufferSize={dataBuffer.length}
+            maxBuffer={200}
+            recordId={latestData?.id}
+            time={latestData?.time}
+            average={averagePower}
+            connectedPort={connectedPort}
+          />
+        </CardHeader>
+
+        <Divider />
+
+        <CardBody className="gap-6">
+          {/* Предупреждение если нет подключения */}
+          {!connectedPort && (
+            <Alert
+              color="warning"
+              variant="flat"
+              title={t('charts.status.notConnected')}
+              startContent={<AlertCircle className="w-5 h-5" />}
+            >
+              {t('charts.messages.selectPort')}
+            </Alert>
           )}
-          {connectedPort && !isReceiving && (
-            <Chip color="warning" size="sm" variant="dot">
-              ⏳ Ожидание
-            </Chip>
+
+          {/* Легенда с каналами */}
+          <ChartLegend
+            channels={CHANNELS}
+            selectedChannels={selectedChannels}
+            colors={COLORS}
+            onToggle={handleToggleChannel}
+            onSelectAll={handleSelectAll}
+            onDeselectAll={handleDeselectAll}
+          />
+
+          {/* График */}
+          <AnimatePresence mode="wait">
+            {viewType === 'chart' && (
+              <motion.div
+                key="chart"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                {series.length > 0 && selectedChannels.length > 0 ? (
+                  <LineChartWithConfidence series={series} height={500} />
+                ) : (
+                  <div className="h-96 flex flex-col items-center justify-center text-default-400 gap-3 border-2 border-dashed border-default-200 rounded-lg">
+                    <Activity className="w-12 h-12 opacity-50" />
+                    <div className="text-lg font-medium">
+                      {!connectedPort
+                        ? t('charts.messages.portNotConnected')
+                        : selectedChannels.length === 0
+                          ? t('charts.messages.selectChannels')
+                          : t('charts.messages.waitingData')}
+                    </div>
+                    <div className="text-sm">
+                      {connectedPort &&
+                        selectedChannels.length > 0 &&
+                        t('charts.messages.dataWillAppear')}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {viewType === 'table' && (
+              <motion.div
+                key="table"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="h-96 flex items-center justify-center text-default-400"
+              >
+                {t('charts.types.table')} - Coming soon...
+              </motion.div>
+            )}
+
+            {viewType === 'dashboard' && (
+              <motion.div
+                key="dashboard"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="h-96 flex items-center justify-center text-default-400"
+              >
+                {t('charts.types.dashboard')} - Coming soon...
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Дополнительная информация */}
+          {dataBuffer.length > 0 && (
+            <div className="flex flex-wrap gap-4 text-xs text-default-400 pt-4 border-t">
+              <div>
+                {t('charts.info.records')}: <strong>{dataBuffer.length}/200</strong>
+              </div>
+              <div>
+                {t('charts.info.frequency')}: <strong>~1 Hz</strong>
+              </div>
+              <div>
+                {t('charts.info.selected')}: <strong>{selectedChannels.length}</strong>
+              </div>
+              {dataBuffer.length === 200 && (
+                <div className="text-warning">
+                  ⚠️ {t('charts.status.bufferFull')} - {t('charts.messages.oldDataRemoved')}
+                </div>
+              )}
+            </div>
           )}
-          <Button size="sm" color="warning" onPress={handleClearBuffer}>
-            Очистить
-          </Button>
-        </div>
-      </div>
-
-      {/* Статус */}
-      <div className="p-4 bg-default-100 rounded-lg">
-        <div className="text-sm font-mono space-y-1">
-          <div>Selected: <strong>{selectedPort || 'none'}</strong></div>
-          <div>
-            Connected:{' '}
-            <strong className={connectedPort ? 'text-success' : 'text-danger'}>
-              {connectedPort || 'none'}
-            </strong>
-          </div>
-          <div>Receiving: <strong>{isReceiving ? '✅' : '❌'}</strong></div>
-          <div>Buffer: <strong>{dataBuffer.length}/200</strong></div>
-        </div>
-
-        {selectedPort && !connectedPort && (
-          <Button
-            color="primary"
-            className="mt-3 w-full"
-            onPress={() => connectToPort(selectedPort)}
-          >
-            🔌 Подключиться
-          </Button>
-        )}
-
-        {connectedPort && (
-          <Button
-            color="danger"
-            className="mt-3 w-full"
-            onPress={disconnectPort}
-          >
-            🔌 Отключиться
-          </Button>
-        )}
-      </div>
-
-      {/* Информация о последних данных */}
-      {latestData && (
-        <div className="flex gap-4 text-sm">
-          <div className="text-default-500">
-            Запись: <strong>#{latestData.id}</strong>
-          </div>
-          <div className="text-default-500">
-            Время: <strong>{latestData.time}</strong>
-          </div>
-          <div className="text-default-500">
-            Средняя: <strong>{averagePower.toFixed(3)} W</strong>
-          </div>
-        </div>
-      )}
-
-      {/* График */}
-      {series.length > 0 ? (
-        <LineChartWithConfidence series={series} height={400} />
-      ) : (
-        <div className="h-64 flex flex-col items-center justify-center text-default-400 gap-2">
-          <div className="text-lg">
-            {!connectedPort ? '📡 Порт не подключен' : '⏳ Ожидание данных...'}
-          </div>
-          <div className="text-sm">
-            {!connectedPort && selectedPort && 'Нажмите "Подключиться"'}
-            {!connectedPort && !selectedPort && 'Выберите порт'}
-            {connectedPort && 'Данные появятся через 1-2 секунды'}
-          </div>
-        </div>
-      )}
-
-      {/* JSON данных */}
-      {latestData && (
-        <details className="text-xs text-default-400 font-mono">
-          <summary className="cursor-pointer hover:text-default-600">
-            📝 Последние данные (JSON)
-          </summary>
-          <pre className="mt-2 p-3 bg-default-100 rounded-lg overflow-auto max-h-64 border">
-            {JSON.stringify(latestData, null, 2)}
-          </pre>
-        </details>
-      )}
-
-      {/* Статистика */}
-      {dataBuffer.length > 0 && (
-        <div className="flex gap-4 text-xs text-default-400 border-t pt-2">
-          <div>Записей: {dataBuffer.length}/200</div>
-          <div>Частота: ~1 Hz</div>
-          {dataBuffer.length === 200 && (
-            <div className="text-warning">⚠️ Буфер заполнен, старые данные удаляются</div>
-          )}
-        </div>
-      )}
-    </Card>
+        </CardBody>
+      </Card>
+    </motion.div>
   );
 };

@@ -2,7 +2,7 @@ export enum AppRoutes {
   HOME = '/',
   SETTINGS = '/settings',
   CHARTS = '/charts',
-  DASHBOARDS = '/dashboards',
-  MAPS = '/maps',
+  DASHBOARD = '/dashboards',
+  MAP = '/maps',
   ONBOARDING = '/onboarding',
 }

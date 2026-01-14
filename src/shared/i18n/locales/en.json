@@ -1,4 +1,61 @@
 {
+  "charts": {
+    "title": "Charts",
+    "subtitle": "Real-time data visualization",
+    "types": {
+      "chart": "Chart",
+      "table": "Table",
+      "dashboard": "Dashboard"
+    },
+    "metrics": {
+      "power": "Power",
+      "pressure": "Pressure",
+      "temperature": "Temperature",
+      "wavelength": "Wavelength"
+    },
+    "controls": {
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "clear": "Clear",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "export": "Export",
+      "settings": "Settings"
+    },
+    "status": {
+      "live": "LIVE",
+      "waiting": "Waiting",
+      "noData": "No Data",
+      "bufferFull": "Buffer Full",
+      "receiving": "Receiving",
+      "notConnected": "Not Connected"
+    },
+    "info": {
+      "selected": "Selected",
+      "connected": "Connected",
+      "receiving": "Receiving",
+      "buffer": "Buffer",
+      "record": "Record",
+      "time": "Time",
+      "average": "Average",
+      "records": "Records",
+      "frequency": "Frequency",
+      "channels": "Channels"
+    },
+    "messages": {
+      "selectPort": "Select port in settings",
+      "waitingData": "Waiting for data...",
+      "dataWillAppear": "Data will appear in 1-2 seconds",
+      "portNotConnected": "Port not connected",
+      "oldDataRemoved": "Old data is being removed"
+    },
+    "power": {
+      "title": "Power (P)",
+      "subtitle": "Real-time data",
+      "channel": "Channel P{{index}}",
+      "average": "Average Power"
+    }
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage application parameters",
@@ -136,5 +193,66 @@
       "lastUpdate": "Last update",
       "receivedPackets": "Received packets: {{count}}"
     }
+  },
+  "sensors": {
+    "title": "Sensor Configuration",
+    "subtitle": "Configure quantity and bind channels to sensors",
+    "count": {
+      "title": "Number of Sensors",
+      "description": "Specify the number of connected sensors (1-8)",
+      "placeholder": "Enter quantity",
+      "label": "Sensors"
+    },
+    "configuration": {
+      "title": "Sensor Configuration",
+      "sensor": "Sensor {{index}}",
+      "type": "Sensor Type",
+      "channels": "Channels",
+      "selectType": "Select type",
+      "noChannels": "No channels selected",
+      "channelsSelected": "Selected channels: {{count}}"
+    },
+    "types": {
+      "displacement": "Displacement",
+      "temperature": "Temperature",
+      "pressure": "Pressure",
+      "strain": "Strain",
+      "vibration": "Vibration",
+      "none": "Not specified"
+    },
+    "channels": {
+      "available": "Available Channels",
+      "used": "Used Channels",
+      "channel": "Channel P{{index}}",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "inUse": "In Use"
+    },
+    "actions": {
+      "save": "Save Configuration",
+      "reset": "Reset",
+      "apply": "Apply",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "saved": "Configuration Saved",
+      "savedDescription": "Sensor settings saved successfully",
+      "noSensors": "No sensors configured",
+      "noSensorsDescription": "Specify the number of sensors to begin setup",
+      "invalidCount": "Invalid number of sensors",
+      "channelInUse": "Channel already in use by another sensor"
+    },
+    "validation": {
+      "minSensors": "Minimum 1 sensor",
+      "maxSensors": "Maximum 8 sensors",
+      "typeRequired": "Select sensor type",
+      "channelsRequired": "Select at least one channel"
+    }
+  },
+  "navigation": {
+    "settings": "Settings",
+    "charts": "Charts",
+    "collapse": "Collapse",
+    "expand": "Expand"
   }
 }

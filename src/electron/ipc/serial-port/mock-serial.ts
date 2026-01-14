@@ -20,12 +20,17 @@ export class MockSerialPort extends EventEmitter implements ISerialPort {
 
     console.log(`[Mock Serial] Creating port ${path} with index ${this.portIndex}`);
 
-    this.startSendingData();
+    // Задержка перед началом отправки данных
+    setTimeout(() => {
+      if (this.isOpen) {
+        this.startSendingData();
+      }
+    }, 200);
   }
 
   private generateMockData() {
     const data: Record<string, any> = {
-      id: `record_${this.recordId}`, // Изменено с id_record на id
+      id: `record_${this.recordId}`,
       time: new Date().toISOString().substr(11, 12),
     };
 
@@ -40,53 +45,77 @@ export class MockSerialPort extends EventEmitter implements ISerialPort {
   }
 
   private startSendingData() {
+    if (!this.isOpen) {
+      console.log(`[Mock Serial ${this.path}] Port is closed, not starting data transmission`);
+      return;
+    }
+
     console.log(`[Mock Serial ${this.path}] Starting to send data every 1000ms`);
-    
+
     // Отправляем первый пакет сразу
-    setTimeout(() => {
+    this.sendDataPacket();
+
+    // Затем настраиваем интервал
+    this.interval = setInterval(() => {
       if (this.isOpen) {
-        this.recordId++;
-        const mockData = this.generateMockData();
-        const dataString = JSON.stringify(mockData) + '\n';
-        
-        console.log(`[Mock Serial ${this.path}] Sending initial data #${this.recordId}:`, dataString.substring(0, 100));
+        this.sendDataPacket();
+      } else {
+        console.log(`[Mock Serial ${this.path}] Port closed, stopping data transmission`);
+        if (this.interval) {
+          clearInterval(this.interval);
+          this.interval = undefined;
+        }
+      }
+    }, 1000);
+  }
+
+  private sendDataPacket() {
+    if (!this.isOpen) return;
+
+    this.recordId++;
+    const mockData = this.generateMockData();
+    const dataString = JSON.stringify(mockData) + '\n';
+
+    console.log(`[Mock Serial ${this.path}] Sending data #${this.recordId}`);
+
+    // Используем setImmediate для эмуляции асинхронности
+    setImmediate(() => {
+      if (this.isOpen) {
         this.emit('data', Buffer.from(dataString));
       }
-
-      // Затем настраиваем интервал
-      this.interval = setInterval(() => {
-        if (this.isOpen) {
-          this.recordId++;
-          const mockData = this.generateMockData();
-          const dataString = JSON.stringify(mockData) + '\n';
-          
-          console.log(`[Mock Serial ${this.path}] Sending data #${this.recordId}`);
-          this.emit('data', Buffer.from(dataString));
-        } else {
-          console.log(`[Mock Serial ${this.path}] Port closed, stopping data transmission`);
-          if (this.interval) {
-            clearInterval(this.interval);
-          }
-        }
-      }, 1000);
-    }, 500);
+    });
   }
 
   public close(callback?: (error?: Error | null) => void): void {
-    console.log(`[Mock Serial ${this.path}] Closing port`);
+    console.log(`[Mock Serial ${this.path}] Closing port (isOpen: ${this.isOpen})`);
+
+    if (!this.isOpen) {
+      console.log(`[Mock Serial ${this.path}] Port already closed`);
+      if (callback) {
+        callback(null);
+      }
+      return;
+    }
+
     this.isOpen = false;
-    
+
+    // Останавливаем интервал
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = undefined;
     }
 
+    // Эмулируем задержку закрытия порта
     setTimeout(() => {
+      console.log(`[Mock Serial ${this.path}] Port closed successfully`);
       this.emit('close');
       if (callback) {
         callback(null);
       }
-    }, 100);
+
+      // Удаляем все слушатели
+      this.removeAllListeners();
+    }, 50);
   }
 }
 

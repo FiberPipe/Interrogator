@@ -6,17 +6,17 @@ import { SerialPortWidget } from '../widgets/SerialPortWidget/SerialPortWidget';
 import { LanguageSelector } from '../features/settings/LanguageSelector';
 import { ThemeSelector } from '../features/settings/ThemeSelector';
 import { ResetToFactoryCard } from '../features/reset/ResetToFactory';
-import { SensorsSection } from '../features/settings/SensorsSection';
 import { Divider } from '@heroui/react';
+import { SensorConfigWidget } from '../widgets/SensorConfigWidget/ui/SensorConfigWidget';
 
 type SettingsProps = {
   onReset: () => void;
 };
 
 const pageVariants = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
+  initial: { opacity: 0, x: 20 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: -20 },
 };
 
 const SettingsDashboard = ({ onReset }: SettingsProps) => {
@@ -24,85 +24,113 @@ const SettingsDashboard = ({ onReset }: SettingsProps) => {
   const [activeSection, setActiveSection] = useState('main');
 
   return (
-    <div className="flex h-full gap-6 p-6 max-w-7xl mx-auto">
-      <SettingsTabs activeSection={activeSection} onSelect={setActiveSection} />
+    <div className="flex h-full w-full">
+      {/* Sidebar с вкладками - фиксированная ширина */}
+      <div className="w-64 border-r border-default-200 bg-background/60 backdrop-blur-xl">
+        <div className="p-6 sticky top-0">
+          <SettingsTabs activeSection={activeSection} onSelect={setActiveSection} />
+        </div>
+      </div>
 
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            {t('settings.title')}
-          </h1>
-          <p className="text-default-500 mt-1">{t('settings.subtitle')}</p>
-        </motion.div>
+      {/* Основной контент - занимает оставшееся пространство */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-auto">
+          <div className="p-8 max-w-[1600px]">
+            {/* Header */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-8"
+            >
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                {t('settings.title')}
+              </h1>
+              <p className="text-default-500 mt-2 text-lg">{t('settings.subtitle')}</p>
+            </motion.div>
 
-        <Divider className="mb-6" />
+            <Divider className="mb-8" />
 
-        {/* Content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeSection}
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.3 }}
-            className="space-y-6 flex-1 overflow-auto pr-2"
-          >
-            {activeSection === 'main' && (
-              <>
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <span className="w-1 h-6 bg-primary rounded-full"></span>
-                    {t('settings.sections.connection')}
-                  </h3>
-                  <SerialPortWidget />
-                </div>
+            {/* Content */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeSection}
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.3 }}
+                className="space-y-8"
+              >
+                {activeSection === 'main' && (
+                  <>
+                    <section>
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-1 h-8 bg-primary rounded-full"></div>
+                        <h2 className="text-2xl font-bold">{t('settings.sections.connection')}</h2>
+                      </div>
+                      <SerialPortWidget />
+                    </section>
 
-                <Divider />
+                    <Divider className="my-8" />
 
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <span className="w-1 h-6 bg-secondary rounded-full"></span>
-                    {t('settings.sections.interface')}
-                  </h3>
-                  <div className="space-y-4">
-                    <LanguageSelector />
-                    <ThemeSelector />
-                  </div>
-                </div>
+                    <section>
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-1 h-8 bg-secondary rounded-full"></div>
+                        <h2 className="text-2xl font-bold">{t('settings.sections.interface')}</h2>
+                      </div>
+                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                        <LanguageSelector />
+                        <ThemeSelector />
+                      </div>
+                    </section>
 
-                <Divider />
+                    <Divider className="my-8" />
 
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <span className="w-1 h-6 bg-danger rounded-full"></span>
-                    {t('settings.sections.system')}
-                  </h3>
-                  <ResetToFactoryCard onReset={onReset} />
-                </div>
-              </>
-            )}
+                    <section>
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-1 h-8 bg-danger rounded-full"></div>
+                        <h2 className="text-2xl font-bold">{t('settings.sections.system')}</h2>
+                      </div>
+                      <div className="max-w-2xl">
+                        <ResetToFactoryCard onReset={onReset} />
+                      </div>
+                    </section>
+                  </>
+                )}
 
-            {activeSection === 'sensors' && <SensorsSection />}
+                {activeSection === 'sensors' && (
+                  <section>
+                    <SensorConfigWidget />
+                  </section>
+                )}
 
-            {activeSection === 'advanced' && (
-              <div className="text-center text-default-400 py-20">
-                {t('settings.tabs.advanced')} - Coming soon...
-              </div>
-            )}
+                {activeSection === 'advanced' && (
+                  <section className="flex items-center justify-center py-32">
+                    <div className="text-center space-y-4">
+                      <div className="text-6xl opacity-20">⚙️</div>
+                      <h3 className="text-2xl font-semibold text-default-400">
+                        {t('settings.tabs.advanced')}
+                      </h3>
+                      <p className="text-default-500">Coming soon...</p>
+                    </div>
+                  </section>
+                )}
 
-            {activeSection === 'about' && (
-              <div className="text-center text-default-400 py-20">
-                {t('settings.tabs.about')} - Coming soon...
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+                {activeSection === 'about' && (
+                  <section className="flex items-center justify-center py-32">
+                    <div className="text-center space-y-4">
+                      <div className="text-6xl opacity-20">ℹ️</div>
+                      <h3 className="text-2xl font-semibold text-default-400">
+                        {t('settings.tabs.about')}
+                      </h3>
+                      <p className="text-default-500">Coming soon...</p>
+                    </div>
+                  </section>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
     </div>
   );

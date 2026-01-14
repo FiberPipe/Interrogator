@@ -1,3 +1,4 @@
+// src/features/serial-connection/model/useSerialConnection.ts
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { SerialPortInfo, SerialConnectionState, SerialDataPacket } from '../../../entities/serial-port/model/types';
@@ -24,6 +25,7 @@ export const useSerialConnection = () => {
   const unsubscribeErrorRef = useRef<(() => void) | null>(null);
   const unsubscribeClosedRef = useRef<(() => void) | null>(null);
   const isInitializedRef = useRef(false);
+  const isDisconnectingRef = useRef(false); // Флаг для предотвращения гонки
 
   // Загрузка портов
   const loadPorts = useCallback(async () => {
@@ -36,21 +38,18 @@ export const useSerialConnection = () => {
 
       setState((prev) => {
         const newState = { ...prev, ports: list, loading: false };
-        
+
         // Проверяем состояние выбранного порта
         if (prev.selectedPort) {
           const selectedPortInfo = list.find((p) => p.path === prev.selectedPort);
-          
+
           if (!selectedPortInfo) {
             console.log('[useSerialConnection] Selected port no longer exists');
             newState.connectedPort = null;
             newState.selectedPort = null;
-          } else if (selectedPortInfo.busy && prev.connectedPort !== prev.selectedPort) {
-            console.log('[useSerialConnection] Selected port is busy');
-            newState.connectedPort = null;
           }
         }
-        
+
         return newState;
       });
     } catch (err) {
@@ -64,24 +63,33 @@ export const useSerialConnection = () => {
   // Выбор порта
   const handlePortChange = useCallback(async (port: string) => {
     console.log('[useSerialConnection] Changing port to:', port);
-    
-    setState((prev) => {
-      // Если уже подключены к другому порту - отключаемся
-      if (prev.connectedPort && prev.connectedPort !== port) {
-        console.log('[useSerialConnection] Disconnecting from:', prev.connectedPort);
-        window.serial.close(prev.connectedPort);
-        return {
-          ...prev,
-          selectedPort: port,
-          connectedPort: null,
-          lastData: null,
-          dataBuffer: [],
-          packetsReceived: 0,
-        };
+
+    // Если уже подключены к другому порту - отключаемся
+    if (state.connectedPort && state.connectedPort !== port) {
+      console.log('[useSerialConnection] Need to disconnect from current port first');
+      isDisconnectingRef.current = true;
+
+      try {
+        await window.serial.close(state.connectedPort);
+        console.log('[useSerialConnection] Successfully disconnected from:', state.connectedPort);
+      } catch (err) {
+        console.error('[useSerialConnection] Error disconnecting:', err);
       }
-      
-      return { ...prev, selectedPort: port };
-    });
+
+      setState((prev) => ({
+        ...prev,
+        selectedPort: port,
+        connectedPort: null,
+        lastData: null,
+        dataBuffer: [],
+        packetsReceived: 0,
+        error: null,
+      }));
+
+      isDisconnectingRef.current = false;
+    } else {
+      setState((prev) => ({ ...prev, selectedPort: port, error: null }));
+    }
 
     try {
       await window.appData.set('selectedPort', port);
@@ -89,21 +97,41 @@ export const useSerialConnection = () => {
     } catch (err) {
       console.error('[useSerialConnection] Error saving port:', err);
     }
-  }, []);
+  }, [state.connectedPort]);
 
   // Подключение к порту
   const connectToPort = useCallback(
     async (port: string, baudRate = 115200): Promise<boolean> => {
       console.log('[useSerialConnection] Connecting to:', port);
+
+      // Предотвращаем подключение во время отключения
+      if (isDisconnectingRef.current) {
+        console.log('[useSerialConnection] Currently disconnecting, wait...');
+        return false;
+      }
+
       setState((prev) => ({ ...prev, connecting: true, error: null }));
 
       try {
+        // Проверяем, не подключены ли мы уже к этому порту
+        if (state.connectedPort === port) {
+          console.log('[useSerialConnection] Already connected to this port');
+          setState((prev) => ({ ...prev, connecting: false }));
+          return true;
+        }
+
         // Отключаемся от текущего порта если есть
         if (state.connectedPort && state.connectedPort !== port) {
           console.log('[useSerialConnection] Closing current port:', state.connectedPort);
+          isDisconnectingRef.current = true;
           await window.serial.close(state.connectedPort);
+          isDisconnectingRef.current = false;
+
+          // Небольшая задержка для стабилизации
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
 
+        console.log('[useSerialConnection] Opening port:', port);
         const result = await window.serial.open(port, baudRate);
         console.log('[useSerialConnection] Connection result:', result);
 
@@ -112,6 +140,7 @@ export const useSerialConnection = () => {
             ...prev,
             error: result.error || null,
             connecting: false,
+            connectedPort: null,
           }));
           addDangerToaster(t('serialPort.alerts.error'), result.error);
           return false;
@@ -122,6 +151,7 @@ export const useSerialConnection = () => {
             ...prev,
             error: 'Unknown error',
             connecting: false,
+            connectedPort: null,
           }));
           return false;
         }
@@ -133,23 +163,26 @@ export const useSerialConnection = () => {
           lastData: null,
           dataBuffer: [],
           packetsReceived: 0,
+          error: null,
         }));
-        
+
         addSuccessToaster(
           t('serialPort.status.connected'),
           `${t('serialPort.alerts.connectedTo')} ${port}`
         );
-        
-        // Обновляем список портов
+
+        // Обновляем список портов для обновления статуса busy
         loadPorts();
-        
+
         return true;
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : String(err);
+        console.error('[useSerialConnection] Connection error:', err);
         setState((prev) => ({
           ...prev,
           error: errorMsg,
           connecting: false,
+          connectedPort: null,
         }));
         addDangerToaster(t('serialPort.alerts.error'), errorMsg);
         return false;
@@ -160,16 +193,29 @@ export const useSerialConnection = () => {
 
   // Отключение от порта
   const disconnectPort = useCallback(async () => {
-    if (!state.connectedPort) return;
+    if (!state.connectedPort || isDisconnectingRef.current) {
+      console.log('[useSerialConnection] Already disconnecting or no port connected');
+      return;
+    }
 
     console.log('[useSerialConnection] Disconnecting from:', state.connectedPort);
+    isDisconnectingRef.current = true;
+    const portToClose = state.connectedPort;
 
     try {
-      const result = await window.serial.close(state.connectedPort);
+      const result = await window.serial.close(portToClose);
 
       if (result.error) {
-        addDangerToaster(t('serialPort.alerts.error'), result.error);
-        return;
+        console.error('[useSerialConnection] Disconnect error:', result.error);
+        // Не показываем ошибку если порт уже закрыт
+        if (!result.error.includes('not opened')) {
+          addDangerToaster(t('serialPort.alerts.error'), result.error);
+        }
+      } else {
+        addSuccessToaster(
+          t('serialPort.status.disconnected'),
+          `${t('serialPort.info.path')}: ${portToClose}`
+        );
       }
 
       setState((prev) => ({
@@ -178,18 +224,17 @@ export const useSerialConnection = () => {
         lastData: null,
         dataBuffer: [],
         packetsReceived: 0,
+        error: null,
       }));
-      
-      addSuccessToaster(
-        t('serialPort.status.disconnected'),
-        `${t('serialPort.info.path')}: ${state.connectedPort}`
-      );
-      
+
       // Обновляем список портов
-      loadPorts();
+      await loadPorts();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
+      console.error('[useSerialConnection] Disconnect error:', err);
       addDangerToaster(t('serialPort.alerts.error'), errorMsg);
+    } finally {
+      isDisconnectingRef.current = false;
     }
   }, [state.connectedPort, t, loadPorts]);
 
@@ -209,7 +254,7 @@ export const useSerialConnection = () => {
   // Инициализация
   useEffect(() => {
     if (isInitializedRef.current) return;
-    
+
     console.log('[useSerialConnection] Initializing...');
     isInitializedRef.current = true;
 
@@ -240,12 +285,27 @@ export const useSerialConnection = () => {
       state.selectedPort &&
       !state.connectedPort &&
       !state.connecting &&
+      !isDisconnectingRef.current &&
       state.ports.length > 0
     ) {
-      console.log('[useSerialConnection] Auto-connecting to:', state.selectedPort);
-      connectToPort(state.selectedPort);
+      // Проверяем что выбранный порт доступен
+      const portExists = state.ports.some(p => p.path === state.selectedPort);
+
+      if (portExists) {
+        console.log('[useSerialConnection] Auto-connecting to:', state.selectedPort);
+        connectToPort(state.selectedPort);
+      } else {
+        console.log('[useSerialConnection] Selected port not available for auto-connect');
+      }
     }
-  }, [state.autoConnect, state.selectedPort, state.connectedPort, state.connecting, state.ports, connectToPort]);
+  }, [
+    state.autoConnect,
+    state.selectedPort,
+    state.connectedPort,
+    state.connecting,
+    state.ports,
+    connectToPort
+  ]);
 
   // Подписка на данные
   useEffect(() => {
@@ -253,7 +313,7 @@ export const useSerialConnection = () => {
 
     const handleData = (event: { port: string; data: string }) => {
       console.log('[useSerialConnection] Data received from:', event.port);
-      
+
       if (event.port !== state.connectedPort) {
         console.log('[useSerialConnection] Data from different port, ignoring');
         return;
@@ -262,10 +322,10 @@ export const useSerialConnection = () => {
       try {
         const parsed = JSON.parse(event.data) as SerialDataPacket;
         parsed.timestamp = Date.now();
-        
+
         setState((prev) => {
           const newBuffer = [...prev.dataBuffer, parsed].slice(-MAX_BUFFER_SIZE);
-          
+
           return {
             ...prev,
             lastData: parsed,
@@ -280,8 +340,8 @@ export const useSerialConnection = () => {
 
     const handleClosed = (port: string) => {
       console.log('[useSerialConnection] Port closed:', port);
-      
-      if (port === state.connectedPort) {
+
+      if (port === state.connectedPort && !isDisconnectingRef.current) {
         setState((prev) => ({
           ...prev,
           connectedPort: null,
@@ -298,9 +358,16 @@ export const useSerialConnection = () => {
 
     const handleError = (data: { port: string; error: string }) => {
       console.error('[useSerialConnection] Port error:', data);
-      
+
       if (data.port === state.connectedPort) {
-        setState((prev) => ({ ...prev, error: data.error }));
+        setState((prev) => ({
+          ...prev,
+          error: data.error,
+          connectedPort: null, // Сбрасываем подключение при ошибке
+          lastData: null,
+          dataBuffer: [],
+          packetsReceived: 0,
+        }));
         addDangerToaster(t('serialPort.alerts.error'), data.error);
       }
     };
@@ -319,8 +386,9 @@ export const useSerialConnection = () => {
   // Cleanup при размонтировании
   useEffect(() => {
     return () => {
-      if (state.connectedPort) {
+      if (state.connectedPort && !isDisconnectingRef.current) {
         console.log('[useSerialConnection] Cleanup: disconnecting from:', state.connectedPort);
+        isDisconnectingRef.current = true;
         window.serial.close(state.connectedPort);
       }
     };

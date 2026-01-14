@@ -1,4 +1,61 @@
 {
+  "charts": {
+    "title": "Графики",
+    "subtitle": "Визуализация данных в реальном времени",
+    "types": {
+      "chart": "График",
+      "table": "Таблица",
+      "dashboard": "Панель"
+    },
+    "metrics": {
+      "power": "Мощность",
+      "pressure": "Давление",
+      "temperature": "Температура",
+      "wavelength": "Длина волны"
+    },
+    "controls": {
+      "selectAll": "Выбрать все",
+      "deselectAll": "Снять все",
+      "clear": "Очистить",
+      "connect": "Подключиться",
+      "disconnect": "Отключиться",
+      "export": "Экспорт",
+      "settings": "Настройки"
+    },
+    "status": {
+      "live": "В ЭФИРЕ",
+      "waiting": "Ожидание",
+      "noData": "Нет данных",
+      "bufferFull": "Буфер заполнен",
+      "receiving": "Получение данных",
+      "notConnected": "Не подключено"
+    },
+    "info": {
+      "selected": "Выбрано",
+      "connected": "Подключено",
+      "receiving": "Приём",
+      "buffer": "Буфер",
+      "record": "Запись",
+      "time": "Время",
+      "average": "Среднее",
+      "records": "Записей",
+      "frequency": "Частота",
+      "channels": "Каналов"
+    },
+    "messages": {
+      "selectPort": "Выберите порт в настройках",
+      "waitingData": "Ожидание данных...",
+      "dataWillAppear": "Данные появятся через 1-2 секунды",
+      "portNotConnected": "Порт не подключен",
+      "oldDataRemoved": "Старые данные удаляются"
+    },
+    "power": {
+      "title": "Мощность (P)",
+      "subtitle": "Данные в реальном времени",
+      "channel": "Канал P{{index}}",
+      "average": "Средняя мощность"
+    }
+  },
   "settings": {
     "title": "Настройки",
     "subtitle": "Управление параметрами приложения",
@@ -136,5 +193,66 @@
       "lastUpdate": "Последнее обновление",
       "receivedPackets": "Получено пакетов: {{count}}"
     }
+  },
+  "sensors": {
+    "title": "Настройка датчиков",
+    "subtitle": "Конфигурация количества и привязка каналов к датчикам",
+    "count": {
+      "title": "Количество датчиков",
+      "description": "Укажите количество подключенных датчиков (1-8)",
+      "placeholder": "Введите количество",
+      "label": "Датчиков"
+    },
+    "configuration": {
+      "title": "Конфигурация датчиков",
+      "sensor": "Датчик {{index}}",
+      "type": "Тип датчика",
+      "channels": "Каналы",
+      "selectType": "Выберите тип",
+      "noChannels": "Каналы не выбраны",
+      "channelsSelected": "Выбрано каналов: {{count}}"
+    },
+    "types": {
+      "displacement": "Смещение",
+      "temperature": "Температура",
+      "pressure": "Давление",
+      "strain": "Деформация",
+      "vibration": "Вибрация",
+      "none": "Не указан"
+    },
+    "channels": {
+      "available": "Доступные каналы",
+      "used": "Используемые каналы",
+      "channel": "Канал P{{index}}",
+      "selectAll": "Выбрать все",
+      "deselectAll": "Снять все",
+      "inUse": "Используется"
+    },
+    "actions": {
+      "save": "Сохранить конфигурацию",
+      "reset": "Сбросить",
+      "apply": "Применить",
+      "cancel": "Отмена"
+    },
+    "messages": {
+      "saved": "Конфигурация сохранена",
+      "savedDescription": "Настройки датчиков успешно сохранены",
+      "noSensors": "Датчики не настроены",
+      "noSensorsDescription": "Укажите количество датчиков для начала настройки",
+      "invalidCount": "Некорректное количество датчиков",
+      "channelInUse": "Канал уже используется другим датчиком"
+    },
+    "validation": {
+      "minSensors": "Минимум 1 датчик",
+      "maxSensors": "Максимум 8 датчиков",
+      "typeRequired": "Выберите тип датчика",
+      "channelsRequired": "Выберите хотя бы один канал"
+    }
+  },
+  "navigation": {
+    "settings": "Настройки",
+    "charts": "Графики",
+    "collapse": "Свернуть",
+    "expand": "Развернуть"
   }
 }
