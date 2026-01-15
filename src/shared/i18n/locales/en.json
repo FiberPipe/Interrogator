@@ -63,12 +63,17 @@
       "main": "Main",
       "sensors": "Sensors",
       "advanced": "Advanced",
-      "about": "About"
+      "about": "About",
+      "database": "Database"
     },
     "sections": {
       "connection": "Connection",
       "interface": "Interface",
-      "system": "System"
+      "system": "System",
+       "databaseInfo": "Database Info",
+      "databaseLocation": "Location",
+      "databaseBackup": "Backup",
+      "databaseExport": "Export Data"
     },
     "language": {
       "title": "Interface Language",
@@ -109,6 +114,99 @@
       "samplingRateDescription": "Data acquisition frequency from sensors (Hz)",
       "calibration": "Calibration",
       "calibrationDescription": "Sensor calibration settings"
+    }
+  },
+  "database": {
+    "info": {
+      "title": "Database Information",
+      "subtitle": "Current state and statistics",
+      "path": "DB Path",
+      "size": "Size",
+      "status": "Status",
+      "exists": "Exists",
+      "notExists": "Not created",
+      "sessions": "Sessions",
+      "records": "Records",
+      "lastUpdate": "Last update",
+      "created": "Created",
+      "healthy": "Healthy",
+      "error": "Error"
+    },
+    "location": {
+      "title": "Database Location",
+      "subtitle": "Choose where to store data",
+      "userData": "User Folder",
+      "userDataDesc": "Recommended - AppData/Roaming (Windows) or Library/Application Support (Mac)",
+      "appPath": "Application Folder",
+      "appPathDesc": "Next to executable file",
+      "documents": "Documents Folder",
+      "documentsDesc": "Documents/Interrogator",
+      "custom": "Custom Folder",
+      "customDesc": "Choose your own folder",
+      "selectFolder": "Select folder",
+      "browse": "Browse",
+      "save": "Save",
+      "changed": "Location changed",
+      "changedDesc": "Database moved to new location"
+    },
+    "backup": {
+      "title": "Backup",
+      "subtitle": "Create and restore backups",
+      "create": "Create Backup",
+      "restore": "Restore from Backup",
+      "auto": "Automatic Backup",
+      "autoDesc": "Create backups automatically",
+      "interval": "Interval",
+      "lastBackup": "Last Backup",
+      "never": "Never",
+      "creating": "Creating...",
+      "success": "Backup created",
+      "successDesc": "File saved: {{path}}",
+      "restoreSuccess": "Restored",
+      "restoreSuccessDesc": "Database restored from backup",
+      "selectBackup": "Select backup file",
+      "noBackups": "No backups"
+    },
+    "export": {
+      "title": "Export Data",
+      "subtitle": "Export data in various formats",
+      "format": "Format",
+      "csv": "CSV (table)",
+      "json": "JSON (structured)",
+      "sql": "SQL (database dump)",
+      "timeRange": "Time Range",
+      "allData": "All data",
+      "lastHour": "Last hour",
+      "lastDay": "Last day",
+      "lastWeek": "Last week",
+      "custom": "Custom",
+      "port": "Port",
+      "channels": "Channels",
+      "allChannels": "All channels",
+      "selectedChannels": "Selected channels",
+      "export": "Export",
+      "exporting": "Exporting...",
+      "success": "Export completed",
+      "successDesc": "Data exported to: {{path}}",
+      "error": "Export error"
+    },
+    "stats": {
+      "totalSize": "Total Size",
+      "totalSessions": "Total Sessions",
+      "totalRecords": "Total Records",
+      "activeSessions": "Active Sessions",
+      "lastSession": "Last Session",
+      "dataRate": "Write Speed",
+      "recordsPerSecond": "rec/sec"
+    },
+    "actions": {
+      "openFolder": "Open Folder",
+      "refresh": "Refresh",
+      "vacuum": "Optimize",
+      "clear": "Clear",
+      "clearConfirm": "Delete all data?",
+      "clearConfirmDesc": "This action cannot be undone. All data will be deleted.",
+      "cleared": "Database cleared"
     }
   },
   "onboarding": {

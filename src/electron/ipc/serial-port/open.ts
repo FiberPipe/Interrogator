@@ -1,13 +1,13 @@
-// src/main/serial/open.ts
 import type { BrowserWindow } from 'electron';
 import { ipcMain } from 'electron';
 import { SerialPort } from 'serialport';
-import { activePorts } from '../../state';
+import { activePorts, activeProcessors } from '../../state';
 import { appStorage } from '../../storage/app-storage';
 import { createMockSerialPort } from './mock-serial';
 import type { SerialOpenResult, ISerialPort } from './types';
+import { SerialDataProcessor } from './data-processor';
 
-const isDev = process.env.NODE_ENV === 'development' || true; // Force mock for testing
+const isDev = process.env.NODE_ENV === 'development' || true;
 
 export function registerOpenPort(win: BrowserWindow): void {
   ipcMain.handle(
@@ -15,20 +15,18 @@ export function registerOpenPort(win: BrowserWindow): void {
     async (_, path: string, baudRate = 115200): Promise<SerialOpenResult> => {
       try {
         console.log(`[Serial] Opening port ${path} at ${baudRate} baud`);
-        console.log(`[Serial] isDev: ${isDev}, using ${isDev ? 'MOCK' : 'REAL'} port`);
 
         // Проверяем, не открыт ли уже порт
         if (activePorts.has(path)) {
           const existingPort = activePorts.get(path);
           
-          // Проверяем, действительно ли порт открыт
           if (existingPort?.isOpen) {
-            console.warn(`[Serial] ⚠️ Port ${path} already open - returning success`);
+            console.warn(`[Serial] Port ${path} already open`);
             return { ok: true };
           } else {
-            // Порт есть в мапе, но закрыт - удаляем его
             console.log(`[Serial] Removing stale port reference for ${path}`);
             activePorts.delete(path);
+            activeProcessors.delete(path);
           }
         }
 
@@ -38,7 +36,6 @@ export function registerOpenPort(win: BrowserWindow): void {
           ? createMockSerialPort(path, baudRate)
           : new SerialPort({ path, baudRate, autoOpen: false }) as any as ISerialPort;
 
-        // Для реальных портов нужно открыть
         if (!isDev && 'open' in port) {
           await new Promise<void>((resolve, reject) => {
             (port as any).open((err: Error | null) => {
@@ -50,34 +47,48 @@ export function registerOpenPort(win: BrowserWindow): void {
 
         activePorts.set(path, port);
 
-        // Сохраняем последний порт
+        // Создаём процессор данных
+        const processor = new SerialDataProcessor(path, win);
+        await processor.startSession();
+        activeProcessors.set(path, processor);
+
         appStorage.set('lastPort', path);
         appStorage.set('baudRate', baudRate);
 
-        console.log(`[Serial] ✅ Port ${path} opened successfully`);
+        console.log(`[Serial] Port ${path} opened successfully`);
 
-        // Обработчик данных
+        // Обработчик данных - теперь через процессор
         port.on('data', (data: Buffer) => {
-          const dataString = data.toString();
-          console.log(`[Serial ${path}] 🔵 Data received, length: ${dataString.length}`);
+          const dataString = data.toString().trim();
           
-          win.webContents.send('serial:data', {
-            port: path,
-            data: dataString,
+          // Обрабатываем данные через процессор (параллельно БД + клиент)
+          processor.processData(dataString).catch((err) => {
+            console.error(`[Serial ${path}] Processing error:`, err);
           });
         });
 
         // Обработчик закрытия
-        port.on('close', () => {
-          console.log(`[Serial ${path}] 🔴 Port closed`);
+        port.on('close', async () => {
+          console.log(`[Serial ${path}] Port closed`);
+          
+          // Завершаем сессию
+          await processor.endSession();
+          
           activePorts.delete(path);
+          activeProcessors.delete(path);
+          
           win.webContents.send('serial:closed', path);
         });
 
         // Обработчик ошибок
-        port.on('error', (err: Error) => {
-          console.error(`[Serial ${path}] ❌ Error:`, err);
+        port.on('error', async (err: Error) => {
+          console.error(`[Serial ${path}] Error:`, err);
+          
+          await processor.endSession();
+          
           activePorts.delete(path);
+          activeProcessors.delete(path);
+          
           win.webContents.send('serial:error', {
             port: path,
             error: err.message,
@@ -86,9 +97,9 @@ export function registerOpenPort(win: BrowserWindow): void {
 
         return { ok: true };
       } catch (err: any) {
-        console.error(`[Serial] ❌ Failed to open port ${path}:`, err);
-        // Убеждаемся что порт не остался в активных
+        console.error(`[Serial] Failed to open port ${path}:`, err);
         activePorts.delete(path);
+        activeProcessors.delete(path);
         return { error: err.message || 'Failed to open port' };
       }
     }

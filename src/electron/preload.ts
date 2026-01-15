@@ -1,42 +1,6 @@
-// src/preload/preload.ts
 import { ipcRenderer, contextBridge, IpcRendererEvent } from 'electron';
+import { SerialAPI, SerialPortInfo, SerialOpenResult, SerialDataEvent, AppDataAPI, DatabaseAPI, DatabasePathInfo, DatabaseLocation, DatabaseChangeLocationResult, DatabaseStats, ChannelStats, SensorDataRecord, DatabaseBackupResult, DatabaseExportOptions, DatabaseExportResult } from './types';
 
-// Типы
-interface SerialPortInfo {
-  path: string;
-  manufacturer?: string;
-  serialNumber?: string;
-  vendorId?: string;
-  productId?: string;
-  busy: boolean;
-}
-
-interface SerialOpenResult {
-  ok?: boolean;
-  error?: string;
-}
-
-interface SerialDataEvent {
-  port: string;
-  data: string;
-}
-
-interface SerialAPI {
-  getPorts(): Promise<SerialPortInfo[]>;
-  open(path: string, baud: number): Promise<SerialOpenResult>;
-  close(path: string): Promise<SerialOpenResult>;
-  onData(cb: (data: SerialDataEvent) => void): () => void;
-  onClosed(cb: (port: string) => void): () => void;
-  onError(cb: (data: { port: string; error: string }) => void): () => void;
-}
-
-interface AppDataAPI {
-  getAll(): Promise<Record<string, unknown>>;
-  set(key: string, value: unknown): Promise<void>;
-  delete(key: string): Promise<void>;
-  patch(patch: Record<string, unknown>): Promise<void>;
-  resetToFactory(patch: Record<string, unknown>): Promise<void>;
-}
 
 // -------------------- Serial API --------------------
 const serialAPI: SerialAPI = {
@@ -141,19 +105,88 @@ const appDataAPI: AppDataAPI = {
     console.log('[Preload] 🔧 patch called:', patch);
     return ipcRenderer.invoke('app-data:patch', patch);
   },
-
-  resetToFactory: () => ipcRenderer.invoke('app-data:patch', {
-    isFirstLaunch: true,
-    theme: 'system',
-    language: 'ru',
-    lastPort: null,
-    baudRate: 9600,
-  }),
 };
 
+// -------------------- Database API --------------------
+const databaseAPI: DatabaseAPI = {
+  // Path and Config
+  getPath: (): Promise<DatabasePathInfo> => {
+    console.log('[Preload] 📁 getPath called');
+    return ipcRenderer.invoke('db:getPath');
+  },
+
+  changeLocation: (location: DatabaseLocation, customPath?: string): Promise<DatabaseChangeLocationResult> => {
+    console.log('[Preload] 📍 changeLocation called:', { location, customPath });
+    return ipcRenderer.invoke('db:changeLocation', location, customPath);
+  },
+
+  selectCustomPath: (): Promise<string | null> => {
+    console.log('[Preload] 📂 selectCustomPath called');
+    return ipcRenderer.invoke('db:selectCustomPath');
+  },
+
+  openFolder: (): Promise<string> => {
+    console.log('[Preload] 📁 openFolder called');
+    return ipcRenderer.invoke('db:openFolder');
+  },
+
+  // Statistics
+  getStats: (): Promise<DatabaseStats> => {
+    console.log('[Preload] 📊 getStats called');
+    return ipcRenderer.invoke('db:getStats');
+  },
+
+  getChannelStats: (port: string, channel: number, startTime: number, endTime: number): Promise<ChannelStats> => {
+    console.log('[Preload] 📈 getChannelStats called:', { port, channel, startTime, endTime });
+    return ipcRenderer.invoke('db:getChannelStats', port, channel, startTime, endTime);
+  },
+
+  // Data Queries
+  getDataByTimeRange: (port: string, startTime: number, endTime: number, limit?: number): Promise<SensorDataRecord[]> => {
+    console.log('[Preload] 🔍 getDataByTimeRange called:', { port, startTime, endTime, limit });
+    return ipcRenderer.invoke('db:getDataByTimeRange', port, startTime, endTime, limit);
+  },
+
+  getLastRecords: (port: string, limit?: number): Promise<SensorDataRecord[]> => {
+    console.log('[Preload] 📋 getLastRecords called:', { port, limit });
+    return ipcRenderer.invoke('db:getLastRecords', port, limit);
+  },
+
+  // Backup and Restore
+  createBackup: (): Promise<DatabaseBackupResult> => {
+    console.log('[Preload] 💾 createBackup called');
+    return ipcRenderer.invoke('db:createBackup');
+  },
+
+  restoreBackup: (): Promise<DatabaseBackupResult> => {
+    console.log('[Preload] 📥 restoreBackup called');
+    return ipcRenderer.invoke('db:restoreBackup');
+  },
+
+  // Export
+  exportData: (options: DatabaseExportOptions): Promise<DatabaseExportResult> => {
+    console.log('[Preload] 📤 exportData called:', options);
+    return ipcRenderer.invoke('db:exportData', options);
+  },
+
+  // Maintenance
+  vacuum: (): Promise<{ success: boolean; error?: string }> => {
+    console.log('[Preload] 🧹 vacuum called');
+    return ipcRenderer.invoke('db:vacuum');
+  },
+
+  clear: (): Promise<{ success: boolean; error?: string }> => {
+    console.log('[Preload] 🗑️ clear called');
+    return ipcRenderer.invoke('db:clear');
+  },
+};
+
+// -------------------- Expose to Window --------------------
 contextBridge.exposeInMainWorld('serial', serialAPI);
 contextBridge.exposeInMainWorld('appData', appDataAPI);
+contextBridge.exposeInMainWorld('database', databaseAPI);
 
 console.log('[Preload] ✅ Loaded successfully');
 console.log('[Preload] window.serial:', !!serialAPI);
 console.log('[Preload] window.appData:', !!appDataAPI);
+console.log('[Preload] window.database:', !!databaseAPI);

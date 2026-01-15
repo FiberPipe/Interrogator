@@ -1,7 +1,7 @@
 // src/widgets/SettingsTabs/SettingsTabs.tsx
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Settings, Gauge, Sliders, Info } from 'lucide-react';
+import { Settings, Gauge, Sliders, Info, Database } from 'lucide-react';
 
 interface SettingsTabsProps {
   activeSection: string;
@@ -13,6 +13,7 @@ const tabs = [
   { id: 'sensors', icon: Gauge, label: 'settings.tabs.sensors' },
   { id: 'advanced', icon: Sliders, label: 'settings.tabs.advanced' },
   { id: 'about', icon: Info, label: 'settings.tabs.about' },
+  { id: 'database', icon: Database, label: 'settings.tabs.database' },
 ];
 
 export const SettingsTabs = ({ activeSection, onSelect }: SettingsTabsProps) => {

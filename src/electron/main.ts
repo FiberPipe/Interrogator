@@ -5,6 +5,7 @@ import { existsSync } from 'node:fs';
 import { registerIpc } from './ipc';
 import { activePorts } from './state';
 import { appStorage } from './storage/app-storage';
+import { initDatabase } from './db/db';
 
 let win: BrowserWindow | null = null;
 
@@ -30,6 +31,11 @@ function initAppStorage() {
 }
 
 async function createWindow() {
+  await initDatabase({
+    location: 'appPath', // или 'userData', 'documents', 'custom'
+    // customPath: '/path/to/custom/folder', // если location === 'custom'
+  });
+  
   win = new BrowserWindow({
     fullscreen: true,
     webPreferences: {

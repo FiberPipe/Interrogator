@@ -8,6 +8,7 @@ import { ThemeSelector } from '../features/settings/ThemeSelector';
 import { ResetToFactoryCard } from '../features/reset/ResetToFactory';
 import { Divider } from '@heroui/react';
 import { SensorConfigWidget } from '../widgets/SensorConfigWidget/ui/SensorConfigWidget';
+import { DatabaseManagementWidget } from '../widgets/DatabaseManagement/ui/DatabaseManagementWidget';
 
 type SettingsProps = {
   onReset: () => void;
@@ -101,6 +102,12 @@ const SettingsDashboard = ({ onReset }: SettingsProps) => {
                 {activeSection === 'sensors' && (
                   <section>
                     <SensorConfigWidget />
+                  </section>
+                )}
+
+                {activeSection === 'database' && (
+                  <section>
+                    <DatabaseManagementWidget />
                   </section>
                 )}
 

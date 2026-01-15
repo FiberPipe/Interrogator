@@ -109,6 +109,110 @@
       "samplingRateDescription": "Частота получения данных от датчиков (Гц)",
       "calibration": "Калибровка",
       "calibrationDescription": "Настройка калибровки датчиков"
+    },
+    "settings": {
+      "tabs": {
+        "database": "База данных"
+      },
+      "sections": {
+        "databaseInfo": "Информация о базе",
+        "databaseLocation": "Расположение",
+        "databaseBackup": "Резервное копирование",
+        "databaseExport": "Экспорт данных"
+      }
+    },
+    "database": {
+      "info": {
+        "title": "Информация о базе данных",
+        "subtitle": "Текущее состояние и статистика",
+        "path": "Путь к БД",
+        "size": "Размер",
+        "status": "Статус",
+        "exists": "Существует",
+        "notExists": "Не создана",
+        "sessions": "Сессий",
+        "records": "Записей",
+        "lastUpdate": "Последнее обновление",
+        "created": "Создана",
+        "healthy": "Работает",
+        "error": "Ошибка"
+      },
+      "location": {
+        "title": "Расположение базы данных",
+        "subtitle": "Выберите где хранить данные",
+        "userData": "Папка пользователя",
+        "userDataDesc": "Рекомендуется - AppData/Roaming (Windows) или Library/Application Support (Mac)",
+        "appPath": "Папка приложения",
+        "appPathDesc": "Рядом с исполняемым файлом",
+        "documents": "Папка документов",
+        "documentsDesc": "Документы/Interrogator",
+        "custom": "Произвольная папка",
+        "customDesc": "Выберите свою папку",
+        "selectFolder": "Выбрать папку",
+        "browse": "Обзор",
+        "save": "Сохранить",
+        "changed": "Расположение изменено",
+        "changedDesc": "База данных перемещена в новое расположение"
+      },
+      "backup": {
+        "title": "Резервное копирование",
+        "subtitle": "Создание и восстановление резервных копий",
+        "create": "Создать резервную копию",
+        "restore": "Восстановить из копии",
+        "auto": "Автоматическое резервное копирование",
+        "autoDesc": "Создавать резервные копии автоматически",
+        "interval": "Интервал",
+        "lastBackup": "Последняя копия",
+        "never": "Никогда",
+        "creating": "Создание...",
+        "success": "Резервная копия создана",
+        "successDesc": "Файл сохранён: {{path}}",
+        "restoreSuccess": "Восстановлено",
+        "restoreSuccessDesc": "База данных восстановлена из резервной копии",
+        "selectBackup": "Выберите файл резервной копии",
+        "noBackups": "Резервных копий нет"
+      },
+      "export": {
+        "title": "Экспорт данных",
+        "subtitle": "Экспорт данных в различных форматах",
+        "format": "Формат",
+        "csv": "CSV (таблица)",
+        "json": "JSON (структурированный)",
+        "sql": "SQL (дамп базы)",
+        "timeRange": "Временной диапазон",
+        "allData": "Все данные",
+        "lastHour": "Последний час",
+        "lastDay": "Последние сутки",
+        "lastWeek": "Последняя неделя",
+        "custom": "Произвольный",
+        "port": "Порт",
+        "channels": "Каналы",
+        "allChannels": "Все каналы",
+        "selectedChannels": "Выбранные каналы",
+        "export": "Экспортировать",
+        "exporting": "Экспорт...",
+        "success": "Экспорт завершён",
+        "successDesc": "Данные экспортированы в: {{path}}",
+        "error": "Ошибка экспорта"
+      },
+      "stats": {
+        "totalSize": "Общий размер",
+        "totalSessions": "Всего сессий",
+        "totalRecords": "Всего записей",
+        "activeSessions": "Активных сессий",
+        "lastSession": "Последняя сессия",
+        "dataRate": "Скорость записи",
+        "recordsPerSecond": "зап/сек"
+      },
+      "actions": {
+        "openFolder": "Открыть папку",
+        "refresh": "Обновить",
+        "vacuum": "Оптимизировать",
+        "clear": "Очистить",
+        "clearConfirm": "Удалить все данные?",
+        "clearConfirmDesc": "Это действие нельзя отменить. Все данные будут удалены.",
+        "cleared": "База данных очищена"
+      }
     }
   },
   "onboarding": {
