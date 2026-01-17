@@ -9,6 +9,8 @@ import { ResetToFactoryCard } from '../features/reset/ResetToFactory';
 import { Divider } from '@heroui/react';
 import { SensorConfigWidget } from '../widgets/SensorConfigWidget/ui/SensorConfigWidget';
 import { DatabaseManagementWidget } from '../widgets/DatabaseManagement/ui/DatabaseManagementWidget';
+import { SensorCalibrationWidget } from '../widgets/SensorCalibration/ui/SensorCalibrationWidget';
+import { LightManagement } from '../widgets';
 
 type SettingsProps = {
   onReset: () => void;
@@ -100,9 +102,15 @@ const SettingsDashboard = ({ onReset }: SettingsProps) => {
                 )}
 
                 {activeSection === 'sensors' && (
-                  <section>
-                    <SensorConfigWidget />
-                  </section>
+                  <>
+                    <section>
+                      <SensorConfigWidget />
+                    </section>
+                    <Divider className="my-8" />
+                    <section>
+                      <SensorCalibrationWidget />
+                    </section>
+                  </>
                 )}
 
                 {activeSection === 'database' && (
@@ -112,14 +120,8 @@ const SettingsDashboard = ({ onReset }: SettingsProps) => {
                 )}
 
                 {activeSection === 'advanced' && (
-                  <section className="flex items-center justify-center py-32">
-                    <div className="text-center space-y-4">
-                      <div className="text-6xl opacity-20">⚙️</div>
-                      <h3 className="text-2xl font-semibold text-default-400">
-                        {t('settings.tabs.advanced')}
-                      </h3>
-                      <p className="text-default-500">Coming soon...</p>
-                    </div>
+                  <section>
+                    <LightManagement />
                   </section>
                 )}
 

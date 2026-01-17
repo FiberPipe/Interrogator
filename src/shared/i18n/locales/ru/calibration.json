@@ -1,0 +1,54 @@
+{
+  "title": "Калибровочные данные",
+  "subtitle": "Настройка параметров нормализации и длины волн",
+  "methods": {
+    "table": "Таблица",
+    "csv": "CSV файл",
+    "json": "JSON файл",
+    "code": "Редактор кода"
+  },
+  "fields": {
+    "normalization": "Нормализация",
+    "wavelengths": "Длины волн",
+    "field": "Поле {{index}}"
+  },
+  "dataFile": {
+    "title": "Путь к файлу данных датчика",
+    "placeholder": "Выберите файл данных датчика",
+    "select": "Обзор"
+  },
+  "upload": {
+    "csvTitle": "Загрузка CSV файла",
+    "csvDescription": "Загрузите CSV файл с калибровочными данными",
+    "jsonTitle": "Загрузка JSON файла",
+    "jsonDescription": "Загрузите JSON файл с калибровочными данными",
+    "selectFile": "Выбрать файл",
+    "acceptedFormats": "Поддерживаемые форматы"
+  },
+  "code": {
+    "title": "JSON редактор"
+  },
+  "actions": {
+    "save": "Сохранить конфигурацию",
+    "reset": "Сбросить",
+    "export": "Экспорт"
+  },
+  "messages": {
+    "saved": "Конфигурация сохранена",
+    "savedDescription": "Калибровочные данные успешно сохранены",
+    "csvLoaded": "CSV загружен",
+    "csvLoadedDescription": "CSV файл успешно загружен",
+    "jsonLoaded": "JSON загружен",
+    "jsonLoadedDescription": "JSON файл успешно загружен"
+  },
+  "errors": {
+    "save": "Ошибка сохранения",
+    "saveDescription": "Не удалось сохранить калибровочные данные",
+    "csvParse": "Ошибка разбора CSV",
+    "csvParseDescription": "Не удалось разобрать CSV файл",
+    "jsonParse": "Ошибка разбора JSON",
+    "jsonParseDescription": "Не удалось разобрать JSON файл",
+    "fileSelection": "Ошибка выбора файла",
+    "fileSelectionDescription": "Не удалось выбрать файл"
+  }
+}

@@ -24,6 +24,7 @@
     "@heroui/react": "2.8.4",
     "@heroui/system": "2.4.22",
     "@heroui/theme": "2.4.22",
+    "@monaco-editor/react": "^4.7.0",
     "@rsbuild/plugin-node-polyfill": "^1.4.2",
     "drizzle-orm": "0.44.7",
     "electron-store": "8.2.0",

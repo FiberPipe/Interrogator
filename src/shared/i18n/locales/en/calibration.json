@@ -1,0 +1,56 @@
+{
+  "calibration": {
+    "title": "Calibration Data",
+    "subtitle": "Configure normalization and wavelength parameters",
+    "methods": {
+      "table": "Table",
+      "csv": "CSV File",
+      "json": "JSON File",
+      "code": "Code Editor"
+    },
+    "fields": {
+      "normalization": "Normalization",
+      "wavelengths": "Wavelengths",
+      "field": "Field {{index}}"
+    },
+    "dataFile": {
+      "title": "Sensor Data File Path",
+      "placeholder": "Select sensor data file",
+      "select": "Browse"
+    },
+    "upload": {
+      "csvTitle": "Upload CSV File",
+      "csvDescription": "Upload a CSV file with calibration data",
+      "jsonTitle": "Upload JSON File",
+      "jsonDescription": "Upload a JSON file with calibration data",
+      "selectFile": "Select File",
+      "acceptedFormats": "Accepted formats"
+    },
+    "code": {
+      "title": "JSON Editor"
+    },
+    "actions": {
+      "save": "Save Configuration",
+      "reset": "Reset",
+      "export": "Export"
+    },
+    "messages": {
+      "saved": "Configuration Saved",
+      "savedDescription": "Calibration data saved successfully",
+      "csvLoaded": "CSV Loaded",
+      "csvLoadedDescription": "CSV file loaded successfully",
+      "jsonLoaded": "JSON Loaded",
+      "jsonLoadedDescription": "JSON file loaded successfully"
+    },
+    "errors": {
+      "save": "Save Error",
+      "saveDescription": "Failed to save calibration data",
+      "csvParse": "CSV Parse Error",
+      "csvParseDescription": "Failed to parse CSV file",
+      "jsonParse": "JSON Parse Error",
+      "jsonParseDescription": "Failed to parse JSON file",
+      "fileSelection": "File Selection Error",
+      "fileSelectionDescription": "Failed to select file"
+    }
+  }
+}

@@ -6,6 +6,7 @@ import serialPort from './serialPort.json';
 import sensors from './sensors.json';
 import navigation from './navigation.json';
 import common from './common.json';
+import calibration from './calibration.json';
 
 export default {
   charts,
@@ -16,4 +17,5 @@ export default {
   sensors,
   navigation,
   common,
+  calibration
 };
