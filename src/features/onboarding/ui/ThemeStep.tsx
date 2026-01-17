@@ -30,7 +30,7 @@ export default function ThemeStep({ onNext, onBack }: any) {
         <p className="text-sm text-default-500">{t('onboarding.theme.subtitle')}</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
         {themes.map((theme, index) => {
           const Icon = theme.icon;
           return (
@@ -41,13 +41,14 @@ export default function ThemeStep({ onNext, onBack }: any) {
               transition={{ delay: index * 0.1 }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              className="w-full"
             >
               <Card
                 isPressable
                 onPress={() => handleThemeSelect(theme.value)}
-                className="p-6 cursor-pointer border-2 border-transparent hover:border-primary transition-all"
+                className="p-6 w-full h-full cursor-pointer border-2 border-transparent hover:border-primary transition-all"
               >
-                <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-col items-center justify-center gap-3 h-full">
                   <div className="p-4 rounded-full bg-primary-100 dark:bg-primary-900/30">
                     <Icon className="w-8 h-8 text-primary" />
                   </div>
@@ -59,5 +60,6 @@ export default function ThemeStep({ onNext, onBack }: any) {
         })}
       </div>
     </div>
+
   );
 }

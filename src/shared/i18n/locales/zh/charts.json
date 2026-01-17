@@ -1,0 +1,57 @@
+{
+  "title": "Графики",
+  "subtitle": "Визуализация данных в реальном времени",
+  "types": {
+    "chart": "График",
+    "table": "Таблица",
+    "dashboard": "Панель"
+  },
+  "metrics": {
+    "power": "Мощность",
+    "pressure": "Давление",
+    "temperature": "Температура",
+    "wavelength": "Длина волны"
+  },
+  "controls": {
+    "selectAll": "Выбрать всё",
+    "deselectAll": "Снять выделение",
+    "clear": "Очистить",
+    "connect": "Подключить",
+    "disconnect": "Отключить",
+    "export": "Экспорт",
+    "settings": "Настройки"
+  },
+  "status": {
+    "live": "В РЕАЛЬНОМ ВРЕМЕНИ",
+    "waiting": "Ожидание",
+    "noData": "Нет данных",
+    "bufferFull": "Буфер заполнен",
+    "receiving": "Приём данных",
+    "notConnected": "Не подключено"
+  },
+  "info": {
+    "selected": "Выбрано",
+    "connected": "Подключено",
+    "receiving": "Приём",
+    "buffer": "Буфер",
+    "record": "Запись",
+    "time": "Время",
+    "average": "Среднее",
+    "records": "Записи",
+    "frequency": "Частота",
+    "channels": "Каналы"
+  },
+  "messages": {
+    "selectPort": "Выберите порт в настройках",
+    "waitingData": "Ожидание данных...",
+    "dataWillAppear": "Данные появятся через 1–2 секунды",
+    "portNotConnected": "Порт не подключён",
+    "oldDataRemoved": "Старые данные удаляются"
+  },
+  "power": {
+    "title": "Мощность (P)",
+    "subtitle": "Данные в реальном времени",
+    "channel": "Канал P{{index}}",
+    "average": "Средняя мощность"
+  }
+}

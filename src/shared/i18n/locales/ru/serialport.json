@@ -1,0 +1,49 @@
+{
+  "title": "COM-порт",
+  "description": "Выберите COM-порт для подключения к устройству",
+  "selectPort": "Выберите порт",
+  "noPorts": "Нет доступных портов",
+  "portsFound": "Найдено портов: {{count}}",
+  "selectedPort": "Выбранный порт",
+  "status": {
+    "connected": "Подключено",
+    "disconnected": "Отключено",
+    "connecting": "Подключение...",
+    "busy": "занят",
+    "free": "Свободен"
+  },
+  "alerts": {
+    "notSelected": "COM-порт не выбран",
+    "notSelectedDesc": "Пожалуйста, выберите порт для корректной работы приложения",
+    "connectedTo": "Активное подключение к порту:",
+    "error": "Ошибка"
+  },
+  "buttons": {
+    "refresh": "Обновить",
+    "refreshing": "Обновление...",
+    "connect": "Подключить",
+    "connecting": "Подключение...",
+    "disconnect": "Отключить",
+    "showData": "Показать данные",
+    "hideData": "Скрыть данные"
+  },
+  "autoConnect": {
+    "title": "Автоподключение",
+    "description": "Автоматически подключаться при открытии страницы"
+  },
+  "info": {
+    "path": "Путь",
+    "manufacturer": "Производитель",
+    "serialNumber": "Серийный номер",
+    "vendorId": "ID производителя",
+    "productId": "ID продукта",
+    "status": "Статус",
+    "unknown": "Неизвестно"
+  },
+  "dataPreview": {
+    "title": "Предпросмотр данных",
+    "noData": "Нет данных",
+    "lastUpdate": "Последнее обновление",
+    "receivedPackets": "Принято пакетов: {{count}}"
+  }
+}

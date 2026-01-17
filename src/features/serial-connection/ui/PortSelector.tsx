@@ -1,7 +1,6 @@
 import { Select, SelectItem, Chip } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
-import { Usb } from 'lucide-react';
-import type { SerialPortInfo } from '../../../entities/serial-port/model/types';
+import { SerialPortInfo } from '../../../shared/types/global';
 
 interface PortSelectorProps {
   ports: SerialPortInfo[];
@@ -31,7 +30,7 @@ export const PortSelector = ({
 
   return (
     <Select
-      label={t('serialPort.title')}
+      label={t('serialPort.selectPort')}
       placeholder={t('serialPort.selectPort')}
       selectedKeys={selectedPort ? [selectedPort] : []}
       onSelectionChange={handleSelectChange}
@@ -42,7 +41,10 @@ export const PortSelector = ({
           ? t('serialPort.noPorts')
           : t('serialPort.portsFound', { count: ports.length })
       }
-      startContent={<Usb className="w-4 h-4" />}
+      classNames={{
+        base: 'w-full',
+        trigger: 'w-full',
+      }}
     >
       {ports.length === 0 ? (
         <SelectItem key="no-ports" isDisabled>
@@ -54,6 +56,7 @@ export const PortSelector = ({
             key={port.path}
             textValue={port.path}
             description={port.manufacturer || t('serialPort.info.unknown')}
+            isDisabled={port.busy && port.path !== connectedPort}
           >
             <div className="flex justify-between items-center w-full">
               <div className="flex flex-col">
@@ -66,7 +69,7 @@ export const PortSelector = ({
               </div>
               <div className="flex gap-2">
                 {port.path === connectedPort && (
-                  <Chip size="sm" color="success" variant="dot">
+                  <Chip size="sm" color="success" variant="flat">
                     {t('serialPort.status.connected')}
                   </Chip>
                 )}

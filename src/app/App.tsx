@@ -9,6 +9,7 @@ import { useOnboarding } from './hooks/useOnboarding';
 import { AppRoutes } from '../shared/types/routes';
 import './styles/global.css';
 import Sidebar from '../widgets/Sidebar/ui/Sidebar';
+import { SerialPortProvider } from './providers/SerialPortProvider';
 
 export default function App() {
   const { isFirstLaunch, setIsFirstLaunch } = useOnboarding();
@@ -18,21 +19,23 @@ export default function App() {
   return (
     <HeroUIProvider>
       <ErrorWrapper>
-        {isFirstLaunch ? (
-          <Onboarding setIsFirstLaunch={setIsFirstLaunch} />
-        ) : (
-          <div className="flex h-screen w-screen overflow-hidden bg-background">
-            <Sidebar />
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <Routes>
-                <Route path={AppRoutes.HOME} element={<Navigate replace to={AppRoutes.SETTINGS} />} />
-                <Route path={AppRoutes.SETTINGS} element={<Settings onReset={() => setIsFirstLaunch(true)} />} />
-                <Route path={AppRoutes.CHARTS} element={<Charts />} />
-                <Route path="*" element={<Navigate replace to={AppRoutes.SETTINGS} />} />
-              </Routes>
+        <SerialPortProvider>
+          {isFirstLaunch ? (
+            <Onboarding setIsFirstLaunch={setIsFirstLaunch} />
+          ) : (
+            <div className="flex h-screen w-screen overflow-hidden bg-background">
+              <Sidebar />
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <Routes>
+                  <Route path={AppRoutes.HOME} element={<Navigate replace to={AppRoutes.SETTINGS} />} />
+                  <Route path={AppRoutes.SETTINGS} element={<Settings onReset={() => setIsFirstLaunch(true)} />} />
+                  <Route path={AppRoutes.CHARTS} element={<Charts />} />
+                  <Route path="*" element={<Navigate replace to={AppRoutes.SETTINGS} />} />
+                </Routes>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </SerialPortProvider>
       </ErrorWrapper>
     </HeroUIProvider>
   );

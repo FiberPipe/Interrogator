@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Card, Select, SelectItem, Button, Alert, Chip } from '@heroui/react';
+import { Select, SelectItem, Button, Alert, Chip } from '@heroui/react';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { useSerialPortContext } from '../../../app/providers/SerialPortProvider';
 import { DataPreview } from './DataPreview';
-import { useComPort } from '../model/useComport';
 
-export default function PortStep({ onBack, onFinish }: any) {
+export default function PortStep({ onNext, onBack }: any) {
+  const { t } = useTranslation();
+  
   const {
     ports,
     selectedPort,
@@ -16,18 +20,16 @@ export default function PortStep({ onBack, onFinish }: any) {
     handlePortChange,
     connectToPort,
     disconnectPort,
-  } = useComPort();
+  } = useSerialPortContext();
 
   const [localSelected, setLocalSelected] = useState<string | null>(selectedPort || null);
 
-  // Синхронизация локального выбора с глобальным
   useEffect(() => {
     if (selectedPort !== localSelected) {
       setLocalSelected(selectedPort);
     }
   }, [selectedPort]);
 
-  // Периодическое обновление списка портов
   useEffect(() => {
     const interval = setInterval(() => {
       if (!connecting && !disconnecting) {
@@ -54,114 +56,129 @@ export default function PortStep({ onBack, onFinish }: any) {
     await disconnectPort();
   };
 
-  const isFinishEnabled = !!connectedPort;
+  const handleNext = () => {
+    onNext({ lastPort: connectedPort });
+  };
+
+  const isNextEnabled = !!connectedPort;
   const isConnectDisabled =
     !localSelected || connecting || disconnecting || loading || connectedPort === localSelected;
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-4xl mx-auto">
-      <Card className="p-6 flex flex-col gap-6">
-        <h2 className="text-2xl font-semibold mb-4">Настройка COM-порта</h2>
+    <div className="space-y-6 w-full">
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl font-bold">{t('onboarding.port.title')}</h2>
+        <p className="text-sm text-default-500">{t('onboarding.port.subtitle')}</p>
+      </div>
 
-        <div className="flex flex-col gap-3">
-          <Select
-            label="COM-порт"
-            placeholder="Выберите порт"
-            selectedKeys={localSelected ? [localSelected] : []}
-            onSelectionChange={handleSelectChange}
-            isDisabled={loading || connecting || disconnecting}
-            variant="bordered"
-          >
-            {ports.length === 0 ? (
-              <SelectItem key="no-ports" isDisabled>
-                Нет доступных портов
-              </SelectItem>
-            ) : (
-              ports.map((port) => (
-                <SelectItem
-                  key={port.path}
-                  textValue={port.path}
-                  description={port.manufacturer || 'Unknown'}
-                  isDisabled={port.busy && port.path !== connectedPort}
-                >
-                  <div className="flex justify-between items-center w-full">
-                    <span className="font-medium">{port.path}</span>
-                    <div className="flex gap-2">
-                      {port.path === connectedPort && (
-                        <Chip size="sm" color="success" variant="flat">
-                          подключен
-                        </Chip>
-                      )}
-                      {port.busy && port.path !== connectedPort && (
-                        <Chip size="sm" color="warning" variant="flat">
-                          занят
-                        </Chip>
-                      )}
-                    </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-4 w-full"
+      >
+        <Select
+          label={t('onboarding.port.selectLabel')}
+          placeholder={t('onboarding.port.selectPlaceholder')}
+          selectedKeys={localSelected ? [localSelected] : []}
+          onSelectionChange={handleSelectChange}
+          isDisabled={loading || connecting || disconnecting}
+          variant="bordered"
+          classNames={{
+            base: 'w-full',
+            trigger: 'w-full',
+          }}
+        >
+          {ports.length === 0 ? (
+            <SelectItem key="no-ports" isDisabled>
+              {t('onboarding.port.noPorts')}
+            </SelectItem>
+          ) : (
+            ports.map((port) => (
+              <SelectItem
+                key={port.path}
+                textValue={port.path}
+                description={port.manufacturer || 'Unknown'}
+                isDisabled={port.busy && port.path !== connectedPort}
+              >
+                <div className="flex justify-between items-center w-full">
+                  <span className="font-medium">{port.path}</span>
+                  <div className="flex gap-2">
+                    {port.path === connectedPort && (
+                      <Chip size="sm" color="success" variant="flat">
+                        {t('onboarding.port.connected')}
+                      </Chip>
+                    )}
+                    {port.busy && port.path !== connectedPort && (
+                      <Chip size="sm" color="warning" variant="flat">
+                        {t('onboarding.port.busy')}
+                      </Chip>
+                    )}
                   </div>
-                </SelectItem>
-              ))
-            )}
-          </Select>
-
-          {error && (
-            <Alert color="danger" title="Ошибка">
-              {error}
-            </Alert>
+                </div>
+              </SelectItem>
+            ))
           )}
+        </Select>
 
-          {connectedPort && (
-            <Alert color="success" title="Подключено">
-              Активное соединение с портом: <strong>{connectedPort}</strong>
-            </Alert>
+        {error && (
+          <Alert color="danger" title={t('common.error')}>
+            {error}
+          </Alert>
+        )}
+
+        {connectedPort && (
+          <Alert color="success" title={t('onboarding.port.connectedTitle')}>
+            {t('onboarding.port.connectedMessage', { port: connectedPort })}
+          </Alert>
+        )}
+
+        <div className="flex gap-2 w-full">
+          {connectedPort ? (
+            <Button
+              color="danger"
+              variant="solid"
+              fullWidth
+              isLoading={disconnecting}
+              isDisabled={connecting}
+              onPress={handleDisconnect}
+            >
+              {t('onboarding.port.disconnect')}
+            </Button>
+          ) : (
+            <Button
+              color="primary"
+              variant="solid"
+              fullWidth
+              isDisabled={isConnectDisabled}
+              isLoading={connecting}
+              onPress={handleConnect}
+            >
+              {t('onboarding.port.connect')}
+            </Button>
           )}
         </div>
 
-        {/* Кнопки действий */}
-        <div className="flex justify-between mt-4">
-          <Button variant="light" onPress={onBack} isDisabled={connecting || disconnecting}>
-            ← Назад
-          </Button>
-
-          <div className="flex gap-2">
-            {connectedPort ? (
-              <Button
-                color="danger"
-                variant="solid"
-                isLoading={disconnecting}
-                isDisabled={connecting}
-                onPress={handleDisconnect}
-              >
-                Отключить
-              </Button>
-            ) : (
-              <Button
-                color="primary"
-                variant="solid"
-                isDisabled={isConnectDisabled}
-                isLoading={connecting}
-                onPress={handleConnect}
-              >
-                Подключить
-              </Button>
-            )}
-
-            {isFinishEnabled && (
-              <Button
-                color="success"
-                variant="solid"
-                onPress={() => onFinish({ lastPort: connectedPort })}
-                isDisabled={connecting || disconnecting}
-              >
-                Завершить
-              </Button>
-            )}
+        {connectedPort && (
+          <div className="w-full">
+            <DataPreview port={connectedPort} />
           </div>
-        </div>
-      </Card>
+        )}
+      </motion.div>
 
-      {/* Превью данных */}
-      <DataPreview port={connectedPort} />
+      {/* Навигация */}
+      <div className="flex justify-between pt-4 border-t border-default-200">
+        <Button variant="light" onPress={onBack} isDisabled={connecting || disconnecting}>
+          {t('common.back')}
+        </Button>
+
+        <Button
+          color="primary"
+          onPress={handleNext}
+          isDisabled={!isNextEnabled || connecting || disconnecting}
+        >
+          {t('common.next')}
+        </Button>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,53 @@
+{
+  "welcome": "欢迎！",
+  "step": "第 {{current}} 步，共 {{total}} 步",
+  "language": {
+    "title": "选择语言",
+    "subtitle": "稍后可在设置中更改",
+    "ru": "Русский",
+    "en": "English",
+    "zh": "中文"
+  },
+  "theme": {
+    "title": "选择主题",
+    "subtitle": "自定义应用程序外观",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "系统"
+  },
+  "sensors": {
+    "title": "传感器配置",
+    "subtitle": "指定传感器数量并配置通道"
+  },
+  "port": {
+    "title": "连接设置",
+    "subtitle": "选择用于设备的 COM 端口",
+    "selectLabel": "COM 端口",
+    "selectPlaceholder": "选择端口",
+    "noPorts": "没有可用端口",
+    "connected": "已连接",
+    "busy": "占用中",
+    "connectedTitle": "已连接",
+    "connectedMessage": "当前连接端口：{{port}}",
+    "connect": "连接",
+    "disconnect": "断开连接"
+  },
+  "final": {
+    "title": "准备就绪！",
+    "subtitle": "所有设置已完成，可以开始使用",
+    "summary": "设置概览",
+    "start": "开始使用"
+  },
+  "summary": {
+    "language": "语言",
+    "theme": "主题",
+    "sensors": "传感器",
+    "port": "COM 端口"
+  },
+  "buttons": {
+    "back": "返回",
+    "next": "下一步",
+    "finish": "完成",
+    "skip": "跳过"
+  }
+}

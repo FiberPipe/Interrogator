@@ -1,0 +1,57 @@
+{
+  "title": "Charts",
+  "subtitle": "Real-time data visualization",
+  "types": {
+    "chart": "Chart",
+    "table": "Table",
+    "dashboard": "Dashboard"
+  },
+  "metrics": {
+    "power": "Power",
+    "pressure": "Pressure",
+    "temperature": "Temperature",
+    "wavelength": "Wavelength"
+  },
+  "controls": {
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "clear": "Clear",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "export": "Export",
+    "settings": "Settings"
+  },
+  "status": {
+    "live": "LIVE",
+    "waiting": "Waiting",
+    "noData": "No Data",
+    "bufferFull": "Buffer Full",
+    "receiving": "Receiving",
+    "notConnected": "Not Connected"
+  },
+  "info": {
+    "selected": "Selected",
+    "connected": "Connected",
+    "receiving": "Receiving",
+    "buffer": "Buffer",
+    "record": "Record",
+    "time": "Time",
+    "average": "Average",
+    "records": "Records",
+    "frequency": "Frequency",
+    "channels": "Channels"
+  },
+  "messages": {
+    "selectPort": "Select port in settings",
+    "waitingData": "Waiting for data...",
+    "dataWillAppear": "Data will appear in 1-2 seconds",
+    "portNotConnected": "Port not connected",
+    "oldDataRemoved": "Old data is being removed"
+  },
+  "power": {
+    "title": "Power (P)",
+    "subtitle": "Real-time data",
+    "channel": "Channel P{{index}}",
+    "average": "Average Power"
+  }
+}

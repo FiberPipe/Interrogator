@@ -18,7 +18,7 @@ import { useSerialConnection } from '../../../features/serial-connection/model/u
 import { usePowerTable } from '../../../features/power-table/model/usePowerTable';
 import { PowerTableRow } from '../../../features/power-table/ui/PowerTableRow';
 import { groupDataByPowerId } from '../../../entities/power-data/model/utils';
-import { useSerialData } from '../../hooks/useSerialData';
+import { useSerialData } from '../../PowerChartWidget/model/useSerialData';
 
 export const PowerTableWidget = () => {
     const { t } = useTranslation();

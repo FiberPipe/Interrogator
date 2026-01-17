@@ -1,0 +1,60 @@
+{
+  "title": "设置",
+  "subtitle": "管理应用程序参数",
+  "tabs": {
+    "main": "主要",
+    "sensors": "传感器",
+    "advanced": "高级",
+    "about": "关于",
+    "database": "数据库"
+  },
+  "sections": {
+    "connection": "连接",
+    "interface": "界面",
+    "system": "系统",
+    "databaseInfo": "数据库信息",
+    "databaseLocation": "位置",
+    "databaseBackup": "备份",
+    "databaseExport": "数据导出"
+  },
+  "language": {
+    "title": "界面语言",
+    "description": "选择界面显示语言",
+    "russian": "Русский",
+    "english": "English",
+    "changed": "语言已更改",
+    "changedDescription": "界面语言已更改为 {{language}}"
+  },
+  "theme": {
+    "title": "主题",
+    "description": "选择浅色、深色或系统主题",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "系统",
+    "changed": "主题已更改",
+    "changedDescription": "主题已更改为 {{theme}}"
+  },
+  "reset": {
+    "title": "重置设置",
+    "description": "将所有设置恢复为出厂默认值",
+    "button": "恢复出厂设置",
+    "confirm": "确认操作",
+    "confirmDescription": "确定要重置所有设置吗？此操作无法撤销。",
+    "cancel": "取消",
+    "reset": "重置",
+    "success": "设置已重置",
+    "successDescription": "所有设置已恢复为出厂默认值"
+  },
+  "sensors": {
+    "title": "传感器配置",
+    "description": "配置传感器数量和参数",
+    "notAvailable": "暂不可用",
+    "notAvailableDescription": "添加传感器配置逻辑后将启用此部分",
+    "channelCount": "通道数量",
+    "channelCountDescription": "指定活动传感器通道数量",
+    "samplingRate": "采样率",
+    "samplingRateDescription": "从传感器获取数据的频率 (Hz)",
+    "calibration": "校准",
+    "calibrationDescription": "传感器校准设置"
+  }
+}

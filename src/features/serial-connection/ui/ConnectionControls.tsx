@@ -7,7 +7,7 @@ interface ConnectionControlsProps {
   connectedPort: string | null;
   loading: boolean;
   connecting: boolean;
-  autoConnect: boolean;
+  disconnecting: boolean;
   onRefresh: () => void;
   onConnect: () => void;
   onDisconnect: () => void;
@@ -18,7 +18,7 @@ export const ConnectionControls = ({
   connectedPort,
   loading,
   connecting,
-  autoConnect,
+  disconnecting,
   onRefresh,
   onConnect,
   onDisconnect,
@@ -26,11 +26,11 @@ export const ConnectionControls = ({
   const { t } = useTranslation();
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 w-full">
       <Button
         variant="flat"
         onPress={onRefresh}
-        isDisabled={loading || connecting}
+        isDisabled={loading || connecting || disconnecting}
         isLoading={loading}
         className="flex-1"
         startContent={!loading && <RefreshCw className="w-4 h-4" />}
@@ -38,33 +38,32 @@ export const ConnectionControls = ({
         {loading ? t('serialPort.buttons.refreshing') : t('serialPort.buttons.refresh')}
       </Button>
 
-      {!autoConnect && (
-        <>
-          {connectedPort ? (
-            <Button
-              color="danger"
-              variant="solid"
-              onPress={onDisconnect}
-              isDisabled={connecting}
-              className="flex-1"
-              startContent={<Unplug className="w-4 h-4" />}
-            >
-              {t('serialPort.buttons.disconnect')}
-            </Button>
-          ) : (
-            <Button
-              color="primary"
-              variant="solid"
-              onPress={onConnect}
-              isDisabled={!selectedPort || connecting || loading}
-              isLoading={connecting}
-              className="flex-1"
-              startContent={!connecting && <Plug className="w-4 h-4" />}
-            >
-              {connecting ? t('serialPort.buttons.connecting') : t('serialPort.buttons.connect')}
-            </Button>
-          )}
-        </>
+      {connectedPort ? (
+        <Button
+          color="danger"
+          variant="solid"
+          onPress={onDisconnect}
+          isDisabled={connecting || loading}
+          isLoading={disconnecting}
+          className="flex-1"
+          startContent={!disconnecting && <Unplug className="w-4 h-4" />}
+        >
+          {disconnecting
+            ? t('serialPort.buttons.disconnecting')
+            : t('serialPort.buttons.disconnect')}
+        </Button>
+      ) : (
+        <Button
+          color="primary"
+          variant="solid"
+          onPress={onConnect}
+          isDisabled={!selectedPort || connecting || loading || disconnecting}
+          isLoading={connecting}
+          className="flex-1"
+          startContent={!connecting && <Plug className="w-4 h-4" />}
+        >
+          {connecting ? t('serialPort.buttons.connecting') : t('serialPort.buttons.connect')}
+        </Button>
       )}
     </div>
   );

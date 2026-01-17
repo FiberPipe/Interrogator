@@ -1,18 +1,16 @@
 import { Card, CardBody, CardHeader, Chip, Alert, Divider } from '@heroui/react';
-import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, AlertCircle } from 'lucide-react';
-import { ChartSeries, ViewType } from '../entities/chart/model/types';
-import { RowData } from '../shared/types/microcontroller-data';
-import { useSerialConnection } from '../features/serial-connection/model/useSerialConnection';
-import { useSerialData } from './hooks/useSerialData';
-import { ViewTypeSelector } from '../features/data-visualization/ViewTypeSelector';
-import { ChartControls } from '../features/data-visualization/ChartsControls';
-import { ChartStats } from '../entities/chart/ui/ChartStats';
-import { LineChartWithConfidence } from '../shared/ui';
-import { ChartLegend } from '../entities/chart/ui/ChartLegend';
-
+import { useSerialPortContext } from '../../../app/providers/SerialPortProvider';
+import { ChartStats } from '../../../entities/chart/ui/ChartStats';
+import { ChartLegend } from '../../../entities/chart/ui/ChartLegend';
+import { ViewType } from '../../../entities/chart/model/types';
+import { SerialDataPoint, useSerialData } from '../model/useSerialData';
+import { ChartControls } from '../../../features/data-visualization/ChartsControls';
+import { ViewTypeSelector } from '../../../features/data-visualization/ViewTypeSelector';
+import { ChartSeries, LineChartWithConfidence } from '../../../shared/ui';
 
 const COLORS = [
   '#4f46e5', '#e11d48', '#059669', '#f97316', '#8b5cf6',
@@ -22,36 +20,37 @@ const COLORS = [
 
 const CHANNELS = Array.from({ length: 16 }, (_, i) => i);
 
-export const PowerChartWidget: React.FC = () => {
+export const PowerChartWidget = () => {
   const { t } = useTranslation();
-  const { connectedPort } = useSerialConnection();
+  const { connectedPort } = useSerialPortContext();
   const { dataBuffer, isReceiving, clearBuffer, latestData } = useSerialData(connectedPort);
 
-  const [selectedChannels, setSelectedChannels] = useState<number[]>(CHANNELS.slice(0, 4)); // По умолчанию P0-P3
+  const [selectedChannels, setSelectedChannels] = useState<number[]>(CHANNELS.slice(0, 4));
   const [viewType, setViewType] = useState<ViewType>('chart');
 
-  // Мемоизируем серии для графика
+  // Преобразуем данные в формат для графика
   const series = useMemo((): ChartSeries[] => {
     if (dataBuffer.length === 0) return [];
 
     return selectedChannels.map((channelIndex) => {
-      const pKey = `P${channelIndex}` as keyof RowData;
-      const stdDevKey = `stdDev${channelIndex}` as keyof RowData;
+      const pKey = `P${channelIndex}` as keyof SerialDataPoint;
+      const stdDevKey = `stdDev${channelIndex}` as keyof SerialDataPoint;
 
       return {
         key: `P${channelIndex}`,
         label: t('charts.power.channel', { index: channelIndex }),
         color: COLORS[channelIndex],
         showConfidence: true,
-        data: dataBuffer.map((point, idx) => {
+        data: dataBuffer.map((point) => {
           const yValue = point[pKey] as number;
           const stdDevValue = point[stdDevKey] as number;
 
           return {
-            x: idx,
+            x: point.timestamp, // Используем временную метку
             y: yValue,
             yMin: yValue - stdDevValue,
             yMax: yValue + stdDevValue,
+            timestamp: point.timestamp,
           };
         }),
       };
@@ -62,7 +61,7 @@ export const PowerChartWidget: React.FC = () => {
     if (!latestData || selectedChannels.length === 0) return 0;
 
     const sum = selectedChannels.reduce((acc, idx) => {
-      const key = `P${idx}` as keyof RowData;
+      const key = `P${idx}` as keyof SerialDataPoint;
       return acc + (latestData[key] as number || 0);
     }, 0);
 
@@ -90,10 +89,10 @@ export const PowerChartWidget: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="w-full"
     >
       <Card className="shadow-lg">
         <CardHeader className="flex flex-col gap-4 pb-4">
-          {/* Заголовок и статус */}
           <div className="flex justify-between items-start w-full">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-3">
@@ -123,7 +122,6 @@ export const PowerChartWidget: React.FC = () => {
             </div>
           </div>
 
-          {/* Статистика */}
           <ChartStats
             isReceiving={isReceiving}
             bufferSize={dataBuffer.length}
@@ -138,7 +136,6 @@ export const PowerChartWidget: React.FC = () => {
         <Divider />
 
         <CardBody className="gap-6">
-          {/* Предупреждение если нет подключения */}
           {!connectedPort && (
             <Alert
               color="warning"
@@ -150,7 +147,6 @@ export const PowerChartWidget: React.FC = () => {
             </Alert>
           )}
 
-          {/* Легенда с каналами */}
           <ChartLegend
             channels={CHANNELS}
             selectedChannels={selectedChannels}
@@ -160,7 +156,6 @@ export const PowerChartWidget: React.FC = () => {
             onDeselectAll={handleDeselectAll}
           />
 
-          {/* График */}
           <AnimatePresence mode="wait">
             {viewType === 'chart' && (
               <motion.div
@@ -168,9 +163,19 @@ export const PowerChartWidget: React.FC = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                className="w-full"
               >
                 {series.length > 0 && selectedChannels.length > 0 ? (
-                  <LineChartWithConfidence series={series} height={500} />
+                  <LineChartWithConfidence
+                    series={series}
+                    height={500}
+                    xAxisLabel={t('charts.info.time')}
+                    yAxisLabel="Power (W)"
+                    xAxisDataKey="x"
+                    enableZoom={true}
+                    defaultVisiblePoints={50}
+                    showLegend={false}
+                  />
                 ) : (
                   <div className="h-96 flex flex-col items-center justify-center text-default-400 gap-3 border-2 border-dashed border-default-200 rounded-lg">
                     <Activity className="w-12 h-12 opacity-50" />
@@ -178,14 +183,12 @@ export const PowerChartWidget: React.FC = () => {
                       {!connectedPort
                         ? t('charts.messages.portNotConnected')
                         : selectedChannels.length === 0
-                          ? t('charts.messages.selectChannels')
-                          : t('charts.messages.waitingData')}
+                        ? t('charts.messages.selectChannels')
+                        : t('charts.messages.waitingData')}
                     </div>
-                    <div className="text-sm">
-                      {connectedPort &&
-                        selectedChannels.length > 0 &&
-                        t('charts.messages.dataWillAppear')}
-                    </div>
+                    {connectedPort && selectedChannels.length > 0 && (
+                      <div className="text-sm">{t('charts.messages.dataWillAppear')}</div>
+                    )}
                   </div>
                 )}
               </motion.div>
@@ -202,21 +205,8 @@ export const PowerChartWidget: React.FC = () => {
                 {t('charts.types.table')} - Coming soon...
               </motion.div>
             )}
-
-            {viewType === 'dashboard' && (
-              <motion.div
-                key="dashboard"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="h-96 flex items-center justify-center text-default-400"
-              >
-                {t('charts.types.dashboard')} - Coming soon...
-              </motion.div>
-            )}
           </AnimatePresence>
 
-          {/* Дополнительная информация */}
           {dataBuffer.length > 0 && (
             <div className="flex flex-wrap gap-4 text-xs text-default-400 pt-4 border-t">
               <div>

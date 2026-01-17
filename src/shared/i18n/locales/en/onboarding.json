@@ -1,0 +1,53 @@
+{
+    "welcome": "Welcome!",
+    "step": "Step {{current}} of {{total}}",
+    "language": {
+        "title": "Choose Language",
+        "subtitle": "You can change this later in settings",
+        "ru": "Русский",
+        "en": "English",
+        "zh": "中文"
+    },
+    "theme": {
+        "title": "Choose Theme",
+        "subtitle": "Customize the look of your application",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+    },
+    "sensors": {
+        "title": "Sensor Configuration",
+        "subtitle": "Specify the number of sensors and configure channels"
+    },
+    "port": {
+        "title": "Connection Setup",
+        "subtitle": "Select a COM port to work with the device",
+        "selectLabel": "COM Port",
+        "selectPlaceholder": "Select port",
+        "noPorts": "No available ports",
+        "connected": "connected",
+        "busy": "busy",
+        "connectedTitle": "Connected",
+        "connectedMessage": "Active connection to port: {{port}}",
+        "connect": "Connect",
+        "disconnect": "Disconnect"
+    },
+    "final": {
+        "title": "Ready to Go!",
+        "subtitle": "Everything is set up, you can start working",
+        "summary": "Settings Summary",
+        "start": "Start Working"
+    },
+    "summary": {
+        "language": "Language",
+        "theme": "Theme",
+        "sensors": "Sensors",
+        "port": "COM Port"
+    },
+    "buttons": {
+        "back": "Back",
+        "next": "Next",
+        "finish": "Finish",
+        "skip": "Skip"
+    }
+}

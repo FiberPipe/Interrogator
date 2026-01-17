@@ -10,9 +10,9 @@ export const DataPreview = ({ port }: DataPreviewProps) => {
 
   if (!port) {
     return (
-      <Card className="bg-gray-50 dark:bg-gray-900">
+      <Card className="bg-default-50 dark:bg-default-100/5">
         <CardBody>
-          <p className="text-center text-gray-500 text-sm">
+          <p className="text-center text-default-500 text-sm py-4">
             Подключитесь к порту для просмотра данных
           </p>
         </CardBody>
@@ -25,9 +25,12 @@ export const DataPreview = ({ port }: DataPreviewProps) => {
       <CardBody className="gap-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <h4 className="font-semibold">Данные с порта</h4>
+            <h4 className="font-semibold text-sm">Данные с порта</h4>
+            <Chip size="sm" variant="dot" color={recordCount > 0 ? 'success' : 'default'}>
+              {recordCount} записей
+            </Chip>
           </div>
-          
+
           {recordCount > 0 && (
             <Button size="sm" variant="flat" onPress={clear}>
               Очистить
@@ -35,15 +38,14 @@ export const DataPreview = ({ port }: DataPreviewProps) => {
           )}
         </div>
 
-        {/* JSON данные */}
         {rawData ? (
           <div className="relative">
-            <pre className="bg-gray-900 text-gray-100 p-3 rounded-lg overflow-auto max-h-64 text-xs font-mono">
+            <pre className="bg-content2 p-3 rounded-lg overflow-auto max-h-48 text-xs font-mono">
               {JSON.stringify(latestData || rawData, null, 2)}
             </pre>
           </div>
         ) : (
-          <div className="text-center text-gray-500 text-sm py-4">
+          <div className="text-center text-default-400 text-sm py-8 border-2 border-dashed border-default-200 rounded-lg">
             Ожидание данных...
           </div>
         )}

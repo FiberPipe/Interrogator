@@ -1,0 +1,60 @@
+{
+  "title": "Настройки",
+  "subtitle": "Управление параметрами приложения",
+  "tabs": {
+    "main": "Основные",
+    "sensors": "Датчики",
+    "advanced": "Дополнительно",
+    "about": "О программе",
+    "database": "База данных"
+  },
+  "sections": {
+    "connection": "Подключение",
+    "interface": "Интерфейс",
+    "system": "Система",
+    "databaseInfo": "Информация о БД",
+    "databaseLocation": "Расположение",
+    "databaseBackup": "Резервное копирование",
+    "databaseExport": "Экспорт данных"
+  },
+  "language": {
+    "title": "Язык интерфейса",
+    "description": "Выберите язык отображения интерфейса",
+    "russian": "Русский",
+    "english": "English",
+    "changed": "Язык изменён",
+    "changedDescription": "Язык интерфейса изменён на {{language}}"
+  },
+  "theme": {
+    "title": "Тема",
+    "description": "Выберите светлую, тёмную или системную тему",
+    "light": "Светлая",
+    "dark": "Тёмная",
+    "system": "Системная",
+    "changed": "Тема изменена",
+    "changedDescription": "Тема изменена на {{theme}}"
+  },
+  "reset": {
+    "title": "Сброс настроек",
+    "description": "Сбросить все настройки к заводским",
+    "button": "Сбросить",
+    "confirm": "Подтверждение действия",
+    "confirmDescription": "Вы уверены, что хотите сбросить все настройки? Это действие нельзя отменить.",
+    "cancel": "Отмена",
+    "reset": "Сброс",
+    "success": "Настройки сброшены",
+    "successDescription": "Все настройки были сброшены к заводским"
+  },
+  "sensors": {
+    "title": "Настройка датчиков",
+    "description": "Настройка количества и параметров датчиков",
+    "notAvailable": "Пока недоступно",
+    "notAvailableDescription": "Раздел станет доступен после добавления логики настройки датчиков",
+    "channelCount": "Количество каналов",
+    "channelCountDescription": "Укажите количество активных каналов датчиков",
+    "samplingRate": "Частота дискретизации",
+    "samplingRateDescription": "Частота считывания данных с датчиков (Гц)",
+    "calibration": "Калибровка",
+    "calibrationDescription": "Настройки калибровки датчиков"
+  }
+}

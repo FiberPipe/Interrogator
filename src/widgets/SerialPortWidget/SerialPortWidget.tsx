@@ -1,17 +1,16 @@
-import { Card, CardBody, CardHeader, Alert, Spinner, Button, Divider } from '@heroui/react';
+import { Card, CardBody, CardHeader, Alert, Divider, Button } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useSerialConnection } from '../../features/serial-connection/model/useSerialConnection';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, ChevronUp, Usb } from 'lucide-react';
+import { useSerialPortContext } from '../../app/providers/SerialPortProvider';
 import { PortSelector } from '../../features/serial-connection/ui/PortSelector';
-import { AutoConnectSwitch } from '../../features/serial-connection/ui/AutoConnectionSwitch';
 import { ConnectionControls } from '../../features/serial-connection/ui/ConnectionControls';
-import { DataPreview, PortInfo } from '../../entities/serial-port';
+import { DataPreview } from '../../features/onboarding/ui/DataPreview';
 
 export const SerialPortWidget = () => {
     const { t } = useTranslation();
-    const [showDataPreview, setShowDataPreview] = useState(true);
+    const [showDataPreview, setShowDataPreview] = useState(false);
 
     const {
         ports,
@@ -19,55 +18,51 @@ export const SerialPortWidget = () => {
         connectedPort,
         loading,
         connecting,
+        disconnecting,
         error,
-        autoConnect,
-        lastData,
-        dataBuffer,
-        packetsReceived,
         loadPorts,
         handlePortChange,
         connectToPort,
         disconnectPort,
-        setAutoConnect,
-    } = useSerialConnection();
+    } = useSerialPortContext();
 
-    const handleConnect = () => {
+    const handleConnect = async () => {
         if (selectedPort) {
-            connectToPort(selectedPort);
+            await connectToPort(selectedPort);
         }
     };
 
-    const selectedPortInfo = ports.find((p) => p.path === selectedPort);
-
     return (
         <Card className="w-full">
-            <CardHeader className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
+            <CardHeader className="flex items-center gap-3 pb-0">
+                <div className="p-2 rounded-lg bg-primary-100 dark:bg-primary-900/30">
+                    <Usb className="w-6 h-6 text-primary" />
+                </div>
+                <div>
                     <h3 className="text-xl font-semibold">{t('serialPort.title')}</h3>
-                    {loading && <Spinner size="sm" />}
+                    <p className="text-sm text-default-500">{t('serialPort.description')}</p>
                 </div>
             </CardHeader>
 
-            <CardBody className="space-y-4">
-                <p className="text-sm text-default-500">
-                    {t('serialPort.description')}
-                </p>
+            <Divider className="my-4" />
 
+            <CardBody className="space-y-4">
                 {/* Статус подключения */}
-                {connectedPort ? (
+                {error && (
+                    <Alert color="danger" title={t('common.error')}>
+                        {error}
+                    </Alert>
+                )}
+
+                {connectedPort && (
                     <Alert color="success" title={t('serialPort.status.connected')}>
                         {t('serialPort.alerts.connectedTo')} <strong>{connectedPort}</strong>
                     </Alert>
-                ) : !selectedPort ? (
+                )}
+
+                {!connectedPort && !selectedPort && (
                     <Alert color="warning" title={t('serialPort.alerts.notSelected')}>
                         {t('serialPort.alerts.notSelectedDesc')}
-                    </Alert>
-                ) : null}
-
-                {/* Ошибка */}
-                {error && (
-                    <Alert color="danger" title={t('serialPort.alerts.error')}>
-                        {error}
                     </Alert>
                 )}
 
@@ -77,12 +72,9 @@ export const SerialPortWidget = () => {
                     selectedPort={selectedPort}
                     connectedPort={connectedPort}
                     loading={loading}
-                    connecting={connecting}
+                    connecting={connecting || disconnecting}
                     onPortChange={handlePortChange}
                 />
-
-                {/* Автоподключение */}
-                <AutoConnectSwitch value={autoConnect} onChange={setAutoConnect} />
 
                 {/* Кнопки управления */}
                 <ConnectionControls
@@ -90,14 +82,11 @@ export const SerialPortWidget = () => {
                     connectedPort={connectedPort}
                     loading={loading}
                     connecting={connecting}
-                    autoConnect={autoConnect}
+                    disconnecting={disconnecting}
                     onRefresh={loadPorts}
                     onConnect={handleConnect}
                     onDisconnect={disconnectPort}
                 />
-
-                {/* Информация о выбранном порте */}
-                {selectedPortInfo && <PortInfo port={selectedPortInfo} />}
 
                 {/* Предварительный просмотр данных */}
                 {connectedPort && (
@@ -106,6 +95,7 @@ export const SerialPortWidget = () => {
 
                         <Button
                             variant="light"
+                            fullWidth
                             onPress={() => setShowDataPreview(!showDataPreview)}
                             endContent={
                                 showDataPreview ? (
@@ -122,11 +112,14 @@ export const SerialPortWidget = () => {
 
                         <AnimatePresence>
                             {showDataPreview && (
-                                <DataPreview
-                                    data={lastData}
-                                    packetsReceived={packetsReceived}
-                                    dataBuffer={dataBuffer}
-                                />
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <DataPreview port={connectedPort} />
+                                </motion.div>
                             )}
                         </AnimatePresence>
                     </>
