@@ -2,7 +2,7 @@ import { Button, Card } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Moon, Sun, Monitor } from 'lucide-react';
-import { patchAppData } from '../../app/hooks/useOnboarding';
+import { patchAppData } from '../../../app/hooks/useOnboarding';
 
 const themes = [
   { value: 'light', icon: Sun, label: 'onboarding.theme.light' },

@@ -3,9 +3,9 @@ import { Card, CardBody, Progress } from '@heroui/react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import LanguageStep from '../features/onboarding/LanguageStep';
-import ThemeStep from '../features/onboarding/ThemeStep';
-import PortStep from '../features/onboarding/PortStep';
+import LanguageStep from '../features/onboarding/ui/LanguageStep';
+import ThemeStep from '../features/onboarding/ui/ThemeStep';
+import PortStep from '../features/onboarding/ui/PortStep';
 import { AppRoutes } from '../shared/types/routes';
 import { finishOnboarding } from '../app/hooks/useOnboarding';
 
@@ -132,10 +132,10 @@ export default function Onboarding({ setIsFirstLaunch }: OnboardingProps) {
                         <motion.div
                             key={i}
                             className={`h-2 rounded-full transition-all ${i === step
-                                    ? 'w-8 bg-primary'
-                                    : i < step
-                                        ? 'w-2 bg-primary/50'
-                                        : 'w-2 bg-default-300'
+                                ? 'w-8 bg-primary'
+                                : i < step
+                                    ? 'w-2 bg-primary/50'
+                                    : 'w-2 bg-default-300'
                                 }`}
                             animate={{
                                 scale: i === step ? 1.2 : 1,

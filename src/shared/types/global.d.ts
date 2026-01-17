@@ -1,4 +1,3 @@
-// Serial Port Types
 export interface SerialPortInfo {
   path: string;
   manufacturer?: string;

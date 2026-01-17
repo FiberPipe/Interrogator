@@ -1,5 +1,14 @@
-import { SerialDataProcessor } from "./ipc/serial-port/data-processor";
-import { ISerialPort } from "./ipc/serial-port/types";
+import type { SerialPortManager } from './serial/port-manager';
 
-export const activePorts = new Map<string, ISerialPort>();
-export const activeProcessors = new Map<string, SerialDataProcessor>();
+export let portManager: SerialPortManager | null = null;
+
+export function setPortManager(manager: SerialPortManager): void {
+  portManager = manager;
+}
+
+export function getPortManager(): SerialPortManager {
+  if (!portManager) {
+    throw new Error('PortManager not initialized');
+  }
+  return portManager;
+}
