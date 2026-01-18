@@ -1,0 +1,64 @@
+{
+  "title": "Sensor Configuration",
+  "subtitle": "Configure quantity and bind channels to sensors",
+  "count": {
+    "title": "Number of Sensors",
+    "description": "Specify the number of connected sensors (1-8)",
+    "placeholder": "Enter quantity",
+    "label": "Sensors"
+  },
+  "configuration": {
+    "title": "Sensor Configuration",
+    "sensor": "Sensor {{index}}",
+    "type": "Sensor Type",
+    "channels": "Channels",
+    "selectType": "Select type",
+    "noChannels": "No channels selected",
+    "channelsSelected": "Selected channels: {{count}}",
+    "alias": "Sensor Name",
+    "aliasPlaceholder": "e.g. Transmitter Sensor {{index}}"
+  },
+  "types": {
+    "displacement": "Displacement",
+    "temperature": "Temperature",
+    "pressure": "Pressure",
+    "strain": "Strain",
+    "vibration": "Vibration",
+    "none": "Not specified"
+  },
+  "channels": {
+    "available": "Available Channels",
+    "used": "Used Channels",
+    "channel": "Channel P{{index}}",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "inUse": "In Use",
+    "selectedCount": "Selected: {{count}}/{{max}}",
+    "limitReached": "Limit Reached",
+    "legend": {
+      "selected": "Selected",
+      "inUse": "In Use",
+      "available": "Available"
+    }
+  },
+  "actions": {
+    "save": "Save Configuration",
+    "reset": "Reset",
+    "apply": "Apply",
+    "cancel": "Cancel"
+  },
+  "messages": {
+    "saved": "Configuration Saved",
+    "savedDescription": "Sensor settings saved successfully",
+    "noSensors": "No sensors configured",
+    "noSensorsDescription": "Specify the number of sensors to begin setup",
+    "invalidCount": "Invalid number of sensors",
+    "channelInUse": "Channel already in use by another sensor"
+  },
+  "validation": {
+    "minSensors": "Minimum 1 sensor",
+    "maxSensors": "Maximum 8 sensors",
+    "typeRequired": "Select sensor type",
+    "channelsRequired": "Select at least one channel"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "back": "Back",
+  "next": "Next",
+  "error": "Error",
+  "sensors": "sensors",
+  "save": "Save",
+  "cancel": "Cancel",
+  "apply": "Apply",
+  "reset": "Reset",
+  "loading": "Loading...",
+  "success": "Success",
+  "warning": "Warning",
+  "info": "Info"
+}

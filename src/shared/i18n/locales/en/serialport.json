@@ -1,0 +1,49 @@
+{
+  "title": "COM Port",
+  "description": "Select COM port to connect to device",
+  "selectPort": "Select port",
+  "noPorts": "No available ports",
+  "portsFound": "Ports found: {{count}}",
+  "selectedPort": "Selected port",
+  "status": {
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "connecting": "Connecting...",
+    "busy": "busy",
+    "free": "Free"
+  },
+  "alerts": {
+    "notSelected": "COM port not selected",
+    "notSelectedDesc": "Please select a port for the application to work correctly",
+    "connectedTo": "Active connection to port:",
+    "error": "Error"
+  },
+  "buttons": {
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "connect": "Connect",
+    "connecting": "Connecting...",
+    "disconnect": "Disconnect",
+    "showData": "Show data",
+    "hideData": "Hide data"
+  },
+  "autoConnect": {
+    "title": "Auto-connect",
+    "description": "Automatically connect when opening the page"
+  },
+  "info": {
+    "path": "Path",
+    "manufacturer": "Manufacturer",
+    "serialNumber": "Serial Number",
+    "vendorId": "Vendor ID",
+    "productId": "Product ID",
+    "status": "Status",
+    "unknown": "Unknown"
+  },
+  "dataPreview": {
+    "title": "Data Preview",
+    "noData": "No data",
+    "lastUpdate": "Last update",
+    "receivedPackets": "Received packets: {{count}}"
+  }
+}

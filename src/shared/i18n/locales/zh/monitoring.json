@@ -1,0 +1,41 @@
+{
+    "formula": "公式",
+    "tabs": {
+        "power": "功率",
+        "wavelength": "波长",
+        "temperature": "温度",
+        "displacement": "位移"
+    },
+    "power": {
+        "columns": {
+            "id": "编号",
+            "rangeMin": "最小范围",
+            "alarmMin": "最小报警值",
+            "current": "当前值",
+            "alarmMax": "最大报警值",
+            "rangeMax": "最大范围"
+        }
+    },
+    "wavelength": {
+        "columns": {
+            "id": "编号",
+            "rangeMin": "最小范围 (nm)",
+            "alarmMin": "最小报警值",
+            "current": "当前值 (nm)",
+            "alarmMax": "最大报警值",
+            "rangeMax": "最大范围 (nm)"
+        }
+    },
+    "temperature": {
+        "columns": {
+            "id": "编号",
+            "result": "结果 (°C)"
+        }
+    },
+    "displacement": {
+        "columns": {
+            "id": "编号",
+            "result": "结果 (µm/m)"
+        }
+    }
+}

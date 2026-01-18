@@ -1,0 +1,64 @@
+{
+  "title": "Настройка датчиков",
+  "subtitle": "Настройка количества и привязки каналов к датчикам",
+  "count": {
+    "title": "Количество датчиков",
+    "description": "Укажите количество подключённых датчиков (1–8)",
+    "placeholder": "Введите количество",
+    "label": "Датчики"
+  },
+  "configuration": {
+    "title": "Конфигурация датчиков",
+    "sensor": "Датчик {{index}}",
+    "type": "Тип датчика",
+    "channels": "Каналы",
+    "selectType": "Выберите тип",
+    "noChannels": "Каналы не выбраны",
+    "channelsSelected": "Выбрано каналов: {{count}}",
+    "alias": "Название датчика",
+    "aliasPlaceholder": "напр. Датчик-передатчик {{index}}"
+  },
+  "types": {
+    "displacement": "Перемещение",
+    "temperature": "Температура",
+    "pressure": "Давление",
+    "strain": "Деформация",
+    "vibration": "Вибрация",
+    "none": "Не указано"
+  },
+  "channels": {
+    "available": "Доступные каналы",
+    "used": "Используемые каналы",
+    "channel": "Канал P{{index}}",
+    "selectAll": "Выбрать все",
+    "deselectAll": "Снять выделение",
+    "inUse": "Используется",
+    "selectedCount": "Выбрано: {{count}}/{{max}}",
+    "limitReached": "Лимит достигнут",
+    "legend": {
+      "selected": "Выбран",
+      "inUse": "Используется",
+      "available": "Доступен"
+    }
+  },
+  "actions": {
+    "save": "Сохранить конфигурацию",
+    "reset": "Сбросить",
+    "apply": "Применить",
+    "cancel": "Отмена"
+  },
+  "messages": {
+    "saved": "Конфигурация сохранена",
+    "savedDescription": "Настройки датчиков успешно сохранены",
+    "noSensors": "Датчики не настроены",
+    "noSensorsDescription": "Укажите количество датчиков для начала настройки",
+    "invalidCount": "Некорректное количество датчиков",
+    "channelInUse": "Канал уже используется другим датчиком"
+  },
+  "validation": {
+    "minSensors": "Минимум 1 датчик",
+    "maxSensors": "Максимум 8 датчиков",
+    "typeRequired": "Выберите тип датчика",
+    "channelsRequired": "Выберите хотя бы один канал"
+  }
+}

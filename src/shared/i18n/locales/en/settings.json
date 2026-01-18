@@ -1,0 +1,60 @@
+{
+  "title": "Settings",
+  "subtitle": "Manage application parameters",
+  "tabs": {
+    "main": "Main",
+    "sensors": "Sensors",
+    "advanced": "Advanced",
+    "about": "About",
+    "database": "Database"
+  },
+  "sections": {
+    "connection": "Connection",
+    "interface": "Interface",
+    "system": "System",
+    "databaseInfo": "Database Info",
+    "databaseLocation": "Location",
+    "databaseBackup": "Backup",
+    "databaseExport": "Export Data"
+  },
+  "language": {
+    "title": "Interface Language",
+    "description": "Select interface display language",
+    "russian": "Русский",
+    "english": "English",
+    "changed": "Language changed",
+    "changedDescription": "Interface language changed to {{language}}"
+  },
+  "theme": {
+    "title": "Theme",
+    "description": "Choose light, dark or system theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "changed": "Theme changed",
+    "changedDescription": "Theme changed to {{theme}}"
+  },
+  "reset": {
+    "title": "Reset Settings",
+    "description": "Reset all settings to factory defaults",
+    "button": "Reset to Factory",
+    "confirm": "Confirm Action",
+    "confirmDescription": "Are you sure you want to reset all settings? This action cannot be undone.",
+    "cancel": "Cancel",
+    "reset": "Reset",
+    "success": "Settings reset",
+    "successDescription": "All settings have been reset to factory defaults"
+  },
+  "sensors": {
+    "title": "Sensor Configuration",
+    "description": "Configure number and parameters of sensors",
+    "notAvailable": "Not Available Yet",
+    "notAvailableDescription": "This section will be available after sensor configuration logic is added",
+    "channelCount": "Channel Count",
+    "channelCountDescription": "Specify the number of active sensor channels",
+    "samplingRate": "Sampling Rate",
+    "samplingRateDescription": "Data acquisition frequency from sensors (Hz)",
+    "calibration": "Calibration",
+    "calibrationDescription": "Sensor calibration settings"
+  }
+}

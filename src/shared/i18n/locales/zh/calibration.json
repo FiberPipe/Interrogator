@@ -1,0 +1,54 @@
+{
+    "title": "校准数据",
+    "subtitle": "配置归一化和波长参数",
+    "methods": {
+      "table": "表格",
+      "csv": "CSV 文件",
+      "json": "JSON 文件",
+      "code": "代码编辑器"
+    },
+    "fields": {
+      "normalization": "归一化",
+      "wavelengths": "波长",
+      "field": "字段 {{index}}"
+    },
+    "dataFile": {
+      "title": "传感器数据文件路径",
+      "placeholder": "选择传感器数据文件",
+      "select": "浏览"
+    },
+    "upload": {
+      "csvTitle": "上传 CSV 文件",
+      "csvDescription": "上传包含校准数据的 CSV 文件",
+      "jsonTitle": "上传 JSON 文件",
+      "jsonDescription": "上传包含校准数据的 JSON 文件",
+      "selectFile": "选择文件",
+      "acceptedFormats": "支持的格式"
+    },
+    "code": {
+      "title": "JSON 编辑器"
+    },
+    "actions": {
+      "save": "保存配置",
+      "reset": "重置",
+      "export": "导出"
+    },
+    "messages": {
+      "saved": "配置已保存",
+      "savedDescription": "校准数据已成功保存",
+      "csvLoaded": "CSV 已加载",
+      "csvLoadedDescription": "CSV 文件已成功加载",
+      "jsonLoaded": "JSON 已加载",
+      "jsonLoadedDescription": "JSON 文件已成功加载"
+    },
+    "errors": {
+      "save": "保存错误",
+      "saveDescription": "无法保存校准数据",
+      "csvParse": "CSV 解析错误",
+      "csvParseDescription": "无法解析 CSV 文件",
+      "jsonParse": "JSON 解析错误",
+      "jsonParseDescription": "无法解析 JSON 文件",
+      "fileSelection": "文件选择错误",
+      "fileSelectionDescription": "无法选择文件"
+    }
+}

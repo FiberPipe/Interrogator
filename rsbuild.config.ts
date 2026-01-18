@@ -1,0 +1,38 @@
+import { defineConfig } from "@rsbuild/core";
+import { pluginReact } from "@rsbuild/plugin-react";
+import autoprefixer from "autoprefixer";
+import tailwindcss from "@tailwindcss/postcss";
+import { pluginNodePolyfill } from "@rsbuild/plugin-node-polyfill";
+
+export default defineConfig({
+  plugins: [pluginReact(), pluginNodePolyfill()],
+  source: { entry: { index: "./src/app/index.tsx" } },
+  html: {
+    title: "Interrogator",
+    tags: [
+      {
+        tag: "meta",
+        attrs: {
+          "http-equiv": "Content-Security-Policy",
+          content: [
+            "default-src 'self'",
+            "script-src 'self'",
+            "style-src 'self' 'unsafe-inline'",
+            "img-src 'self' data:",
+            "font-src 'self' data:"
+          ].join("; ")
+        }
+      },
+      { tag: "meta", attrs: { name: "viewport", content: "width=device-width, initial-scale=1" } }
+    ]
+  },
+  output: { assetPrefix: "./", distPath: { root: "./build" } },
+  server: { port: 3000, strictPort: true },
+  tools: {
+    postcss: {
+      postcssOptions: {
+        plugins: [tailwindcss(), autoprefixer()]
+      }
+    }
+  }
+});

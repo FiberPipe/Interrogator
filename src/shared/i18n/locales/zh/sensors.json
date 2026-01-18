@@ -1,0 +1,55 @@
+{
+  "title": "传感器配置",
+  "subtitle": "配置传感器数量并绑定通道",
+  "count": {
+    "title": "传感器数量",
+    "description": "指定已连接的传感器数量 (1–8)",
+    "placeholder": "输入数量",
+    "label": "传感器"
+  },
+  "configuration": {
+    "title": "传感器配置",
+    "sensor": "传感器 {{index}}",
+    "type": "传感器类型",
+    "channels": "通道",
+    "selectType": "选择类型",
+    "noChannels": "未选择通道",
+    "channelsSelected": "已选择通道：{{count}}"
+  },
+  "types": {
+    "displacement": "位移",
+    "temperature": "温度",
+    "pressure": "压力",
+    "strain": "应变",
+    "vibration": "振动",
+    "none": "未指定"
+  },
+  "channels": {
+    "available": "可用通道",
+    "used": "已使用通道",
+    "channel": "通道 P{{index}}",
+    "selectAll": "全选",
+    "deselectAll": "取消全选",
+    "inUse": "使用中"
+  },
+  "actions": {
+    "save": "保存配置",
+    "reset": "重置",
+    "apply": "应用",
+    "cancel": "取消"
+  },
+  "messages": {
+    "saved": "配置已保存",
+    "savedDescription": "传感器设置已成功保存",
+    "noSensors": "未配置传感器",
+    "noSensorsDescription": "请指定传感器数量以开始配置",
+    "invalidCount": "无效的传感器数量",
+    "channelInUse": "通道已被其他传感器占用"
+  },
+  "validation": {
+    "minSensors": "至少 1 个传感器",
+    "maxSensors": "最多 8 个传感器",
+    "typeRequired": "请选择传感器类型",
+    "channelsRequired": "请至少选择一个通道"
+  }
+}

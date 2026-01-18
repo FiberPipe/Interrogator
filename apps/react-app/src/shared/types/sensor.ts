@@ -1,1 +1,0 @@
-export type SensorMetric = 'Wavelength' | 'Power' | 'Temperature' | 'Displacement';

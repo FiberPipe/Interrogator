@@ -1,0 +1,49 @@
+{
+  "title": "COM 端口",
+  "description": "选择 COM 端口以连接设备",
+  "selectPort": "选择端口",
+  "noPorts": "没有可用端口",
+  "portsFound": "找到端口：{{count}}",
+  "selectedPort": "已选择端口",
+  "status": {
+    "connected": "已连接",
+    "disconnected": "已断开",
+    "connecting": "正在连接...",
+    "busy": "占用中",
+    "free": "空闲"
+  },
+  "alerts": {
+    "notSelected": "未选择 COM 端口",
+    "notSelectedDesc": "请选择端口以确保应用程序正常运行",
+    "connectedTo": "当前连接端口：",
+    "error": "错误"
+  },
+  "buttons": {
+    "refresh": "刷新",
+    "refreshing": "刷新中...",
+    "connect": "连接",
+    "connecting": "连接中...",
+    "disconnect": "断开连接",
+    "showData": "显示数据",
+    "hideData": "隐藏数据"
+  },
+  "autoConnect": {
+    "title": "自动连接",
+    "description": "打开页面时自动连接"
+  },
+  "info": {
+    "path": "路径",
+    "manufacturer": "制造商",
+    "serialNumber": "序列号",
+    "vendorId": "厂商 ID",
+    "productId": "产品 ID",
+    "status": "状态",
+    "unknown": "未知"
+  },
+  "dataPreview": {
+    "title": "数据预览",
+    "noData": "无数据",
+    "lastUpdate": "最后更新",
+    "receivedPackets": "已接收数据包：{{count}}"
+  }
+}

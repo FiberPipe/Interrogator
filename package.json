@@ -1,14 +1,105 @@
 {
-  "name": "@interrogator",
+  "name": "@interrogator/app",
+  "private": true,
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "main": "build/electron/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev:react": "rsbuild dev --port 3000",
+    "dev:web": "npm run dev:react -- --open",
+    "dev:electron": "concurrently \"pnpm dev:react\" \"wait-on http://127.0.0.1:3000 && tsc -p tsconfig.electron.json -w\" \"wait-on http://127.0.0.1:3000 && tsc -p tsconfig.electron.json && electron .\"",
+    "build:web": "rsbuild build",
+    "build:electron": "tsc -p tsconfig.electron.json && cp electron.cjs.package.json build/electron/package.json",
+    "build": "npm run build:web && npm run build:electron",
+    "dist": "npm run build && electron-builder",
+    "deps:ci": "pnpm install --frozen-lockfile",
+    "deps:truncate": "pnpm prune --prod",
+    "deps:clean": "rm -rf node_modules && rm -rf ~/.pnpm",
+    "lint": "eslint 'src/**/*.{ts,tsx}'",
+    "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
+    "format:check": "prettier --check 'src/**/*.{ts,tsx,js,jsx,json,css,md}'",
+    "format:fix": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json,css,md}'",
+    "prepare": "husky"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "dependencies": {
+    "@heroui/react": "2.8.4",
+    "@heroui/system": "2.4.22",
+    "@heroui/theme": "2.4.22",
+    "@monaco-editor/react": "^4.7.0",
+    "@rsbuild/plugin-node-polyfill": "^1.4.2",
+    "drizzle-orm": "0.44.7",
+    "electron-store": "8.2.0",
+    "eslint": "9.39.1",
+    "i18next": "25.7.1",
+    "i18next-browser-languagedetector": "8.2.0",
+    "lucide-react": "0.554.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "react-i18next": "^16.3.5",
+    "react-router-dom": "^7.9.6",
+    "recharts": "3.5.1",
+    "serialport": "13.0.0",
+    "sql.js": "^1.13.0",
+    "tailwindcss": "^4.1.17"
+  },
   "devDependencies": {
+    "@electron/rebuild": "^4.0.2",
+    "@eslint/js": "^9.39.1",
+    "@rsbuild/core": "1.5.12",
+    "@rsbuild/plugin-react": "1.4.1",
+    "@tailwindcss/postcss": "4.1.13",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "24.5.2",
+    "@types/react": "19.1.14",
+    "@types/react-dom": "19.1.9",
+    "@types/sql.js": "^1.4.9",
+    "@typescript-eslint/eslint-plugin": "^8.48.1",
+    "@typescript-eslint/parser": "^8.48.1",
+    "autoprefixer": "10.4.21",
+    "better-sqlite3": "^12.5.0",
+    "concurrently": "9.2.1",
+    "date-fns": "^4.1.0",
+    "electron": "39.2.4",
+    "electron-builder": "26.0.12",
+    "electron-rebuild": "^3.2.9",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "framer-motion": "^12.26.1",
+    "globals": "^16.5.0",
+    "husky": "^9.1.7",
+    "jiti": "^2.6.1",
+    "lint-staged": "^16.2.7",
+    "motion": "^12.26.1",
+    "prettier": "^3.7.3",
+    "react-calendar-heatmap": "^1.10.0",
+    "typescript": "5.9.2",
+    "typescript-eslint": "^8.48.1",
+    "wait-on": "9.0.1"
+  },
+  "build": {
+    "files": [
+      "build/**/*",
+      "node_modules/sql.js/dist/sql-wasm.wasm"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/sql.js/dist/sql-wasm.wasm",
+        "to": "sql-wasm.wasm"
+      }
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css}": [
+      "prettier --write"
+    ]
   }
 }
