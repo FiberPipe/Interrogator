@@ -9,7 +9,7 @@ import { ChartLegend } from '../../../entities/chart/ui/ChartLegend';
 import { ViewType } from '../../../entities/chart/model/types';
 import { SerialDataPoint, useSerialData } from '../model/useSerialData';
 import { ChartControls } from '../../../features/data-visualization/ChartsControls';
-import { ViewTypeSelector } from '../../../features/data-visualization/ViewTypeSelector';
+import { ViewModeSelector } from '../../../features/data-visualization/ViewModeSelector';
 import { ChartSeries, LineChartWithConfidence } from '../../../shared/ui';
 
 const COLORS = [
@@ -117,7 +117,7 @@ export const PowerChartWidget = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              <ViewTypeSelector activeView={viewType} onViewChange={setViewType} />
+              <ViewModeSelector activeView={viewType} onViewChange={setViewType} />
               <ChartControls onClear={clearBuffer} />
             </div>
           </div>

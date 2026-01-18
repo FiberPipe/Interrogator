@@ -1,0 +1,45 @@
+{
+    "formula": "Formula",
+    "tabs": {
+        "power": "Power",
+        "wavelength": "Wavelength",
+        "temperature": "Temperature",
+        "displacement": "Displacement"
+    },
+    "power": {
+        "columns": {
+            "id": "ID",
+            "rangeMin": "Range Min",
+            "alarmMin": "Alarm Min",
+            "current": "Current",
+            "alarmMax": "Alarm Max",
+            "rangeMax": "Range Max"
+        }
+    },
+    "wavelength": {
+        "columns": {
+            "id": "ID",
+            "rangeMin": "Range Min (nm)",
+            "alarmMin": "Alarm Min",
+            "current": "Current (nm)",
+            "alarmMax": "Alarm Max",
+            "rangeMax": "Range Max (nm)"
+        }
+    },
+    "temperature": {
+        "columns": {
+            "id": "ID",
+            "result": "Result (°C)"
+        },
+        "sensor": "Sensor {{index}}",
+        "formula": "T = E(λ - λ₀)⁴ + D(λ - λ₀)³ + C(λ - λ₀)² + B(λ - λ₀) + A"
+    },
+    "displacement": {
+        "columns": {
+            "id": "ID",
+            "result": "Result (мкм/м)"
+        },
+        "sensor": "Sensor {{index}}",
+        "formula": "ε = (10⁶ · (λ - λ₀)) / (k · λ₀) - C(T² - T₀²) - (B + α)(T - T₀)"
+    }
+}

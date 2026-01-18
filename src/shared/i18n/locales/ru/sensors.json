@@ -14,7 +14,9 @@
     "channels": "Каналы",
     "selectType": "Выберите тип",
     "noChannels": "Каналы не выбраны",
-    "channelsSelected": "Выбрано каналов: {{count}}"
+    "channelsSelected": "Выбрано каналов: {{count}}",
+    "alias": "Название датчика",
+    "aliasPlaceholder": "напр. Датчик-передатчик {{index}}"
   },
   "types": {
     "displacement": "Перемещение",
@@ -30,7 +32,14 @@
     "channel": "Канал P{{index}}",
     "selectAll": "Выбрать все",
     "deselectAll": "Снять выделение",
-    "inUse": "Используется"
+    "inUse": "Используется",
+    "selectedCount": "Выбрано: {{count}}/{{max}}",
+    "limitReached": "Лимит достигнут",
+    "legend": {
+      "selected": "Выбран",
+      "inUse": "Используется",
+      "available": "Доступен"
+    }
   },
   "actions": {
     "save": "Сохранить конфигурацию",

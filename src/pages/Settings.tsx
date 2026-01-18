@@ -7,7 +7,7 @@ import { LanguageSelector } from '../features/settings/LanguageSelector';
 import { ThemeSelector } from '../features/settings/ThemeSelector';
 import { ResetToFactoryCard } from '../features/reset/ResetToFactory';
 import { Divider } from '@heroui/react';
-import { SensorConfigWidget } from '../widgets/SensorConfigWidget/ui/SensorConfigWidget';
+import { SensorConfigWidget } from '../widgets/sensor-config/ui/SensorConfigWidget';
 import { DatabaseManagementWidget } from '../widgets/DatabaseManagement/ui/DatabaseManagementWidget';
 import { SensorCalibrationWidget } from '../widgets/SensorCalibration/ui/SensorCalibrationWidget';
 import { LightManagement } from '../widgets';

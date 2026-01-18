@@ -2,14 +2,14 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { HeroUIProvider } from '@heroui/react';
 
 import { ErrorWrapper } from './providers/ErrorWrapper';
-import Settings from '../pages/Settings';
-import { Charts } from '../pages';
-import Onboarding from '../pages/Onboarding';
 import { useOnboarding } from './hooks/useOnboarding';
 import { AppRoutes } from '../shared/types/routes';
 import './styles/global.css';
 import Sidebar from '../widgets/Sidebar/ui/Sidebar';
 import { SerialPortProvider } from './providers/SerialPortProvider';
+import { ChartsPage, DashboardPage } from '../pages';
+import Onboarding from '../pages/Onboarding';
+import Settings from '../pages/Settings';
 
 export default function App() {
   const { isFirstLaunch, setIsFirstLaunch } = useOnboarding();
@@ -29,7 +29,8 @@ export default function App() {
                 <Routes>
                   <Route path={AppRoutes.HOME} element={<Navigate replace to={AppRoutes.SETTINGS} />} />
                   <Route path={AppRoutes.SETTINGS} element={<Settings onReset={() => setIsFirstLaunch(true)} />} />
-                  <Route path={AppRoutes.CHARTS} element={<Charts />} />
+                  <Route path={AppRoutes.CHARTS} element={<ChartsPage />} />
+                  <Route path={AppRoutes.DASHBOARD} element={<DashboardPage />} />
                   <Route path="*" element={<Navigate replace to={AppRoutes.SETTINGS} />} />
                 </Routes>
               </div>

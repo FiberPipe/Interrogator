@@ -33,16 +33,6 @@ export const useSensorConfig = () => {
         loadConfig();
     }, []);
 
-    const initializeSensors = useCallback((count: number, existing?: Record<number, SensorConfig>) => {
-        const newSensors: Record<number, SensorConfig> = {};
-
-        for (let i = 0; i < count; i++) {
-            newSensors[i] = existing?.[i] || createEmptySensor(i);
-        }
-
-        return newSensors;
-    }, []);
-
     // Инициализация датчиков при изменении количества
     useEffect(() => {
         if (sensorCount > 0) {
@@ -50,11 +40,7 @@ export const useSensorConfig = () => {
                 const newSensors: Record<number, SensorConfig> = {};
 
                 for (let i = 0; i < sensorCount; i++) {
-                    newSensors[i] = prev[i] || {
-                        index: i,
-                        type: '',
-                        channels: [],
-                    };
+                    newSensors[i] = prev[i] || createEmptySensor(i);
                 }
 
                 return newSensors;
@@ -77,6 +63,17 @@ export const useSensorConfig = () => {
         }));
     }, []);
 
+    // 👇 Новый метод для обновления псевдонима
+    const updateSensorAlias = useCallback((sensorIndex: number, alias: string) => {
+        setSensors((prev) => ({
+            ...prev,
+            [sensorIndex]: {
+                ...prev[sensorIndex],
+                alias,
+            },
+        }));
+    }, []);
+
     const toggleChannel = useCallback((sensorIndex: number, channel: string) => {
         setSensors((prev) => {
             const currentSensor = prev[sensorIndex];
@@ -88,7 +85,7 @@ export const useSensorConfig = () => {
             );
 
             if (isUsedByOther) {
-                // Если канал используется, отбираем его у другого датчика
+                // Отбираем канал у другого датчика
                 const newSensors = { ...prev };
 
                 Object.keys(newSensors).forEach((key) => {
@@ -109,7 +106,7 @@ export const useSensorConfig = () => {
                 return newSensors;
             }
 
-            // Если канал не используется, просто переключаем
+            // Просто переключаем
             const newChannels = currentChannels.includes(channel)
                 ? currentChannels.filter((ch) => ch !== channel)
                 : [...currentChannels, channel].sort();
@@ -148,7 +145,6 @@ export const useSensorConfig = () => {
         setSensors({});
     }, []);
 
-    // Получение всех используемых каналов
     const usedChannels = Object.values(sensors).flatMap((sensor) => sensor.channels);
 
     return {
@@ -159,6 +155,7 @@ export const useSensorConfig = () => {
         usedChannels,
         updateSensorCount,
         updateSensorType,
+        updateSensorAlias, // 👈 Экспортируем новый метод
         toggleChannel,
         saveConfiguration,
         resetConfiguration,

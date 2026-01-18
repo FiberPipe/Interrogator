@@ -1,5 +1,4 @@
 {
-  "calibration": {
     "title": "校准数据",
     "subtitle": "配置归一化和波长参数",
     "methods": {
@@ -52,5 +51,4 @@
       "fileSelection": "文件选择错误",
       "fileSelectionDescription": "无法选择文件"
     }
-  }
 }

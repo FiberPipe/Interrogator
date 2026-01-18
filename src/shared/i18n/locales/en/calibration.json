@@ -1,5 +1,4 @@
 {
-  "calibration": {
     "title": "Calibration Data",
     "subtitle": "Configure normalization and wavelength parameters",
     "methods": {
@@ -52,5 +51,4 @@
       "fileSelection": "File Selection Error",
       "fileSelectionDescription": "Failed to select file"
     }
-  }
 }

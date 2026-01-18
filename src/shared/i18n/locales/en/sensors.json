@@ -14,7 +14,9 @@
     "channels": "Channels",
     "selectType": "Select type",
     "noChannels": "No channels selected",
-    "channelsSelected": "Selected channels: {{count}}"
+    "channelsSelected": "Selected channels: {{count}}",
+    "alias": "Sensor Name",
+    "aliasPlaceholder": "e.g. Transmitter Sensor {{index}}"
   },
   "types": {
     "displacement": "Displacement",
@@ -30,7 +32,14 @@
     "channel": "Channel P{{index}}",
     "selectAll": "Select All",
     "deselectAll": "Deselect All",
-    "inUse": "In Use"
+    "inUse": "In Use",
+    "selectedCount": "Selected: {{count}}/{{max}}",
+    "limitReached": "Limit Reached",
+    "legend": {
+      "selected": "Selected",
+      "inUse": "In Use",
+      "available": "Available"
+    }
   },
   "actions": {
     "save": "Save Configuration",
