@@ -21,13 +21,6 @@ export const menuItems = [
         path: AppRoutes.DASHBOARD,
         badge: 'beta',
     },
-    {
-        id: 'map',
-        labelKey: 'navigation.map',
-        icon: Map,
-        path: AppRoutes.MAP,
-        badge: 'dev',
-    },
 ];
 
 export const documentationLinks = [

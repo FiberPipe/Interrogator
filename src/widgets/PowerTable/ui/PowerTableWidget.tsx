@@ -15,8 +15,8 @@ import { motion } from 'framer-motion';
 import { Table as TableIcon, AlertTriangle } from 'lucide-react';
 
 import { useSerialConnection } from '../../../features/serial-connection/model/useSerialConnection';
-import { usePowerTable } from '../../../features/power-table/model/usePowerTable';
-import { PowerTableRow } from '../../../features/power-table/ui/PowerTableRow';
+import { usePowerTable } from '../../../features/power-monitoring/model/usePowerTable';
+import { PowerTableRow } from '../../../features/power-monitoring/ui/PowerTableRow';
 import { groupDataByPowerId } from '../../../entities/power-data/model/utils';
 import { useSerialData } from '../../PowerChartWidget/model/useSerialData';
 

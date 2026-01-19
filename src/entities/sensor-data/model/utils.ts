@@ -1,84 +1,83 @@
 import type { ReceivedData, GroupedWavelengthItem, GroupedPowerItem } from './types';
 
+/**
+ * Группирует данные по ID канала wavelength
+ * Возвращает массив с информацией по каждому каналу
+ */
 export const groupDataByWavelengthId = (data: ReceivedData[]): GroupedWavelengthItem[] => {
-  const groupedData: Record<number, number[]> = {};
+    if (!data.length) return [];
 
-  data.forEach((item) => {
-    Object.keys(item).forEach((key) => {
-      const idMatch = key.match(/^wavelength(\d+)$/);
-      if (!idMatch) return;
+    const groupedData: Record<number, number[]> = {};
 
-      const sensorId = Number(idMatch[1]);
-      const value = Number(item[key]);
-      if (isNaN(value)) return;
+    // Собираем все значения для каждого канала
+    data.forEach((item) => {
+        Object.keys(item).forEach((key) => {
+            const idMatch = key.match(/^wavelength(\d+)$/);
+            if (!idMatch) return;
 
-      if (!groupedData[sensorId]) groupedData[sensorId] = [];
-      groupedData[sensorId].push(value);
+            const sensorId = Number(idMatch[1]);
+            const value = Number(item[key]);
+            if (isNaN(value)) return;
+
+            if (!groupedData[sensorId]) groupedData[sensorId] = [];
+            groupedData[sensorId].push(value);
+        });
     });
-  });
 
-  return Object.keys(groupedData).map((key) => {
-    const id = Number(key);
-    const values = groupedData[id];
-    return {
-      id,
-      wavelength: values[values.length - 1],
-      rangeMin: values.length ? Math.min(...values) : NaN,
-      rangeMax: values.length ? Math.max(...values) : NaN,
-    };
-  });
+    // Формируем результат
+    return Object.keys(groupedData)
+        .map((key) => {
+            const id = Number(key);
+            const values = groupedData[id];
+
+            return {
+                id,
+                wavelength: values[values.length - 1], // Последнее значение
+                values, // История всех значений
+                rangeMin: values.length ? Math.min(...values) : 0,
+                rangeMax: values.length ? Math.max(...values) : 0,
+            };
+        })
+        .sort((a, b) => a.id - b.id);
 };
 
+/**
+ * Группирует данные по ID канала Power
+ * Возвращает массив с информацией по каждому каналу
+ */
 export const groupDataByPowerId = (data: ReceivedData[]): GroupedPowerItem[] => {
-  const groupedData: Record<number, number[]> = {};
+    if (!data.length) return [];
 
-  data.forEach((item) => {
-    Object.keys(item).forEach((key) => {
-      const idMatch = key.match(/^P(\d+)$/);
-      if (!idMatch) return;
+    const groupedData: Record<number, number[]> = {};
 
-      const sensorId = Number(idMatch[1]);
-      const value = Number(item[key]);
-      if (isNaN(value)) return;
+    // Собираем все значения для каждого канала
+    data.forEach((item) => {
+        Object.keys(item).forEach((key) => {
+            const idMatch = key.match(/^P(\d+)$/);
+            if (!idMatch) return;
 
-      if (!groupedData[sensorId]) groupedData[sensorId] = [];
-      groupedData[sensorId].push(value);
+            const sensorId = Number(idMatch[1]);
+            const value = Number(item[key]);
+            if (isNaN(value)) return;
+
+            if (!groupedData[sensorId]) groupedData[sensorId] = [];
+            groupedData[sensorId].push(value);
+        });
     });
-  });
 
-  return Object.keys(groupedData).map((key) => {
-    const id = Number(key);
-    const values = groupedData[id];
-    return {
-      id,
-      currentValue: values[values.length - 1],
-      rangeMin: values.length ? Math.min(...values) : NaN,
-      rangeMax: values.length ? Math.max(...values) : NaN,
-    };
-  });
-};
+    // Формируем результат
+    return Object.keys(groupedData)
+        .map((key) => {
+            const id = Number(key);
+            const values = groupedData[id];
 
-export const calculateTemperature = (
-  wavelength: number,
-  coeffs: { lambda0: number; E: number; D: number; C: number; B: number; A: number }
-): number => {
-  const delta = wavelength - coeffs.lambda0;
-  return (
-    coeffs.E * Math.pow(delta, 4) +
-    coeffs.D * Math.pow(delta, 3) +
-    coeffs.C * Math.pow(delta, 2) +
-    coeffs.B * delta +
-    coeffs.A
-  );
-};
-
-export const calculateDisplacement = (
-  wavelength: number,
-  coeffs: { lambda0: number; k: number; C: number; B: number; alpha: number; T: number; T0: number }
-): number => {
-  return (
-    (Math.pow(10, 6) * (wavelength - coeffs.lambda0)) / (coeffs.k * coeffs.lambda0) -
-    coeffs.C * (Math.pow(coeffs.T, 2) - Math.pow(coeffs.T0, 2)) -
-    (coeffs.B + coeffs.alpha) * (coeffs.T - coeffs.T0)
-  );
+            return {
+                id,
+                currentValue: values[values.length - 1], // Последнее значение
+                values, // История всех значений для спарклайна
+                rangeMin: values.length ? Math.min(...values) : 0,
+                rangeMax: values.length ? Math.max(...values) : 0,
+            };
+        })
+        .sort((a, b) => a.id - b.id);
 };
