@@ -2,24 +2,44 @@
   "name": "@interrogator/app",
   "private": true,
   "version": "1.0.0",
+  "description": "FBG Sensor Interrogator Desktop Application",
+  "author": "Your Name",
   "main": "build/electron/main.js",
+  
   "scripts": {
     "dev:react": "rsbuild dev --port 3000",
     "dev:web": "npm run dev:react -- --open",
     "dev:electron": "concurrently \"pnpm dev:react\" \"wait-on http://127.0.0.1:3000 && tsc -p tsconfig.electron.json -w\" \"wait-on http://127.0.0.1:3000 && tsc -p tsconfig.electron.json && electron .\"",
+    
+    "prepare:build": "node scripts/prepare-build.js",
+    "prebuild": "node scripts/prebuild.js",
+    
     "build:web": "rsbuild build",
-    "build:electron": "tsc -p tsconfig.electron.json && cp electron.cjs.package.json build/electron/package.json",
-    "build": "npm run build:web && npm run build:electron",
-    "dist": "npm run build && electron-builder",
-    "deps:ci": "pnpm install --frozen-lockfile",
-    "deps:truncate": "pnpm prune --prod",
-    "deps:clean": "rm -rf node_modules && rm -rf ~/.pnpm",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build": "npm run prepare:build && npm run prebuild && npm run build:web && npm run build:electron",
+    
+    "dist": "npm run build && electron-builder --config.npmRebuild=false",
+    "dist:win": "npm run build && electron-builder --win --x64 --config.npmRebuild=false",
+    "dist:win:full": "npm run build && electron-builder --win --x64",
+    "dist:dir": "npm run build && electron-builder --dir --config.npmRebuild=false",
+    
+    "build:auto": "node scripts/build.js",
+    "build:auto:clean": "node scripts/build.js --skip-rebuild",
+    "build:auto:dev": "node scripts/build.js --dev",
+    
+    "postinstall": "electron-builder install-app-deps",
+    
+    "clean:build": "node scripts/prepare-build.js",
+    "clean:modules": "node -e \"const fs = require('fs'); ['node_modules', 'pnpm-lock.yaml'].forEach(item => { try { fs.rmSync(item, { recursive: true, force: true }); } catch (e) {} })\"",
+    "clean:install": "npm run clean:modules && pnpm install",
+    
     "lint": "eslint 'src/**/*.{ts,tsx}'",
     "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
     "format:check": "prettier --check 'src/**/*.{ts,tsx,js,jsx,json,css,md}'",
     "format:fix": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json,css,md}'",
     "prepare": "husky"
   },
+  
   "dependencies": {
     "@heroui/react": "2.8.4",
     "@heroui/system": "2.4.22",
@@ -28,7 +48,6 @@
     "@rsbuild/plugin-node-polyfill": "^1.4.2",
     "drizzle-orm": "0.44.7",
     "electron-store": "8.2.0",
-    "eslint": "9.39.1",
     "i18next": "25.7.1",
     "i18next-browser-languagedetector": "8.2.0",
     "lucide-react": "0.554.0",
@@ -41,8 +60,8 @@
     "sql.js": "^1.13.0",
     "tailwindcss": "^4.1.17"
   },
+  
   "devDependencies": {
-    "@electron/rebuild": "^4.0.2",
     "@eslint/js": "^9.39.1",
     "@rsbuild/core": "1.5.12",
     "@rsbuild/plugin-react": "1.4.1",
@@ -60,7 +79,7 @@
     "date-fns": "^4.1.0",
     "electron": "39.2.4",
     "electron-builder": "26.0.12",
-    "electron-rebuild": "^3.2.9",
+    "eslint": "9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.4",
@@ -74,25 +93,60 @@
     "motion": "^12.26.1",
     "prettier": "^3.7.3",
     "react-calendar-heatmap": "^1.10.0",
+    "rimraf": "^6.1.2",
     "typescript": "5.9.2",
     "typescript-eslint": "^8.48.1",
     "wait-on": "9.0.1"
   },
+  
   "build": {
+    "appId": "com.interrogator.app",
+    "productName": "Interrogator",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    
+    "npmRebuild": false,
+    
     "files": [
       "build/**/*",
-      "node_modules/sql.js/dist/sql-wasm.wasm"
+      "!build/renderer/**/*.map",
+      "node_modules/**/*",
+      "package.json"
     ],
+    
     "extraResources": [
       {
         "from": "node_modules/sql.js/dist/sql-wasm.wasm",
         "to": "sql-wasm.wasm"
       }
     ],
+    
     "directories": {
-      "buildResources": "assets"
-    }
+      "buildResources": "assets",
+      "output": "dist"
+    },
+    
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    
+    "portable": {
+      "artifactName": "${productName}-${version}-portable.exe"
+    },
+    
+    "asarUnpack": [
+      "**/node_modules/serialport/**/*",
+      "**/node_modules/@serialport/**/*",
+      "**/node_modules/better-sqlite3/**/*",
+      "**/node_modules/sql.js/**/*"
+    ]
   },
+  
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
       "eslint --fix",

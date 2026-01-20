@@ -10,12 +10,15 @@ import { registerSerialPortIpc } from './serial';
 import { getPortManager } from './state';
 
 let win: BrowserWindow | null = null;
+const isDev = !app.isPackaged;
 
-console.log(
-  '[Main] Preload path exists:',
-  existsSync(join(__dirname, 'preload.js')),
-  join(__dirname, 'preload.js'),
-);
+console.log('[Main] =================================');
+console.log('[Main] Environment:', isDev ? 'DEVELOPMENT' : 'PRODUCTION');
+console.log('[Main] app.isPackaged:', app.isPackaged);
+console.log('[Main] __dirname:', __dirname);
+console.log('[Main] process.cwd():', process.cwd());
+console.log('[Main] app.getAppPath():', app.getAppPath());
+console.log('[Main] =================================');
 
 /**
  * Инициализация хранилища при первом запуске
@@ -37,6 +40,37 @@ function initAppStorage() {
 }
 
 /**
+ * Получение URL для загрузки приложения
+ */
+function getAppUrl(): string {
+  if (isDev) {
+    // Development: localhost
+    return 'http://localhost:3000';
+  }
+
+  // Production: ищем HTML файл
+  const possiblePaths = [
+    join(__dirname, '../renderer/index.html'),
+    join(process.resourcesPath, 'app.asar', 'build', 'renderer', 'index.html'),
+    join(process.resourcesPath, 'build', 'renderer', 'index.html'),
+    join(app.getAppPath(), 'build', 'renderer', 'index.html'),
+  ];
+
+  for (const htmlPath of possiblePaths) {
+    console.log('[Main] Checking path:', htmlPath);
+    if (existsSync(htmlPath)) {
+      console.log('[Main] ✅ Found HTML at:', htmlPath);
+      return `file://${htmlPath}`;
+    }
+  }
+
+  // Fallback - используем первый путь и надеемся на лучшее
+  console.error('[Main] ❌ HTML file not found in any location!');
+  console.error('[Main] Using fallback path...');
+  return `file://${possiblePaths[0]}`;
+}
+
+/**
  * Создание главного окна приложения
  */
 async function createWindow() {
@@ -46,7 +80,7 @@ async function createWindow() {
     // 1. Инициализируем базу данных
     console.log('[Main] Initializing database...');
     await initDatabase({
-      location: 'appPath', // или 'userData'
+      location: 'userData',
     });
     console.log('[Main] ✅ Database initialized');
 
@@ -56,7 +90,7 @@ async function createWindow() {
       height: 900,
       minWidth: 1024,
       minHeight: 768,
-      show: false, // Покажем после загрузки
+      show: false,
       webPreferences: {
         preload: join(__dirname, 'preload.js'),
         contextIsolation: true,
@@ -68,49 +102,57 @@ async function createWindow() {
     // 3. Регистрируем IPC обработчики
     console.log('[Main] Registering IPC handlers...');
     registerDatabaseIpc();
-    registerSerialPortIpc(win); // Создаёт PortManager внутри
+    registerSerialPortIpc(win);
     registerIpc(win);
     console.log('[Main] ✅ IPC handlers registered');
 
-    // 4. Загружаем UI
-    const url = process.env.NODE_ENV === 'production'
-      ? `file://${join(__dirname, '../renderer/index.html')}`
-      : 'http://localhost:3000';
-
+    // 4. Получаем URL для загрузки
+    const url = getAppUrl();
     console.log('[Main] Loading URL:', url);
+
+    // 5. Загружаем UI
     await win.loadURL(url);
 
-    // 5. Показываем окно после загрузки
+    // 6. Открываем DevTools (для отладки production)
+    if (isDev) {
+      win.webContents.openDevTools({ mode: 'right' });
+    } else {
+      // В production открываем detached (отдельное окно)
+      win.webContents.openDevTools({ mode: 'detach' });
+    }
+
+    // 7. Показываем окно после загрузки
     win.once('ready-to-show', () => {
       console.log('[Main] ✅ Window ready to show');
       win?.show();
     });
 
-    // 6. DevTools в разработке
-    if (process.env.NODE_ENV !== 'production') {
-      win.webContents.openDevTools({ mode: 'right' });
-    }
+    // 8. Обработка ошибок загрузки
+    win.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+      console.error('[Main] ❌ Failed to load:', errorCode, errorDescription);
+      console.error('[Main] URL was:', validatedURL);
+    });
 
-    // 7. Обработка закрытия окна
+    // 9. Перенаправляем console.log из renderer в main
+    win.webContents.on('console-message', (event, level, message, line, sourceId) => {
+      console.log(`[Renderer] ${message}`);
+    });
+
+    // 10. Обработка закрытия окна
     win.on('close', async (event) => {
       console.log('[Main] Window closing...');
-      
-      // Предотвращаем закрытие до завершения очистки
       event.preventDefault();
 
       try {
-        // Закрываем все порты
         const portManager = getPortManager();
         await portManager.closeAllPorts();
         console.log('[Main] ✅ All ports closed');
 
-        // Сохраняем БД
         saveDatabase();
         console.log('[Main] ✅ Database saved');
       } catch (err) {
         console.error('[Main] ❌ Error during cleanup:', err);
       } finally {
-        // Теперь можно закрыть окно
         win?.destroy();
         win = null;
       }
@@ -155,21 +197,17 @@ app.on('activate', () => {
  */
 app.on('before-quit', async (event) => {
   console.log('[Main] 🛑 App quitting...');
-  
-  // Предотвращаем выход до завершения очистки
   event.preventDefault();
 
   try {
-    // Закрываем все порты через менеджер
     try {
       const portManager = getPortManager();
       await portManager.closeAllPorts();
       console.log('[Main] ✅ All serial ports closed');
     } catch (err) {
-      console.warn('[Main] ⚠️ PortManager not available or error closing ports:', err);
+      console.warn('[Main] ⚠️ PortManager error:', err);
     }
 
-    // Сохраняем базу данных
     try {
       saveDatabase();
       console.log('[Main] ✅ Database saved');
@@ -181,7 +219,6 @@ app.on('before-quit', async (event) => {
   } catch (err) {
     console.error('[Main] ❌ Error during quit cleanup:', err);
   } finally {
-    // Теперь можно выйти
     app.exit(0);
   }
 });
@@ -192,7 +229,6 @@ app.on('before-quit', async (event) => {
 app.on('window-all-closed', () => {
   console.log('[Main] All windows closed');
 
-  // На macOS приложения обычно остаются активными
   if (process.platform !== 'darwin') {
     app.quit();
   }
@@ -203,7 +239,6 @@ app.on('window-all-closed', () => {
  */
 process.on('uncaughtException', (err) => {
   console.error('[Main] 💥 Uncaught Exception:', err);
-  // Сохраняем БД перед выходом
   try {
     saveDatabase();
   } catch (saveErr) {
