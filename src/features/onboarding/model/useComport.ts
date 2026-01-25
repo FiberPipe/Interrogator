@@ -48,7 +48,7 @@ export const useComPort = (): UseComPortReturn => {
   const isMountedRef = useRef(true);
 
   const loadPorts = useCallback(async () => {
-    addSuccessToaster('[useComPort] 📡 Loading ports...');
+    addSuccessToaster('[useComPort] 📡 Loading ports...', false);
 
     if (!isMountedRef.current) return;
 
@@ -57,7 +57,7 @@ export const useComPort = (): UseComPortReturn => {
 
     try {
       const list = await window.serial.getPorts();
-      addSuccessToaster('[useComPort] ✅ Ports loaded:', list);
+      addSuccessToaster('[useComPort] ✅ Ports loaded:', list, false);
 
       if (!isMountedRef.current) return;
 

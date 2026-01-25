@@ -1,10 +1,6 @@
 /* eslint-disable no-console */
-
 import { addToast } from '@heroui/react';
 
-/**
- * Форматирует описание для тостера / лога
- */
 function formatDescription(desc: unknown): string {
   try {
     if (typeof desc === 'string') {
@@ -37,36 +33,57 @@ async function sendToBackend(title: string, description: string, type: 'danger' 
   }
 }
 
+type ToasterOptions = { showToast?: boolean };
+
 export const addDangerToaster = (...args: unknown[]) => {
+  let options: ToasterOptions = { showToast: true };
+
+  // Если последний аргумент объект с showToast, вытаскиваем его
+  const lastArg = args[args.length - 1];
+  if (typeof lastArg === 'object' && lastArg !== null && 'showToast' in lastArg) {
+    options = args.pop() as ToasterOptions;
+  }
+
   const title = typeof args[0] === 'string' ? args[0] : 'Error';
   const description = args.slice(1).map(formatDescription).join(' ');
 
   console.error('[Toaster][DANGER]', title, description);
 
-  addToast({
-    title,
-    description,
-    radius: 'sm',
-    timeout: 3000,
-    color: 'danger',
-  });
+  if (options.showToast) {
+    // addToast({
+    //   title,
+    //   description,
+    //   radius: 'sm',
+    //   timeout: 3000,
+    //   color: 'danger',
+    // });
+  }
 
   sendToBackend(title, description, 'danger');
 };
 
 export const addSuccessToaster = (...args: unknown[]) => {
+  let options: ToasterOptions = { showToast: true };
+
+  const lastArg = args[args.length - 1];
+  if (typeof lastArg === 'object' && lastArg !== null && 'showToast' in lastArg) {
+    options = args.pop() as ToasterOptions;
+  }
+
   const title = typeof args[0] === 'string' ? args[0] : 'Success';
   const description = args.slice(1).map(formatDescription).join(' ');
 
   console.log('[Toaster][SUCCESS]', title, description);
 
-  addToast({
-    title,
-    description,
-    radius: 'sm',
-    timeout: 3000,
-    color: 'success',
-  });
+  if (options.showToast) {
+    // addToast({
+    //   title,
+    //   description,
+    //   radius: 'sm',
+    //   timeout: 3000,
+    //   color: 'success',
+    // });
+  }
 
   sendToBackend(title, description, 'success');
 };

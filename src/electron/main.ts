@@ -244,9 +244,6 @@ process.on('unhandledRejection', (reason, promise) => {
   logger.error('[Main] 💥 Unhandled Rejection at: ' + promise + ' reason: ' + String(reason));
 });
 
-/**
- * Логирование из renderer через IPC
- */
 ipcMain.on('log-info', (_, msg) => logger.info('[Renderer] ' + msg));
 ipcMain.on('log-warn', (_, msg) => logger.warn('[Renderer] ' + msg));
 ipcMain.on('log-error', (_, msg) => logger.error('[Renderer] ' + msg));

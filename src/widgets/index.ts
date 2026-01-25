@@ -1,4 +1,3 @@
-export * from './dashboard';
 export * from './database-info';
 export * from './light-management';
 export * from './monitoring-dashboard';

@@ -3,6 +3,7 @@ import { pluginReact } from '@rsbuild/plugin-react';
 import autoprefixer from 'autoprefixer';
 import tailwindcss from '@tailwindcss/postcss';
 import { pluginNodePolyfill } from '@rsbuild/plugin-node-polyfill';
+import path from 'node:path';
 
 export default defineConfig({
   plugins: [pluginReact(), pluginNodePolyfill()],
@@ -41,7 +42,6 @@ export default defineConfig({
   },
 
   output: {
-    // ⚠️ ПРАВИЛЬНЫЙ способ для Rsbuild 1.5+
     assetPrefix: 'auto',
     distPath: {
       root: './build/renderer',
@@ -51,11 +51,16 @@ export default defineConfig({
     },
   },
 
-  // ⚠️ Добавьте эту секцию!
   tools: {
     rspack: {
       output: {
-        publicPath: './', // ⚠️ Это и есть настоящий assetPrefix
+        publicPath: './',
+      },
+      watchOptions: {
+        ignored: [
+          path.resolve(__dirname, 'logs'),
+          '**/logs/**',
+        ],
       },
     },
     postcss: {
