@@ -1,6 +1,15 @@
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Input } from '@heroui/react';
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Input,
+} from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
+
 import type { GroupedWavelengthItem } from '../../../entities/sensor-data/model/types';
 import { calculateDisplacement } from '../../../entities/sensor-data/model/utils';
 import { FormulaDisplay } from '../../../entities/sensor-data/ui/FormulaDisplay';
@@ -42,7 +51,7 @@ export const DisplacementTable = ({ data, inputValues, onInputChange }: Displace
 
       return calculateDisplacement(item.wavelength, coeffs);
     },
-    [inputValues]
+    [inputValues],
   );
 
   return (

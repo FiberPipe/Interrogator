@@ -1,6 +1,7 @@
 import { Card, CardBody, CardHeader, Chip, Badge } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+
 import type { SensorConfig } from '../model/types';
 import { SENSOR_TYPE_COLORS, SENSOR_TYPE_ICONS } from '../model/constants';
 

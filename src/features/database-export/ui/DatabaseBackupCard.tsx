@@ -3,6 +3,7 @@ import { Card, CardBody, CardHeader, Button, Switch, Divider } from '@heroui/rea
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Download, Upload, Clock } from 'lucide-react';
+
 import { addSuccessToaster, addDangerToaster } from '../../../shared/ui';
 
 export const DatabaseBackupCard = () => {
@@ -15,11 +16,11 @@ export const DatabaseBackupCard = () => {
     setCreating(true);
     try {
       const result = await window.database.createBackup();
-      
+
       if (result.success) {
         addSuccessToaster(
           t('database.backup.success'),
-          t('database.backup.successDesc', { path: result.path })
+          t('database.backup.successDesc', { path: result.path }),
         );
       } else {
         addDangerToaster(t('database.backup.error'), result.error || 'Unknown error');
@@ -36,11 +37,11 @@ export const DatabaseBackupCard = () => {
     setRestoring(true);
     try {
       const result = await window.database.restoreBackup();
-      
+
       if (result.success) {
         addSuccessToaster(
           t('database.backup.restoreSuccess'),
-          t('database.backup.restoreSuccessDesc')
+          t('database.backup.restoreSuccessDesc'),
         );
       } else if (!result.cancelled) {
         addDangerToaster(t('database.backup.error'), result.error || 'Unknown error');
@@ -54,10 +55,7 @@ export const DatabaseBackupCard = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <Card>
         <CardHeader className="flex gap-3">
           <div className="p-2 rounded-lg bg-warning-100 dark:bg-warning-900/30">

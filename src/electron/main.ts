@@ -8,21 +8,20 @@ import { registerDatabaseIpc } from './database/ipc/database.ipc';
 import { initDatabase, saveDatabase } from './database/db';
 import { registerSerialPortIpc } from './serial';
 import { getPortManager } from './state';
+import { ENV, logEnvConfig } from './env';
+
+logEnvConfig();
 
 let win: BrowserWindow | null = null;
-const isDev = !app.isPackaged;
+const isDev = ENV.NODE_ENV === 'development';
 
 console.log('[Main] =================================');
-console.log('[Main] Environment:', isDev ? 'DEVELOPMENT' : 'PRODUCTION');
 console.log('[Main] app.isPackaged:', app.isPackaged);
 console.log('[Main] __dirname:', __dirname);
 console.log('[Main] process.cwd():', process.cwd());
 console.log('[Main] app.getAppPath():', app.getAppPath());
 console.log('[Main] =================================');
 
-/**
- * Инициализация хранилища при первом запуске
- */
 function initAppStorage() {
   const isFirstLaunch = appStorage.get<boolean>('isFirstLaunch');
 
@@ -39,16 +38,11 @@ function initAppStorage() {
   }
 }
 
-/**
- * Получение URL для загрузки приложения
- */
 function getAppUrl(): string {
   if (isDev) {
-    // Development: localhost
     return 'http://localhost:3000';
   }
 
-  // Production: ищем HTML файл
   const possiblePaths = [
     join(__dirname, '../renderer/index.html'),
     join(process.resourcesPath, 'app.asar', 'build', 'renderer', 'index.html'),
@@ -64,27 +58,21 @@ function getAppUrl(): string {
     }
   }
 
-  // Fallback - используем первый путь и надеемся на лучшее
   console.error('[Main] ❌ HTML file not found in any location!');
   console.error('[Main] Using fallback path...');
   return `file://${possiblePaths[0]}`;
 }
 
-/**
- * Создание главного окна приложения
- */
 async function createWindow() {
   try {
     console.log('[Main] Creating main window...');
 
-    // 1. Инициализируем базу данных
     console.log('[Main] Initializing database...');
     await initDatabase({
       location: 'userData',
     });
     console.log('[Main] ✅ Database initialized');
 
-    // 2. Создаём окно
     win = new BrowserWindow({
       width: 1400,
       height: 900,
@@ -170,7 +158,7 @@ async function createWindow() {
  */
 app.whenReady().then(async () => {
   console.log('[Main] 🚀 App ready');
-  
+
   try {
     initAppStorage();
     await createWindow();
@@ -186,7 +174,7 @@ app.whenReady().then(async () => {
  */
 app.on('activate', () => {
   console.log('[Main] App activated');
-  
+
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }

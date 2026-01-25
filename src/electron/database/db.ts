@@ -1,8 +1,11 @@
-import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
+import type { Database as SqlJsDatabase } from 'sql.js';
+import initSqlJs from 'sql.js';
 import { app } from 'electron';
 import { join } from 'node:path';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { getDatabasePathManager, initializeDatabasePath, DatabaseConfig } from './config';
+
+import type { DatabaseConfig } from './config';
+import { getDatabasePathManager, initializeDatabasePath } from './config';
 
 const isWindows = process.platform === 'win32';
 
@@ -28,7 +31,14 @@ function getWasmPath(): string {
 
   const prodPaths = [
     join(process.resourcesPath, 'sql-wasm.wasm'),
-    join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', 'sql.js', 'dist', 'sql-wasm.wasm'),
+    join(
+      process.resourcesPath,
+      'app.asar.unpacked',
+      'node_modules',
+      'sql.js',
+      'dist',
+      'sql-wasm.wasm',
+    ),
     join(__dirname, 'sql-wasm.wasm'),
     join(__dirname, '../sql-wasm.wasm'),
   ];
@@ -46,30 +56,30 @@ function getWasmPath(): string {
 export async function initDatabase(config?: Partial<DatabaseConfig>) {
   try {
     console.log('[Database] Initializing...');
-    
+
     if (config) {
       initializeDatabasePath(config);
     }
-    
+
     const pathManager = getDatabasePathManager();
     const dbPath = pathManager.getPath();
-    
+
     console.log('[Database] DB path:', dbPath);
     console.log('[Database] Config:', pathManager.getConfig());
 
     const wasmPath = getWasmPath();
-    
+
     const SQL = await initSqlJs({
       locateFile: (file) => {
         if (file.includes('sql-wasm.wasm')) {
           return wasmPath;
         }
         return join(process.resourcesPath, file);
-      }
+      },
     });
 
     let buffer: Uint8Array | undefined;
-    
+
     if (existsSync(dbPath)) {
       console.log('[Database] Loading existing database');
       buffer = readFileSync(dbPath);
@@ -78,13 +88,12 @@ export async function initDatabase(config?: Partial<DatabaseConfig>) {
     }
 
     sqliteDb = new SQL.Database(buffer);
-    
+
     configureDatabaseOptimizations();
     createTables();
     setupAutoSave();
 
     console.log('[Database] ✅ Initialized successfully');
-    
   } catch (err) {
     console.error('[Database] ❌ Initialization error:', err);
     throw err;
@@ -152,14 +161,14 @@ function createTables() {
     'CREATE INDEX IF NOT EXISTS idx_channel_data_timestamp ON channel_data(timestamp)',
   ];
 
-  indexes.forEach(sql => sqliteDb!.run(sql));
+  indexes.forEach((sql) => sqliteDb!.run(sql));
 
   console.log('[Database] Tables and indexes created');
 }
 
 function setupAutoSave() {
   const saveInterval = isWindows ? 15000 : 10000;
-  
+
   setInterval(() => {
     saveDatabaseAsync();
   }, saveInterval);
@@ -187,12 +196,12 @@ export function saveDatabase() {
   try {
     const pathManager = getDatabasePathManager();
     const dbPath = pathManager.getPath();
-    
+
     const startTime = Date.now();
     const data = sqliteDb.export();
-    
+
     writeFileSync(dbPath, Buffer.from(data), { flag: 'w' });
-    
+
     const duration = Date.now() - startTime;
     console.log(`[Database] Saved in ${duration}ms`);
   } catch (err) {
@@ -232,12 +241,12 @@ export async function importDatabase(importPath: string): Promise<boolean> {
     const buffer = readFileSync(importPath);
     const wasmPath = getWasmPath();
     const SQL = await initSqlJs({
-      locateFile: () => wasmPath
+      locateFile: () => wasmPath,
     });
-    
+
     sqliteDb = new SQL.Database(buffer);
     configureDatabaseOptimizations();
-    
+
     console.log('[Database] Imported from:', importPath);
     return true;
   } catch (err) {

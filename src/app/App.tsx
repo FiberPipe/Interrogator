@@ -27,8 +27,14 @@ export default function App() {
               <Sidebar />
               <div className="flex-1 flex flex-col overflow-hidden">
                 <Routes>
-                  <Route path={AppRoutes.HOME} element={<Navigate replace to={AppRoutes.SETTINGS} />} />
-                  <Route path={AppRoutes.SETTINGS} element={<Settings onReset={() => setIsFirstLaunch(true)} />} />
+                  <Route
+                    path={AppRoutes.HOME}
+                    element={<Navigate replace to={AppRoutes.SETTINGS} />}
+                  />
+                  <Route
+                    path={AppRoutes.SETTINGS}
+                    element={<Settings onReset={() => setIsFirstLaunch(true)} />}
+                  />
                   <Route path={AppRoutes.CHARTS} element={<ChartsPage />} />
                   <Route path={AppRoutes.DASHBOARD} element={<DashboardPage />} />
                   <Route path="*" element={<Navigate replace to={AppRoutes.SETTINGS} />} />

@@ -32,10 +32,10 @@ export const useDatabaseStats = () => {
 
   useEffect(() => {
     loadStats();
-    
+
     // Обновляем статистику каждые 5 секунд
     const interval = setInterval(loadStats, 5000);
-    
+
     return () => clearInterval(interval);
   }, [loadStats]);
 

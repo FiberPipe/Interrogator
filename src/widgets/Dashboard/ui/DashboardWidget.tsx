@@ -15,11 +15,12 @@ const generateCalendarData = () => {
     return {
       date: format(date, 'yyyy-MM-dd'),
       value,
-      alerts: value > 80
-        ? ['Critical overload', 'Sensor instability']
-        : value > 50
-        ? ['Warning: drift detected']
-        : [],
+      alerts:
+        value > 80
+          ? ['Critical overload', 'Sensor instability']
+          : value > 50
+            ? ['Warning: drift detected']
+            : [],
     };
   });
 };
@@ -51,9 +52,7 @@ export const DashboardWidget = () => {
             }}
             onClick={(value) => value && setSelectedDay(value)}
             tooltipDataAttrs={(value: any) => ({
-              'data-tip': value
-                ? `${value.date}: ${value.value}`
-                : 'No data',
+              'data-tip': value ? `${value.date}: ${value.value}` : 'No data',
             })}
           />
 
@@ -78,7 +77,9 @@ export const DashboardWidget = () => {
             selectedAlerts.length > 0 ? (
               selectedAlerts.map((alert: string, idx: number) => (
                 <div key={idx} className="flex items-center gap-2">
-                  <Chip color="danger" size="sm">ALERT</Chip>
+                  <Chip color="danger" size="sm">
+                    ALERT
+                  </Chip>
                   <span className="text-sm">{alert}</span>
                 </div>
               ))

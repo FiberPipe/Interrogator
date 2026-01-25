@@ -1,5 +1,14 @@
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Input } from '@heroui/react';
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Input,
+} from '@heroui/react';
 import { useTranslation } from 'react-i18next';
+
 import type { GroupedWavelengthItem } from '../../../entities/sensor-data/model/types';
 
 interface WavelengthTableProps {

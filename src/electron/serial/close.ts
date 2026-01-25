@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+
 import type { SerialOpenResult } from './types';
 import type { SerialPortManager } from './port-manager';
 
@@ -13,7 +14,7 @@ export function registerClosePort(manager: SerialPortManager): void {
       }
 
       await manager.closePort(path);
-      
+
       console.log(`[Serial] ✅ Port ${path} closed successfully`);
       return { ok: true };
     } catch (err) {

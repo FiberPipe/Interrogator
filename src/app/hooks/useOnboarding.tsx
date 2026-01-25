@@ -33,7 +33,7 @@ export function useOnboarding() {
 // Завершение онбординга
 export async function finishOnboarding(
   data: Record<string, unknown>,
-  setIsFirstLaunch?: (v: boolean) => void
+  setIsFirstLaunch?: (v: boolean) => void,
 ) {
   await patchAppData({
     ...data,

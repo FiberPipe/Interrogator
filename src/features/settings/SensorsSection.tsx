@@ -17,7 +17,7 @@ export const SensorsSection = () => {
             <p className="text-sm text-default-500">{t('settings.sensors.description')}</p>
           </div>
         </CardHeader>
-        
+
         <CardBody className="space-y-6">
           <Alert color="warning" title={t('settings.sensors.notAvailable')}>
             {t('settings.sensors.notAvailableDescription')}

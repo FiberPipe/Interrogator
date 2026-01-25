@@ -34,7 +34,7 @@ export class SensorDataService {
     recordId: string,
     time: string,
     rawData: any,
-    channels: ChannelRecord[]
+    channels: ChannelRecord[],
   ): Promise<number> {
     const db = getDatabase();
     const timestamp = Date.now();
@@ -44,7 +44,7 @@ export class SensorDataService {
       db.run(
         `INSERT INTO sensor_data (record_id, timestamp, time, port, raw_data, created_at) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [recordId, timestamp, time, port, JSON.stringify(rawData), timestamp]
+        [recordId, timestamp, time, port, JSON.stringify(rawData), timestamp],
       );
 
       // Получаем ID вставленной записи
@@ -55,7 +55,7 @@ export class SensorDataService {
       if (channels.length > 0) {
         const stmt = db.prepare(
           `INSERT INTO channel_data (sensor_data_id, channel, value, std_dev, timestamp) 
-           VALUES (?, ?, ?, ?, ?)`
+           VALUES (?, ?, ?, ?, ?)`,
         );
 
         channels.forEach((ch) => {
@@ -79,7 +79,7 @@ export class SensorDataService {
     port: string,
     startTime: number,
     endTime: number,
-    limit = 1000
+    limit = 1000,
   ): Promise<SensorDataRecord[]> {
     const db = getDatabase();
 
@@ -89,7 +89,7 @@ export class SensorDataService {
          WHERE port = ? AND timestamp >= ? AND timestamp <= ?
          ORDER BY timestamp DESC
          LIMIT ?`,
-        [port, startTime, endTime, limit]
+        [port, startTime, endTime, limit],
       );
 
       if (result.length === 0) return [];
@@ -122,7 +122,7 @@ export class SensorDataService {
          WHERE port = ?
          ORDER BY timestamp DESC
          LIMIT ?`,
-        [port, limit]
+        [port, limit],
       );
 
       if (result.length === 0) return [];
@@ -150,7 +150,7 @@ export class SensorDataService {
     port: string,
     channel: number,
     startTime: number,
-    endTime: number
+    endTime: number,
   ): Promise<{ count: number; min: number; max: number; avg: number }> {
     const db = getDatabase();
 
@@ -165,7 +165,7 @@ export class SensorDataService {
          INNER JOIN sensor_data sd ON cd.sensor_data_id = sd.id
          WHERE sd.port = ? AND cd.channel = ? 
            AND cd.timestamp >= ? AND cd.timestamp <= ?`,
-        [port, channel, startTime, endTime]
+        [port, channel, startTime, endTime],
       );
 
       if (result.length === 0 || result[0].values.length === 0) {
@@ -196,7 +196,7 @@ export class SensorDataService {
       const sql = port
         ? 'SELECT COUNT(*) as count FROM sensor_data WHERE port = ?'
         : 'SELECT COUNT(*) as count FROM sensor_data';
-      
+
       const params = port ? [port] : [];
       const result = db.exec(sql, params);
 
@@ -221,14 +221,14 @@ export class SensorDataService {
       db.run(
         `INSERT INTO sessions (port, start_time, record_count, status) 
          VALUES (?, ?, 0, 'active')`,
-        [port, Date.now()]
+        [port, Date.now()],
       );
 
       const result = db.exec('SELECT last_insert_rowid() as id');
       const sessionId = result[0].values[0][0] as number;
 
       console.log(`[SensorDataService] Created session ${sessionId} for port ${port}`);
-      
+
       return sessionId;
     } catch (err) {
       console.error('[SensorDataService] Error creating session:', err);
@@ -247,7 +247,7 @@ export class SensorDataService {
         `UPDATE sessions 
          SET record_count = record_count + 1
          WHERE id = ?`,
-        [sessionId]
+        [sessionId],
       );
     } catch (err) {
       console.error('[SensorDataService] Error incrementing session records:', err);
@@ -266,7 +266,7 @@ export class SensorDataService {
         `UPDATE sessions 
          SET end_time = ?, status = 'stopped'
          WHERE id = ?`,
-        [Date.now(), sessionId]
+        [Date.now(), sessionId],
       );
 
       console.log(`[SensorDataService] Ended session ${sessionId}`);
@@ -288,7 +288,7 @@ export class SensorDataService {
          WHERE port = ? AND status = 'active'
          ORDER BY start_time DESC
          LIMIT 1`,
-        [port]
+        [port],
       );
 
       if (result.length === 0 || result[0].values.length === 0) {
@@ -298,7 +298,7 @@ export class SensorDataService {
       const columns = result[0].columns;
       const row = result[0].values[0];
       const obj: any = {};
-      
+
       columns.forEach((col, idx) => {
         obj[col] = row[idx];
       });
@@ -321,7 +321,7 @@ export class SensorDataService {
         `SELECT * FROM sessions 
          ORDER BY start_time DESC 
          LIMIT ?`,
-        [limit]
+        [limit],
       );
 
       if (result.length === 0) return [];
@@ -354,7 +354,7 @@ export class SensorDataService {
          WHERE port = ?
          ORDER BY start_time DESC 
          LIMIT ?`,
-        [port, limit]
+        [port, limit],
       );
 
       if (result.length === 0) return [];
@@ -383,7 +383,7 @@ export class SensorDataService {
     channel: number,
     startTime: number,
     endTime: number,
-    limit = 1000
+    limit = 1000,
   ): Promise<Array<{ timestamp: number; value: number; std_dev?: number }>> {
     const db = getDatabase();
 
@@ -396,7 +396,7 @@ export class SensorDataService {
            AND cd.timestamp >= ? AND cd.timestamp <= ?
          ORDER BY cd.timestamp ASC
          LIMIT ?`,
-        [port, channel, startTime, endTime, limit]
+        [port, channel, startTime, endTime, limit],
       );
 
       if (result.length === 0) return [];
@@ -427,21 +427,18 @@ export class SensorDataService {
          WHERE sensor_data_id IN (
            SELECT id FROM sensor_data WHERE timestamp < ?
          )`,
-        [olderThan]
+        [olderThan],
       );
 
       // Затем удаляем основные записи
-      const result = db.exec(
-        `DELETE FROM sensor_data WHERE timestamp < ?`,
-        [olderThan]
-      );
+      const result = db.exec(`DELETE FROM sensor_data WHERE timestamp < ?`, [olderThan]);
 
       // Получаем количество удалённых записей
       const changesResult = db.exec('SELECT changes() as count');
       const deletedCount = (changesResult[0]?.values[0]?.[0] as number) || 0;
 
       console.log(`[SensorDataService] Deleted ${deletedCount} old records`);
-      
+
       return deletedCount;
     } catch (err) {
       console.error('[SensorDataService] Error deleting old data:', err);
@@ -476,7 +473,9 @@ export class SensorDataService {
       const totalSessions = (sessionsResult[0]?.values[0]?.[0] as number) || 0;
 
       // Активные сессии
-      const activeResult = db.exec(`SELECT COUNT(*) as count FROM sessions WHERE status = 'active'`);
+      const activeResult = db.exec(
+        `SELECT COUNT(*) as count FROM sessions WHERE status = 'active'`,
+      );
       const activeSessions = (activeResult[0]?.values[0]?.[0] as number) || 0;
 
       // Самая старая и новая запись

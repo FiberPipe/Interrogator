@@ -1,6 +1,16 @@
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Input } from '@heroui/react';
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Input,
+} from '@heroui/react';
 import { useTranslation } from 'react-i18next';
+
 import type { GroupedPowerItem } from '../../../entities/sensor-data/model/types';
+import { safeToFixed } from '../../../shared/lib';
 
 interface PowerTableProps {
   data: GroupedPowerItem[];
@@ -33,7 +43,9 @@ export const PowerTable = ({ data, inputValues, onInputChange }: PowerTableProps
           return (
             <TableRow key={`power-${item.id}`}>
               <TableCell>P_{item.id}</TableCell>
-              <TableCell>{item.rangeMin.toFixed(6)}</TableCell>
+
+              <TableCell>{safeToFixed(item.rangeMin, 6)}</TableCell>
+
               <TableCell>
                 <Input
                   type="number"
@@ -47,9 +59,11 @@ export const PowerTable = ({ data, inputValues, onInputChange }: PowerTableProps
                   }}
                 />
               </TableCell>
+
               <TableCell>
-                <span className="font-semibold">{item.currentValue.toFixed(6)}</span>
+                <span className="font-semibold">{safeToFixed(item.currentValue, 6)}</span>
               </TableCell>
+
               <TableCell>
                 <Input
                   type="number"
@@ -63,7 +77,8 @@ export const PowerTable = ({ data, inputValues, onInputChange }: PowerTableProps
                   }}
                 />
               </TableCell>
-              <TableCell>{item.rangeMax.toFixed(6)}</TableCell>
+
+              <TableCell>{safeToFixed(item.rangeMax, 6)}</TableCell>
             </TableRow>
           );
         }}

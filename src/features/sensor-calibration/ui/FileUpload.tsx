@@ -2,6 +2,7 @@ import { Card, CardBody, Button } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { Upload, FileText, FileJson } from 'lucide-react';
 import { useCallback } from 'react';
+
 import type { CalibrationMethod } from '../model/types';
 
 interface FileUploadProps {
@@ -26,7 +27,7 @@ export const FileUpload = ({ method, onLoadCSV, onLoadJSON }: FileUploadProps) =
 
       e.target.value = '';
     },
-    [method, onLoadCSV, onLoadJSON]
+    [method, onLoadCSV, onLoadJSON],
   );
 
   const acceptedFormats = method === 'csv' ? '.csv' : '.json';
@@ -40,12 +41,8 @@ export const FileUpload = ({ method, onLoadCSV, onLoadJSON }: FileUploadProps) =
         </div>
 
         <div className="text-center">
-          <h4 className="text-lg font-semibold mb-1">
-            {t(`calibration.upload.${method}Title`)}
-          </h4>
-          <p className="text-sm text-default-500">
-            {t(`calibration.upload.${method}Description`)}
-          </p>
+          <h4 className="text-lg font-semibold mb-1">{t(`calibration.upload.${method}Title`)}</h4>
+          <p className="text-sm text-default-500">{t(`calibration.upload.${method}Description`)}</p>
         </div>
 
         <label htmlFor="calibration-file-upload">
@@ -56,11 +53,7 @@ export const FileUpload = ({ method, onLoadCSV, onLoadJSON }: FileUploadProps) =
             onChange={handleFileChange}
             className="hidden"
           />
-          <Button
-            as="span"
-            color="primary"
-            startContent={<Upload className="w-4 h-4" />}
-          >
+          <Button as="span" color="primary" startContent={<Upload className="w-4 h-4" />}>
             {t('calibration.upload.selectFile')}
           </Button>
         </label>

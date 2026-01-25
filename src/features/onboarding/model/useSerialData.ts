@@ -10,7 +10,7 @@ export const useSerialData = (port: string | null) => {
   const [latestData, setLatestData] = useState<SensorRecord | null>(null);
   const [rawData, setRawData] = useState<string>('');
   const [recordCount, setRecordCount] = useState(0);
-  
+
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const isMountedRef = useRef(true);
 

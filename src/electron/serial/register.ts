@@ -1,17 +1,17 @@
 import { ipcMain } from 'electron';
 import { SerialPort } from 'serialport';
+
 import { getMockSerialPorts } from './mock-serial';
 import type { SerialPortInfo } from './types';
 import type { SerialPortManager } from './port-manager';
-
-const isDev = true;
+import { ENV } from '../env';
 
 export function registerGetPorts(manager: SerialPortManager): void {
   ipcMain.handle('serial:getPorts', async (): Promise<SerialPortInfo[]> => {
     try {
       console.log('[Serial] Getting ports list');
 
-      const ports = isDev ? await getMockSerialPorts() : await SerialPort.list();
+      const ports = ENV.WITH_MOCK_PORTS ? await getMockSerialPorts() : await SerialPort.list();
 
       const activePorts = manager.getActivePorts();
 

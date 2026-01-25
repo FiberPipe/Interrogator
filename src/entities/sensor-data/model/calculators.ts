@@ -1,7 +1,4 @@
-import type {
-  TemperatureCoefficients,
-  DisplacementCoefficients,
-} from './types';
+import type { TemperatureCoefficients, DisplacementCoefficients } from './types';
 
 /**
  * Расчет температуры по формуле:
@@ -9,7 +6,7 @@ import type {
  */
 export const calculateTemperature = (
   wavelength: number,
-  coeffs: TemperatureCoefficients
+  coeffs: TemperatureCoefficients,
 ): number => {
   if (!isFinite(wavelength) || isNaN(wavelength)) return NaN;
 
@@ -30,13 +27,12 @@ export const calculateTemperature = (
  */
 export const calculateDisplacement = (
   wavelength: number,
-  coeffs: DisplacementCoefficients
+  coeffs: DisplacementCoefficients,
 ): number => {
   if (!isFinite(wavelength) || isNaN(wavelength)) return NaN;
 
   return (
-    (Math.pow(10, 6) * (wavelength - coeffs.lambda0)) /
-      (coeffs.k * coeffs.lambda0) -
+    (Math.pow(10, 6) * (wavelength - coeffs.lambda0)) / (coeffs.k * coeffs.lambda0) -
     coeffs.C * (Math.pow(coeffs.T, 2) - Math.pow(coeffs.T0, 2)) -
     (coeffs.B + coeffs.alpha) * (coeffs.T - coeffs.T0)
   );
@@ -45,11 +41,7 @@ export const calculateDisplacement = (
 /**
  * Расчет деформации (strain) - упрощенная формула
  */
-export const calculateStrain = (
-  wavelength: number,
-  lambda0: number,
-  k: number
-): number => {
+export const calculateStrain = (wavelength: number, lambda0: number, k: number): number => {
   if (!isFinite(wavelength) || isNaN(wavelength)) return NaN;
 
   return ((wavelength - lambda0) / lambda0) * (1 / k);
@@ -60,7 +52,7 @@ export const calculateStrain = (
  */
 export const calculatePressure = (
   wavelength: number,
-  coeffs: { lambda0: number; sensitivity: number; offset: number }
+  coeffs: { lambda0: number; sensitivity: number; offset: number },
 ): number => {
   if (!isFinite(wavelength) || isNaN(wavelength)) return NaN;
 

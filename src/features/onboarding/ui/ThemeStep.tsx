@@ -2,6 +2,7 @@ import { Button, Card } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Moon, Sun, Monitor } from 'lucide-react';
+
 import { patchAppData } from '../../../app/hooks/useOnboarding';
 
 const themes = [
@@ -15,8 +16,11 @@ export default function ThemeStep({ onNext, onBack }: any) {
 
   const handleThemeSelect = async (theme: string) => {
     // Применяем тему сразу
-    document.documentElement.classList.toggle('dark', theme === 'dark' ||
-      (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches));
+    document.documentElement.classList.toggle(
+      'dark',
+      theme === 'dark' ||
+        (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches),
+    );
 
     // Сохраняем в БД и переходим дальше
     await patchAppData({ theme });
@@ -60,6 +64,5 @@ export default function ThemeStep({ onNext, onBack }: any) {
         })}
       </div>
     </div>
-
   );
 }

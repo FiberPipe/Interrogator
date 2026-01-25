@@ -2,9 +2,11 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, Code, Switch, Chip, Divider } from '@heroui/react';
+
 import type { DisplacementCoefficients } from '../../../entities/sensor-data/model/types';
 import { useDisplacementCalculations } from '../model/useDisplacementCalculations';
-import { ChartSeries, LineChartWithConfidence } from '../../../shared/ui';
+import type { ChartSeries } from '../../../shared/ui';
+import { LineChartWithConfidence } from '../../../shared/ui';
 
 interface DisplacementChartProps {
   data: any[];
@@ -79,8 +81,8 @@ export const DisplacementChart = ({
 
     const latest = calculatedData[calculatedData.length - 1];
     const displacements = selectedChannels
-      .map(idx => latest.displacements?.[`D${idx}`])
-      .filter(v => isFinite(v));
+      .map((idx) => latest.displacements?.[`D${idx}`])
+      .filter((v) => isFinite(v));
 
     if (displacements.length === 0) return null;
 
@@ -115,11 +117,7 @@ export const DisplacementChart = ({
                   {t('monitoring.displacement.switchDescription')}
                 </p>
               </div>
-              <Switch
-                isSelected={showWavelength}
-                onValueChange={setShowWavelength}
-                size="sm"
-              >
+              <Switch isSelected={showWavelength} onValueChange={setShowWavelength} size="sm">
                 {t('monitoring.displacement.wavelengthMode')}
               </Switch>
             </div>

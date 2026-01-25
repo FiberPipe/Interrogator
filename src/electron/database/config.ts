@@ -85,7 +85,7 @@ export class DatabasePathManager {
         ? join(dirname(app.getPath('exe')), 'database', this.config.filename)
         : join(process.cwd(), 'database', this.config.filename),
       documents: join(app.getPath('documents'), 'Interrogator', 'database', this.config.filename),
-      custom: this.config.customPath 
+      custom: this.config.customPath
         ? join(this.config.customPath, this.config.filename)
         : 'Not configured',
     };

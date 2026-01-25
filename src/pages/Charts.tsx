@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Tabs, Tab, Divider } from '@heroui/react';
 import { Activity, Zap, Thermometer, Move } from 'lucide-react';
-import { SensorType } from '../entities/sensor-data/model/types';
+
+import type { SensorType } from '../entities/sensor-data/model/types';
 import { MonitoringDashboard } from '../widgets/monitoring-dashboard';
 
 export const ChartsPage = () => {

@@ -2,6 +2,7 @@ import { Card, CardBody, Skeleton } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { HardDrive, Activity, Database, Clock } from 'lucide-react';
+
 import { useDatabaseStats } from '../model/useDatabaseStats';
 
 export const DatabaseStatsCards = () => {
@@ -39,7 +40,7 @@ export const DatabaseStatsCards = () => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {statsCards.map((stat, idx) => {
         const Icon = stat.icon;
-        
+
         return (
           <motion.div
             key={stat.label}
@@ -53,7 +54,9 @@ export const DatabaseStatsCards = () => {
                   <Skeleton className="h-20 rounded-lg" />
                 ) : (
                   <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-lg bg-${stat.color}-100 dark:bg-${stat.color}-900/30`}>
+                    <div
+                      className={`p-3 rounded-lg bg-${stat.color}-100 dark:bg-${stat.color}-900/30`}
+                    >
                       <Icon className={`w-6 h-6 text-${stat.color}`} />
                     </div>
                     <div className="flex-1">

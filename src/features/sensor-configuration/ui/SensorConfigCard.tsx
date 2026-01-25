@@ -1,5 +1,6 @@
 import { Divider, Input } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
+
 import type { SensorConfig } from '../../../entities/sensor/model/types';
 import { MAX_CHANNELS_PER_SENSOR } from '../../../entities/sensor/model/types';
 import { SensorCard } from '../../../entities/sensor/ui/SensorCard';

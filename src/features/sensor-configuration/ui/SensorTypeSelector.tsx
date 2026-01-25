@@ -1,5 +1,6 @@
 import { Select, SelectItem } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
+
 import type { SensorType } from '../../../entities/sensor/model/types';
 import { SENSOR_TYPES, SENSOR_TYPE_ICONS } from '../../../entities/sensor/model/constants';
 

@@ -1,4 +1,5 @@
 import { Card, CardBody, Button, Chip } from '@heroui/react';
+
 import { useSerialData } from '../model/useSerialData';
 
 interface DataPreviewProps {

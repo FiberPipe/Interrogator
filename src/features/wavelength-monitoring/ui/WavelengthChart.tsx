@@ -2,7 +2,9 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, Chip, Code } from '@heroui/react';
-import { ChartSeries, LineChartWithConfidence } from '../../../shared/ui';
+
+import type { ChartSeries } from '../../../shared/ui';
+import { LineChartWithConfidence } from '../../../shared/ui';
 
 interface WavelengthChartProps {
   data: any[];
@@ -21,14 +23,16 @@ export const WavelengthChart = ({ data, selectedChannels, colors }: WavelengthCh
       label: t('monitoring.wavelength.sensor', { index: sensorIndex }),
       color: colors[sensorIndex],
       showConfidence: false,
-      data: data.map((point) => {
-        const wavelength = parseFloat(point[`wavelength${sensorIndex}`]);
-        return {
-          x: point.timestamp,
-          y: isFinite(wavelength) ? wavelength : NaN,
-          timestamp: point.timestamp,
-        };
-      }).filter(p => isFinite(p.y)), // Фильтруем NaN значения
+      data: data
+        .map((point) => {
+          const wavelength = parseFloat(point[`wavelength${sensorIndex}`]);
+          return {
+            x: point.timestamp,
+            y: isFinite(wavelength) ? wavelength : NaN,
+            timestamp: point.timestamp,
+          };
+        })
+        .filter((p) => isFinite(p.y)), // Фильтруем NaN значения
     }));
   }, [data, selectedChannels, colors, t]);
 
@@ -37,7 +41,9 @@ export const WavelengthChart = ({ data, selectedChannels, colors }: WavelengthCh
     if (data.length === 0) return null;
 
     const latest = data[data.length - 1];
-    const values = selectedChannels.map(idx => parseFloat(latest[`wavelength${idx}`])).filter(isFinite);
+    const values = selectedChannels
+      .map((idx) => parseFloat(latest[`wavelength${idx}`]))
+      .filter(isFinite);
 
     if (values.length === 0) return null;
 
@@ -56,7 +62,9 @@ export const WavelengthChart = ({ data, selectedChannels, colors }: WavelengthCh
           <CardBody>
             <div className="flex flex-wrap gap-4">
               <div>
-                <span className="text-xs text-default-500">{t('monitoring.wavelength.average')}</span>
+                <span className="text-xs text-default-500">
+                  {t('monitoring.wavelength.average')}
+                </span>
                 <div className="text-lg font-semibold">{stats.average.toFixed(4)} nm</div>
               </div>
               <div>

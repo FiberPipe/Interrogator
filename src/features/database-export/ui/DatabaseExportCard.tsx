@@ -3,6 +3,7 @@ import { Card, CardBody, CardHeader, Button, Select, SelectItem, Divider } from 
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { FileDown } from 'lucide-react';
+
 import { addSuccessToaster, addDangerToaster } from '../../../shared/ui';
 
 const EXPORT_FORMATS = ['csv', 'json', 'sql'];
@@ -21,11 +22,11 @@ export const DatabaseExportCard = () => {
         format,
         timeRange,
       });
-      
+
       if (result.success) {
         addSuccessToaster(
           t('database.export.success'),
-          t('database.export.successDesc', { path: result.path })
+          t('database.export.successDesc', { path: result.path }),
         );
       } else {
         addDangerToaster(t('database.export.error'), result.error || 'Unknown error');

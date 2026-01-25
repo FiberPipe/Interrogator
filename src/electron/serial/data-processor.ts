@@ -1,4 +1,5 @@
 import type { BrowserWindow } from 'electron';
+
 import { sensorDataService } from '../database/service/sensor-data.service';
 import { appStorage } from '../storage/app-storage';
 
@@ -33,7 +34,7 @@ export class SerialDataProcessor {
 
   constructor(
     private port: string,
-    private win: BrowserWindow
+    private win: BrowserWindow,
   ) {}
 
   async startSession() {
@@ -57,11 +58,7 @@ export class SerialDataProcessor {
       const normalized = this.normalizeData(rawData, calibrationData);
 
       // 3. Вычисляем wavelength для каждого датчика
-      const wavelengths = this.calculateWavelengths(
-        normalized,
-        calibrationData,
-        sensorMappings
-      );
+      const wavelengths = this.calculateWavelengths(normalized, calibrationData, sensorMappings);
 
       // 4. Формируем итоговый пакет
       const processedData: ProcessedData = {
@@ -115,7 +112,7 @@ export class SerialDataProcessor {
 
   private normalizeData(
     rawData: RawSensorData,
-    calibration: CalibrationData
+    calibration: CalibrationData,
   ): Record<string, number> {
     const normalized: Record<string, number> = {};
 
@@ -133,7 +130,7 @@ export class SerialDataProcessor {
   private calculateWavelengths(
     normalized: Record<string, number>,
     calibration: CalibrationData,
-    sensors: SensorMapping[]
+    sensors: SensorMapping[],
   ): Record<string, number> {
     const wavelengths: Record<string, number> = {};
 
@@ -157,10 +154,7 @@ export class SerialDataProcessor {
       const sumWeights = weights.reduce((sum, w) => sum + w, 0);
 
       if (sumWeights > 0) {
-        const weightedSum = weights.reduce(
-          (sum, w, i) => sum + w * lambdas[i],
-          0
-        );
+        const weightedSum = weights.reduce((sum, w, i) => sum + w * lambdas[i], 0);
         wavelengths[`wavelength${index}`] = weightedSum / sumWeights;
       } else {
         wavelengths[`wavelength${index}`] = NaN;
@@ -200,13 +194,7 @@ export class SerialDataProcessor {
         ...data.wavelengths,
       };
 
-      await sensorDataService.saveSensorData(
-        this.port,
-        data.id,
-        data.time,
-        fullData,
-        channels
-      );
+      await sensorDataService.saveSensorData(this.port, data.id, data.time, fullData, channels);
 
       // Обновляем счетчик в сессии
       const now = Date.now();
@@ -225,7 +213,7 @@ export class SerialDataProcessor {
       try {
         await sensorDataService.endSession(this.sessionId);
         console.log(
-          `[DataProcessor ${this.port}] ✅ Session ended: ${this.sessionId}, Records: ${this.recordCount}`
+          `[DataProcessor ${this.port}] ✅ Session ended: ${this.sessionId}, Records: ${this.recordCount}`,
         );
       } catch (err) {
         console.error(`[DataProcessor ${this.port}] ❌ Failed to end session:`, err);

@@ -1,6 +1,7 @@
 import type { BrowserWindow } from 'electron';
 import { ipcMain } from 'electron';
 import { SerialPort } from 'serialport';
+
 import { appStorage } from '../storage/app-storage';
 import { createMockSerialPort } from './mock-serial';
 import type { SerialOpenResult, ISerialPort } from './types';
@@ -45,7 +46,7 @@ export function registerOpenPort(win: BrowserWindow, manager: SerialPortManager)
         console.error(`[Serial] ❌ Failed to open port ${path}:`, err);
         return { error: err.message || 'Failed to open port' };
       }
-    }
+    },
   );
 }
 

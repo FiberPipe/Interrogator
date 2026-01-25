@@ -62,7 +62,7 @@ export default function FinalStep({ onFinish, onBack, data }: FinalStepProps) {
         <Card>
           <CardBody className="gap-4">
             <h3 className="text-lg font-semibold">{t('onboarding.final.summary')}</h3>
-            
+
             <div className="space-y-3">
               {summaryItems.map((item, idx) => {
                 const Icon = item.icon;

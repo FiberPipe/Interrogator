@@ -19,5 +19,5 @@ export default {
   navigation,
   common,
   calibration,
-  monitoring
+  monitoring,
 };

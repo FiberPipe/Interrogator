@@ -120,16 +120,29 @@ export interface DatabaseExportResult {
 export interface DatabaseAPI {
   // Path and Config
   getPath(): Promise<DatabasePathInfo>;
-  changeLocation(location: DatabaseLocation, customPath?: string): Promise<DatabaseChangeLocationResult>;
+  changeLocation(
+    location: DatabaseLocation,
+    customPath?: string,
+  ): Promise<DatabaseChangeLocationResult>;
   selectCustomPath(): Promise<string | null>;
   openFolder(): Promise<string>;
 
   // Statistics
   getStats(): Promise<DatabaseStats>;
-  getChannelStats(port: string, channel: number, startTime: number, endTime: number): Promise<ChannelStats>;
+  getChannelStats(
+    port: string,
+    channel: number,
+    startTime: number,
+    endTime: number,
+  ): Promise<ChannelStats>;
 
   // Data Queries
-  getDataByTimeRange(port: string, startTime: number, endTime: number, limit?: number): Promise<SensorDataRecord[]>;
+  getDataByTimeRange(
+    port: string,
+    startTime: number,
+    endTime: number,
+    limit?: number,
+  ): Promise<SensorDataRecord[]>;
   getLastRecords(port: string, limit?: number): Promise<SensorDataRecord[]>;
 
   // Backup and Restore

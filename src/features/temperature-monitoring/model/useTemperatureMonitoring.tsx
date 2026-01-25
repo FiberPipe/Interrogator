@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+
 import { calculateTemperature } from '../../../entities/sensor-data/model/calculators';
 import type { TemperatureCoefficients } from '../../../entities/sensor-data/model/types';
 
@@ -8,7 +9,7 @@ interface DataPoint {
 
 export const useTemperatureCalculations = (
   data: DataPoint[],
-  coefficientsMap: Record<number, TemperatureCoefficients>
+  coefficientsMap: Record<number, TemperatureCoefficients>,
 ) => {
   return useMemo(() => {
     if (!data.length) return [];
@@ -22,10 +23,7 @@ export const useTemperatureCalculations = (
         const wavelength = parseFloat(point[`wavelength${sensorIndex}`]);
 
         if (isFinite(wavelength) && !isNaN(wavelength)) {
-          calculated.temperatures[`T${sensorIndex}`] = calculateTemperature(
-            wavelength,
-            coeffs
-          );
+          calculated.temperatures[`T${sensorIndex}`] = calculateTemperature(wavelength, coeffs);
         }
       });
 

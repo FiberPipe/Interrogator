@@ -3,7 +3,8 @@ import { app } from 'electron';
 import { existsSync, statSync, copyFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
-import { getDatabasePathManager, initializeDatabasePath, DatabaseLocation } from '../config';
+import type { DatabaseLocation } from '../config';
+import { getDatabasePathManager, initializeDatabasePath } from '../config';
 import { getDatabase, importDatabase, initDatabase, saveDatabase } from '../db';
 import { sensorDataService } from '../service/sensor-data.service';
 
@@ -21,20 +22,20 @@ export function registerDatabaseIpc() {
   console.log('[IPC] Registering database handlers...');
 
   // ==================== PATH & CONFIG ====================
-  
+
   ipcMain.handle('db:getPath', () => {
     try {
       const pathManager = getDatabasePathManager();
       const dbPath = pathManager.getPath();
       const config = pathManager.getConfig();
       const exists = existsSync(dbPath);
-      
+
       let size = 0;
       if (exists) {
         const stats = statSync(dbPath);
         size = stats.size;
       }
-      
+
       return {
         path: dbPath,
         exists,
@@ -50,20 +51,23 @@ export function registerDatabaseIpc() {
     }
   });
 
-  ipcMain.handle('db:changeLocation', async (_, location: DatabaseLocation, customPath?: string) => {
-    try {
-      console.log('[IPC] Changing location to:', location, customPath);
-      
-      saveDatabase();
-      initializeDatabasePath({ location, customPath });
-      await initDatabase({ location, customPath });
-      
-      return { success: true, path: getDatabasePathManager().getPath() };
-    } catch (err) {
-      console.error('[IPC] changeLocation error:', err);
-      return { success: false, error: String(err) };
-    }
-  });
+  ipcMain.handle(
+    'db:changeLocation',
+    async (_, location: DatabaseLocation, customPath?: string) => {
+      try {
+        console.log('[IPC] Changing location to:', location, customPath);
+
+        saveDatabase();
+        initializeDatabasePath({ location, customPath });
+        await initDatabase({ location, customPath });
+
+        return { success: true, path: getDatabasePathManager().getPath() };
+      } catch (err) {
+        console.error('[IPC] changeLocation error:', err);
+        return { success: false, error: String(err) };
+      }
+    },
+  );
 
   ipcMain.handle('db:selectCustomPath', async () => {
     try {
@@ -104,18 +108,18 @@ export function registerDatabaseIpc() {
       const sessions = await sensorDataService.getAllSessions();
       const pathManager = getDatabasePathManager();
       const dbPath = pathManager.getPath();
-      
+
       let totalSize = 0;
       let activeSessions = 0;
-      
+
       if (existsSync(dbPath)) {
         const stats = statSync(dbPath);
         totalSize = stats.size;
       }
 
       // Считаем активные сессии
-      activeSessions = sessions.filter(s => s.status === 'active').length;
-      
+      activeSessions = sessions.filter((s) => s.status === 'active').length;
+
       return {
         totalSessions: sessions.length,
         totalRecords: 0, // Можно добавить подсчёт
@@ -130,25 +134,31 @@ export function registerDatabaseIpc() {
     }
   });
 
-  ipcMain.handle('db:getChannelStats', async (_, port: string, channel: number, startTime: number, endTime: number) => {
-    try {
-      return await sensorDataService.getChannelStats(port, channel, startTime, endTime);
-    } catch (err) {
-      console.error('[IPC] getChannelStats error:', err);
-      throw err;
-    }
-  });
+  ipcMain.handle(
+    'db:getChannelStats',
+    async (_, port: string, channel: number, startTime: number, endTime: number) => {
+      try {
+        return await sensorDataService.getChannelStats(port, channel, startTime, endTime);
+      } catch (err) {
+        console.error('[IPC] getChannelStats error:', err);
+        throw err;
+      }
+    },
+  );
 
   // ==================== DATA QUERIES ====================
 
-  ipcMain.handle('db:getDataByTimeRange', async (_, port: string, startTime: number, endTime: number, limit?: number) => {
-    try {
-      return await sensorDataService.getDataByTimeRange(port, startTime, endTime, limit);
-    } catch (err) {
-      console.error('[IPC] getDataByTimeRange error:', err);
-      throw err;
-    }
-  });
+  ipcMain.handle(
+    'db:getDataByTimeRange',
+    async (_, port: string, startTime: number, endTime: number, limit?: number) => {
+      try {
+        return await sensorDataService.getDataByTimeRange(port, startTime, endTime, limit);
+      } catch (err) {
+        console.error('[IPC] getDataByTimeRange error:', err);
+        throw err;
+      }
+    },
+  );
 
   ipcMain.handle('db:getLastRecords', async (_, port: string, limit?: number) => {
     try {
@@ -165,14 +175,14 @@ export function registerDatabaseIpc() {
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const backupName = `sensor-data-backup-${timestamp}.db`;
-      
+
       const result = await dialog.showSaveDialog({
         title: 'Save Backup',
         defaultPath: backupName,
         filters: [
           { name: 'Database', extensions: ['db'] },
-          { name: 'All Files', extensions: ['*'] }
-        ]
+          { name: 'All Files', extensions: ['*'] },
+        ],
       });
 
       if (result.canceled || !result.filePath) {
@@ -182,9 +192,9 @@ export function registerDatabaseIpc() {
       saveDatabase();
       const pathManager = getDatabasePathManager();
       const dbPath = pathManager.getPath();
-      
+
       copyFileSync(dbPath, result.filePath);
-      
+
       return { success: true, path: result.filePath };
     } catch (err) {
       console.error('[IPC] createBackup error:', err);
@@ -198,9 +208,9 @@ export function registerDatabaseIpc() {
         title: 'Select Backup',
         filters: [
           { name: 'Database', extensions: ['db'] },
-          { name: 'All Files', extensions: ['*'] }
+          { name: 'All Files', extensions: ['*'] },
         ],
-        properties: ['openFile']
+        properties: ['openFile'],
       });
 
       if (result.canceled || result.filePaths.length === 0) {
@@ -208,7 +218,7 @@ export function registerDatabaseIpc() {
       }
 
       await importDatabase(result.filePaths[0]);
-      
+
       return { success: true };
     } catch (err) {
       console.error('[IPC] restoreBackup error:', err);
@@ -220,12 +230,13 @@ export function registerDatabaseIpc() {
 
   ipcMain.handle('db:exportData', async (_, options: { format: string; timeRange: string }) => {
     try {
-      const extensions = options.format === 'csv' ? ['csv'] : options.format === 'json' ? ['json'] : ['sql'];
-      
+      const extensions =
+        options.format === 'csv' ? ['csv'] : options.format === 'json' ? ['json'] : ['sql'];
+
       const result = await dialog.showSaveDialog({
         title: 'Export Data',
         defaultPath: `export-${Date.now()}.${extensions[0]}`,
-        filters: [{ name: options.format.toUpperCase(), extensions }]
+        filters: [{ name: options.format.toUpperCase(), extensions }],
       });
 
       if (result.canceled || !result.filePath) {
@@ -233,7 +244,7 @@ export function registerDatabaseIpc() {
       }
 
       // TODO: Реализовать экспорт в разных форматах
-      
+
       return { success: true, path: result.filePath };
     } catch (err) {
       console.error('[IPC] exportData error:', err);
@@ -248,7 +259,7 @@ export function registerDatabaseIpc() {
       const db = getDatabase();
       db.run('VACUUM');
       saveDatabase();
-      
+
       return { success: true };
     } catch (err) {
       console.error('[IPC] vacuum error:', err);
@@ -259,15 +270,17 @@ export function registerDatabaseIpc() {
   ipcMain.handle('db:clear', async () => {
     try {
       const db = getDatabase();
-      
+
       db.run('DELETE FROM channel_data');
       db.run('DELETE FROM sensor_data');
       db.run('DELETE FROM sessions');
-      db.run('DELETE FROM sqlite_sequence WHERE name IN ("channel_data", "sensor_data", "sessions")');
+      db.run(
+        'DELETE FROM sqlite_sequence WHERE name IN ("channel_data", "sensor_data", "sessions")',
+      );
       db.run('VACUUM');
-      
+
       saveDatabase();
-      
+
       return { success: true };
     } catch (err) {
       console.error('[IPC] clear error:', err);

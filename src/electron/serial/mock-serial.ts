@@ -1,5 +1,6 @@
 // src/main/serial/mock-serial.ts
 import { EventEmitter } from 'events';
+
 import type { ISerialPort } from './types';
 
 export class MockSerialPort extends EventEmitter implements ISerialPort {
@@ -36,7 +37,7 @@ export class MockSerialPort extends EventEmitter implements ISerialPort {
 
     // Генерируем данные для 16 каналов
     for (let i = 0; i < 16; i++) {
-      const baseValue = 1.8 + (this.portIndex * 0.2) + (i * 0.02) + (Math.random() * 0.4 - 0.2);
+      const baseValue = 1.8 + this.portIndex * 0.2 + i * 0.02 + (Math.random() * 0.4 - 0.2);
       data[`P${i}`] = parseFloat(baseValue.toFixed(6));
       data[`stdDev${i}`] = parseFloat((0.01 + Math.random() * 0.01).toFixed(6));
     }

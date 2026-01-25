@@ -3,6 +3,7 @@ import { Card, CardBody, CardHeader, Chip, Alert, Divider } from '@heroui/react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, AlertCircle } from 'lucide-react';
+
 import type { SensorType, ViewMode } from '../../../entities/sensor-data/model/types';
 import { useSerialPortContext } from '../../../app/providers/SerialPortProvider';
 import { useSerialData } from '../hooks/useSerialData';
@@ -24,9 +25,22 @@ interface MonitoringDashboardProps {
 }
 
 const COLORS = [
-  '#4f46e5', '#e11d48', '#059669', '#f97316', '#8b5cf6',
-  '#06b6d4', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1',
-  '#10b981', '#ef4444', '#3b82f6', '#f43f5e', '#a855f7', '#84cc16',
+  '#4f46e5',
+  '#e11d48',
+  '#059669',
+  '#f97316',
+  '#8b5cf6',
+  '#06b6d4',
+  '#ec4899',
+  '#14b8a6',
+  '#f59e0b',
+  '#6366f1',
+  '#10b981',
+  '#ef4444',
+  '#3b82f6',
+  '#f43f5e',
+  '#a855f7',
+  '#84cc16',
 ];
 
 const CHANNELS = Array.from({ length: 16 }, (_, i) => i);
@@ -52,7 +66,7 @@ export const MonitoringDashboard = ({ type }: MonitoringDashboardProps) => {
     setSelectedChannels((prev) =>
       prev.includes(channel)
         ? prev.filter((c) => c !== channel)
-        : [...prev, channel].sort((a, b) => a - b)
+        : [...prev, channel].sort((a, b) => a - b),
     );
   }, []);
 
@@ -128,9 +142,7 @@ export const MonitoringDashboard = ({ type }: MonitoringDashboardProps) => {
           <div className="flex justify-between items-start w-full">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-3">
-                <h3 className="text-2xl font-bold">
-                  {t(`monitoring.${type}.title`)}
-                </h3>
+                <h3 className="text-2xl font-bold">{t(`monitoring.${type}.title`)}</h3>
                 {isReceiving && (
                   <Chip
                     color="success"
@@ -147,9 +159,7 @@ export const MonitoringDashboard = ({ type }: MonitoringDashboardProps) => {
                   </Chip>
                 )}
               </div>
-              <p className="text-sm text-default-500">
-                {t(`monitoring.${type}.subtitle`)}
-              </p>
+              <p className="text-sm text-default-500">{t(`monitoring.${type}.subtitle`)}</p>
             </div>
 
             {/* Управление */}
@@ -244,9 +254,7 @@ export const MonitoringDashboard = ({ type }: MonitoringDashboardProps) => {
                 {t('charts.info.selected')}: <strong>{selectedChannels.length}</strong>
               </div>
               {dataBuffer.length === 200 && (
-                <div className="text-warning">
-                  ⚠️ {t('charts.status.bufferFull')}
-                </div>
+                <div className="text-warning">⚠️ {t('charts.status.bufferFull')}</div>
               )}
             </div>
           )}

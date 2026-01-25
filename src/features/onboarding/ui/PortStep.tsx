@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { Select, SelectItem, Button, Alert, Chip } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+
 import { useSerialPortContext } from '../../../app/providers/SerialPortProvider';
 import { DataPreview } from './DataPreview';
 
 export default function PortStep({ onNext, onBack }: any) {
   const { t } = useTranslation();
-  
+
   const {
     ports,
     selectedPort,

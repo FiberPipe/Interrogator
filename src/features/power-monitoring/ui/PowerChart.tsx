@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChartSeries, LineChartWithConfidence } from '../../../shared/ui';
+
+import type { ChartSeries } from '../../../shared/ui';
+import { LineChartWithConfidence } from '../../../shared/ui';
 
 interface PowerChartProps {
   data: any[];
@@ -22,8 +24,10 @@ export const PowerChart = ({ data, selectedChannels, colors }: PowerChartProps) 
       data: data.map((point) => ({
         x: point.timestamp,
         y: parseFloat(point[`P${channelIndex}`]) || 0,
-        yMin: parseFloat(point[`P${channelIndex}`]) - parseFloat(point[`stdDev${channelIndex}`] || 0),
-        yMax: parseFloat(point[`P${channelIndex}`]) + parseFloat(point[`stdDev${channelIndex}`] || 0),
+        yMin:
+          parseFloat(point[`P${channelIndex}`]) - parseFloat(point[`stdDev${channelIndex}`] || 0),
+        yMax:
+          parseFloat(point[`P${channelIndex}`]) + parseFloat(point[`stdDev${channelIndex}`] || 0),
         timestamp: point.timestamp,
       })),
     }));

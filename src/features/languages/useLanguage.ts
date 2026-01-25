@@ -6,7 +6,7 @@ import i18n from '../../shared/i18n';
 const LANGUAGES = [
   { key: 'en', label: 'English' },
   { key: 'ru', label: 'Русский' },
-  { key: 'es', label: 'Español' },
+  { key: 'zh', label: '中国语文科' },
 ];
 
 export const useLanguage = () => {

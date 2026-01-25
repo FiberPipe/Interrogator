@@ -2,6 +2,7 @@ import { Button } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { LineChart, Table } from 'lucide-react';
+
 import type { ViewMode } from '../../../entities/sensor-data/model/types';
 
 interface ViewModeSelectorProps {

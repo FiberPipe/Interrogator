@@ -3,7 +3,7 @@ export interface RowData extends Power, Deviation {
   time: string;
 }
 
-export interface Power{
+export interface Power {
   [key: `P${number}`]: number;
 }
 

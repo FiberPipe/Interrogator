@@ -1,4 +1,5 @@
 import type { BrowserWindow } from 'electron';
+
 import { SerialPortManager } from './port-manager';
 import { setPortManager } from '../state';
 import { registerGetPorts } from './register';

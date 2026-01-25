@@ -1,4 +1,5 @@
 import type { BrowserWindow } from 'electron';
+
 import type { ISerialPort } from './types';
 import { SerialDataProcessor } from './data-processor';
 
@@ -94,7 +95,7 @@ export class SerialPortManager {
           // Удаляем из активных подключений
           this.connections.delete(path);
           this.closingPorts.delete(path);
-          
+
           console.log(`[PortManager] Port ${path} closed successfully`);
           resolve();
         });
@@ -111,7 +112,7 @@ export class SerialPortManager {
     const closeTasks = Array.from(this.connections.keys()).map((path) =>
       this.closePort(path).catch((err) => {
         console.error(`[PortManager] Error closing ${path}:`, err);
-      })
+      }),
     );
 
     await Promise.all(closeTasks);
@@ -131,7 +132,7 @@ export class SerialPortManager {
     if (fromPath && this.connections.has(fromPath)) {
       await this.closePort(fromPath);
       // Даём время на очистку
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
     }
 
     // Открываем новый порт
@@ -139,14 +140,10 @@ export class SerialPortManager {
   }
 
   getActivePorts(): string[] {
-    return Array.from(this.connections.keys()).filter(path => !this.closingPorts.has(path));
+    return Array.from(this.connections.keys()).filter((path) => !this.closingPorts.has(path));
   }
 
-  private setupPortHandlers(
-    path: string,
-    port: ISerialPort,
-    processor: SerialDataProcessor
-  ): void {
+  private setupPortHandlers(path: string, port: ISerialPort, processor: SerialDataProcessor): void {
     port.on('data', async (data: Buffer) => {
       const dataString = data.toString().trim();
       if (!dataString) return;

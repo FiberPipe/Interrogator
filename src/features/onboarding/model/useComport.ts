@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+
 import { addSuccessToaster, addDangerToaster } from '../../../shared/ui';
 
 interface SerialOpenResult {
@@ -199,7 +200,7 @@ export const useComPort = (): UseComPortReturn => {
         }
       }
     },
-    [loadPorts]
+    [loadPorts],
   );
 
   // Отключение от порта

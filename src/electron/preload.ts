@@ -1,6 +1,23 @@
-import { ipcRenderer, contextBridge, IpcRendererEvent } from 'electron';
-import { SerialAPI, SerialPortInfo, SerialOpenResult, SerialDataEvent, AppDataAPI, DatabaseAPI, DatabasePathInfo, DatabaseLocation, DatabaseChangeLocationResult, DatabaseStats, ChannelStats, SensorDataRecord, DatabaseBackupResult, DatabaseExportOptions, DatabaseExportResult } from './types';
+import type { IpcRendererEvent } from 'electron';
+import { ipcRenderer, contextBridge } from 'electron';
 
+import type {
+  SerialAPI,
+  SerialPortInfo,
+  SerialOpenResult,
+  SerialDataEvent,
+  AppDataAPI,
+  DatabaseAPI,
+  DatabasePathInfo,
+  DatabaseLocation,
+  DatabaseChangeLocationResult,
+  DatabaseStats,
+  ChannelStats,
+  SensorDataRecord,
+  DatabaseBackupResult,
+  DatabaseExportOptions,
+  DatabaseExportResult,
+} from './types';
 
 // -------------------- Serial API --------------------
 const serialAPI: SerialAPI = {
@@ -11,7 +28,8 @@ const serialAPI: SerialAPI = {
 
   open: (path: string, baud: number): Promise<SerialOpenResult> => {
     console.log('[Preload] 🔌 open called:', { path, baud });
-    return ipcRenderer.invoke('serial:open', path, baud)
+    return ipcRenderer
+      .invoke('serial:open', path, baud)
       .then((result: SerialOpenResult) => {
         console.log('[Preload] 📥 open result:', result);
         return result;
@@ -24,7 +42,8 @@ const serialAPI: SerialAPI = {
 
   close: (path: string): Promise<SerialOpenResult> => {
     console.log('[Preload] 🔌 close called:', path);
-    return ipcRenderer.invoke('serial:close', path)
+    return ipcRenderer
+      .invoke('serial:close', path)
       .then((result: SerialOpenResult) => {
         console.log('[Preload] 📥 close result:', result);
         return result;
@@ -37,14 +56,14 @@ const serialAPI: SerialAPI = {
 
   onData: (cb: (data: SerialDataEvent) => void): (() => void) => {
     console.log('[Preload] 🎧 onData listener registered');
-    
+
     const handler = (_event: IpcRendererEvent, data: SerialDataEvent) => {
       console.log('[Preload] 🟢 Data event received:', data);
       cb(data);
     };
-    
+
     ipcRenderer.on('serial:data', handler);
-    
+
     return () => {
       console.log('[Preload] 🧹 onData listener removed');
       ipcRenderer.removeListener('serial:data', handler);
@@ -53,14 +72,14 @@ const serialAPI: SerialAPI = {
 
   onClosed: (cb: (port: string) => void): (() => void) => {
     console.log('[Preload] 🎧 onClosed listener registered');
-    
+
     const handler = (_event: IpcRendererEvent, port: string) => {
       console.log('[Preload] 🔴 Port closed event:', port);
       cb(port);
     };
-    
+
     ipcRenderer.on('serial:closed', handler);
-    
+
     return () => {
       console.log('[Preload] 🧹 onClosed listener removed');
       ipcRenderer.removeListener('serial:closed', handler);
@@ -69,14 +88,14 @@ const serialAPI: SerialAPI = {
 
   onError: (cb: (data: { port: string; error: string }) => void): (() => void) => {
     console.log('[Preload] 🎧 onError listener registered');
-    
+
     const handler = (_event: IpcRendererEvent, data: { port: string; error: string }) => {
       console.error('[Preload] ❌ Error event:', data);
       cb(data);
     };
-    
+
     ipcRenderer.on('serial:error', handler);
-    
+
     return () => {
       console.log('[Preload] 🧹 onError listener removed');
       ipcRenderer.removeListener('serial:error', handler);
@@ -115,7 +134,10 @@ const databaseAPI: DatabaseAPI = {
     return ipcRenderer.invoke('db:getPath');
   },
 
-  changeLocation: (location: DatabaseLocation, customPath?: string): Promise<DatabaseChangeLocationResult> => {
+  changeLocation: (
+    location: DatabaseLocation,
+    customPath?: string,
+  ): Promise<DatabaseChangeLocationResult> => {
     console.log('[Preload] 📍 changeLocation called:', { location, customPath });
     return ipcRenderer.invoke('db:changeLocation', location, customPath);
   },
@@ -136,13 +158,23 @@ const databaseAPI: DatabaseAPI = {
     return ipcRenderer.invoke('db:getStats');
   },
 
-  getChannelStats: (port: string, channel: number, startTime: number, endTime: number): Promise<ChannelStats> => {
+  getChannelStats: (
+    port: string,
+    channel: number,
+    startTime: number,
+    endTime: number,
+  ): Promise<ChannelStats> => {
     console.log('[Preload] 📈 getChannelStats called:', { port, channel, startTime, endTime });
     return ipcRenderer.invoke('db:getChannelStats', port, channel, startTime, endTime);
   },
 
   // Data Queries
-  getDataByTimeRange: (port: string, startTime: number, endTime: number, limit?: number): Promise<SensorDataRecord[]> => {
+  getDataByTimeRange: (
+    port: string,
+    startTime: number,
+    endTime: number,
+    limit?: number,
+  ): Promise<SensorDataRecord[]> => {
     console.log('[Preload] 🔍 getDataByTimeRange called:', { port, startTime, endTime, limit });
     return ipcRenderer.invoke('db:getDataByTimeRange', port, startTime, endTime, limit);
   },

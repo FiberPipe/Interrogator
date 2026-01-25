@@ -46,9 +46,7 @@ export const ChannelSelector = ({
       {/* Заголовок */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <span className="text-sm font-medium">
-            {t('sensors.channels.available')}
-          </span>
+          <span className="text-sm font-medium">{t('sensors.channels.available')}</span>
           <p className="text-xs text-default-400">
             {t('sensors.channels.selectedCount', {
               count: selectedChannels.length,
@@ -110,21 +108,15 @@ export const ChannelSelector = ({
       <div className="flex flex-wrap gap-3 pt-2 border-t border-default-200">
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded bg-primary" />
-          <span className="text-xs text-default-600">
-            {t('sensors.channels.legend.selected')}
-          </span>
+          <span className="text-xs text-default-600">{t('sensors.channels.legend.selected')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded bg-warning/20 border border-warning" />
-          <span className="text-xs text-default-600">
-            {t('sensors.channels.legend.inUse')}
-          </span>
+          <span className="text-xs text-default-600">{t('sensors.channels.legend.inUse')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded border border-default-300" />
-          <span className="text-xs text-default-600">
-            {t('sensors.channels.legend.available')}
-          </span>
+          <span className="text-xs text-default-600">{t('sensors.channels.legend.available')}</span>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { Button, Card } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+
 import { patchAppData } from '../../../app/hooks/useOnboarding';
 
 const languages = [
@@ -39,10 +40,11 @@ export default function LanguageStep({ onNext }: { onNext: (d: any) => void }) {
             <Card
               isPressable
               onPress={() => handleLanguageSelect(lang.code)}
-              className={`p-6 cursor-pointer border-2 transition-all w-full ${i18n.language === lang.code
+              className={`p-6 cursor-pointer border-2 transition-all w-full ${
+                i18n.language === lang.code
                   ? 'border-primary bg-primary-50 dark:bg-primary-900/20'
                   : 'border-transparent hover:border-default-300'
-                }`}
+              }`}
             >
               <div className="flex flex-col items-center gap-3">
                 <span className="text-5xl">{lang.flag}</span>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import type { TooltipProps } from 'recharts';
 import {
   LineChart,
   Line,
@@ -9,7 +10,6 @@ import {
   ResponsiveContainer,
   Area,
   Legend,
-  TooltipProps,
 } from 'recharts';
 import { Slider } from '@heroui/react';
 import React from 'react';
@@ -57,7 +57,7 @@ export const LineChartWithConfidence = ({
   customTooltip,
 }: LineChartWithConfidenceProps) => {
   const maxDataLength = series[0]?.data.length || 0;
-  
+
   const [range, setRange] = useState<[number, number]>([
     Math.max(0, maxDataLength - defaultVisiblePoints),
     maxDataLength - 1,
@@ -91,12 +91,12 @@ export const LineChartWithConfidence = ({
       series.forEach((s) => {
         if (s.data[globalIndex]) {
           const point = s.data[globalIndex];
-          
+
           // X координата (используем из первой серии)
           if (!dataPoint[xAxisDataKey]) {
             dataPoint[xAxisDataKey] = point[xAxisDataKey] || point.x;
           }
-          
+
           // Временная метка для тултипа
           if (!dataPoint.timestamp && point.timestamp) {
             dataPoint.timestamp = point.timestamp;
@@ -104,7 +104,7 @@ export const LineChartWithConfidence = ({
 
           // Y значения
           dataPoint[s.key] = point.y;
-          
+
           // Confidence интервалы
           if (s.showConfidence && point.yMin !== undefined && point.yMax !== undefined) {
             dataPoint[`${s.key}_min`] = point.yMin;
@@ -135,12 +135,9 @@ export const LineChartWithConfidence = ({
     <div className="flex flex-col gap-4 w-full">
       <div style={{ width: '100%', height }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart 
-            data={chartData} 
-            margin={{ top: 10, right: 30, left: 10, bottom: 30 }}
-          >
+          <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 30 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
-            
+
             <XAxis
               dataKey={xAxisDataKey}
               tick={{ fontSize: 12 }}
@@ -160,7 +157,7 @@ export const LineChartWithConfidence = ({
                   : undefined
               }
             />
-            
+
             <YAxis
               tick={{ fontSize: 12 }}
               stroke="#9ca3af"
@@ -176,9 +173,9 @@ export const LineChartWithConfidence = ({
                   : undefined
               }
             />
-            
+
             <Tooltip content={<TooltipComponent />} />
-            
+
             {showLegend && <Legend />}
 
             {/* Отрисовка серий */}
@@ -253,15 +250,10 @@ const DefaultTooltip = ({ active, payload, label }: TooltipProps<any, any>) => {
 
   return (
     <div className="bg-background/95 border border-default-200 rounded-lg p-3 shadow-lg">
-      <p className="text-sm font-semibold mb-2">
-        {timestamp || label}
-      </p>
+      <p className="text-sm font-semibold mb-2">{timestamp || label}</p>
       {payload.map((entry: any, index: number) => (
         <div key={index} className="flex items-center gap-2 text-xs">
-          <div
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: entry.color }}
-          />
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
           <span className="text-default-600">{entry.name}:</span>
           <span className="font-semibold">{entry.value?.toFixed(6)}</span>
         </div>

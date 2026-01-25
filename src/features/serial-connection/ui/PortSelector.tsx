@@ -1,6 +1,7 @@
 import { Select, SelectItem, Chip } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
-import { SerialPortInfo } from '../../../shared/types/global';
+
+import type { SerialPortInfo } from '../../../shared/types/global';
 
 interface PortSelectorProps {
   ports: SerialPortInfo[];
@@ -62,9 +63,7 @@ export const PortSelector = ({
               <div className="flex flex-col">
                 <span className="font-medium">{port.path}</span>
                 {port.serialNumber && (
-                  <span className="text-xs text-default-400">
-                    S/N: {port.serialNumber}
-                  </span>
+                  <span className="text-xs text-default-400">S/N: {port.serialNumber}</span>
                 )}
               </div>
               <div className="flex gap-2">

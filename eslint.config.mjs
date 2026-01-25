@@ -5,7 +5,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import importPlugin from "eslint-plugin-import";
 import prettierPlugin from "eslint-plugin-prettier";
 
-import noUntranslatedText from "./linter/no-untranslated-text.js";
+import noUntranslatedText from "./linter/no-untranslated-text.mjs";
 
 export default [
   {
@@ -71,6 +71,20 @@ export default [
       ],
       "@typescript-eslint/strict-boolean-expressions": "error",
       "@typescript-eslint/consistent-type-imports": "error",
+      'import/no-restricted-paths': [
+        'error',
+        {
+          zones: [
+            {
+              target: './src',
+              from: './src',
+              except: ['.'],
+              message:
+                'Используй alias вместо относительного пути между модулями src',
+            },
+          ],
+        },
+      ],
     },
 
     settings: {

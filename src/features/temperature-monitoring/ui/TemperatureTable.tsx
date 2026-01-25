@@ -1,6 +1,15 @@
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Input } from '@heroui/react';
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Input,
+} from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
+
 import type { GroupedWavelengthItem } from '../../../entities/sensor-data/model/types';
 import { calculateTemperature } from '../../../entities/sensor-data/model/utils';
 import { FormulaDisplay } from '../../../entities/sensor-data/ui/FormulaDisplay';
@@ -40,7 +49,7 @@ export const TemperatureTable = ({ data, inputValues, onInputChange }: Temperatu
 
       return calculateTemperature(item.wavelength, coeffs);
     },
-    [inputValues]
+    [inputValues],
   );
 
   return (

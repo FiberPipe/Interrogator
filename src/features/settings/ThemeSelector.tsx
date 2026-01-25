@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Sun, Moon, Monitor, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
+
 import { patchAppData } from '../../app/hooks/useOnboarding';
 import { addSuccessToaster } from '../../shared/ui';
 
@@ -27,19 +28,20 @@ export const ThemeSelector = () => {
 
   const handleThemeChange = async (theme: string) => {
     setCurrentTheme(theme);
-    
+
     // Применяем тему
-    const isDark = theme === 'dark' || 
+    const isDark =
+      theme === 'dark' ||
       (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    
+
     document.documentElement.classList.toggle('dark', isDark);
-    
+
     // Сохраняем в БД
     await patchAppData({ theme });
-    
+
     addSuccessToaster(
       t('settings.theme.changed'),
-      t('settings.theme.changedDescription', { theme: t(`settings.theme.${theme}`) })
+      t('settings.theme.changedDescription', { theme: t(`settings.theme.${theme}`) }),
     );
   };
 
@@ -54,19 +56,15 @@ export const ThemeSelector = () => {
           <p className="text-sm text-default-500">{t('settings.theme.description')}</p>
         </div>
       </CardHeader>
-      
+
       <CardBody>
         <div className="grid grid-cols-3 gap-3">
           {themes.map((theme) => {
             const Icon = theme.icon;
             const isActive = currentTheme === theme.value;
-            
+
             return (
-              <motion.div
-                key={theme.value}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
+              <motion.div key={theme.value} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
                   fullWidth
                   variant={isActive ? 'solid' : 'bordered'}
@@ -76,9 +74,7 @@ export const ThemeSelector = () => {
                 >
                   <Icon className="w-6 h-6" />
                   <span className="text-sm">{t(theme.label)}</span>
-                  {isActive && (
-                    <Check className="w-4 h-4 absolute top-2 right-2" />
-                  )}
+                  {isActive && <Check className="w-4 h-4 absolute top-2 right-2" />}
                 </Button>
               </motion.div>
             );

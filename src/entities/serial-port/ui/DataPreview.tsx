@@ -2,6 +2,7 @@ import { Card, CardBody, CardHeader, Chip, Code } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity } from 'lucide-react';
+
 import type { SerialDataPacket } from '../model/types';
 
 interface DataPreviewProps {
@@ -37,21 +38,19 @@ export const DataPreview = ({ data, packetsReceived, dataBuffer }: DataPreviewPr
           <CardHeader className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <Activity className="w-5 h-5 text-success animate-pulse" />
-              <h4 className="text-lg font-semibold">
-                {t('serialPort.dataPreview.title')}
-              </h4>
+              <h4 className="text-lg font-semibold">{t('serialPort.dataPreview.title')}</h4>
             </div>
             <Chip color="primary" variant="flat" size="sm">
               {t('serialPort.dataPreview.receivedPackets', { count: packetsReceived })}
             </Chip>
           </CardHeader>
-          
+
           <CardBody className="space-y-4">
             <div className="flex justify-between text-sm">
               <span className="text-default-500">ID:</span>
               <span className="font-mono">{data.id}</span>
             </div>
-            
+
             <div className="flex justify-between text-sm">
               <span className="text-default-500">{t('serialPort.dataPreview.lastUpdate')}:</span>
               <span className="font-mono">{data.time}</span>
@@ -59,9 +58,7 @@ export const DataPreview = ({ data, packetsReceived, dataBuffer }: DataPreviewPr
 
             <div className="max-h-64 overflow-auto">
               <Code className="w-full">
-                <pre className="text-xs">
-                  {JSON.stringify(data, null, 2)}
-                </pre>
+                <pre className="text-xs">{JSON.stringify(data, null, 2)}</pre>
               </Code>
             </div>
 
@@ -75,7 +72,7 @@ export const DataPreview = ({ data, packetsReceived, dataBuffer }: DataPreviewPr
                   {dataBuffer.slice(-20).map((packet, idx) => {
                     const value = packet.P0 || 0;
                     const height = Math.min(100, (value / 3) * 100);
-                    
+
                     return (
                       <motion.div
                         key={packet.id}
