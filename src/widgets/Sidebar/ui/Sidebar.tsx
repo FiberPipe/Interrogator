@@ -40,7 +40,7 @@ export const Sidebar = () => {
                 transition={{ duration: 0.2 }}
               >
                 <h2 className="font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  SensorMonitor
+                  FiberPipe
                 </h2>
               </motion.div>
             )}

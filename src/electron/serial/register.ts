@@ -5,11 +5,12 @@ import { getMockSerialPorts } from './mock-serial';
 import type { SerialPortInfo } from './types';
 import type { SerialPortManager } from './port-manager';
 import { ENV } from '../env';
+import { logger } from '../logger/utils';
 
 export function registerGetPorts(manager: SerialPortManager): void {
   ipcMain.handle('serial:getPorts', async (): Promise<SerialPortInfo[]> => {
     try {
-      console.log('[Serial] Getting ports list');
+      logger.info('[Serial] Getting ports list');
 
       const ports = ENV.WITH_MOCK_PORTS ? await getMockSerialPorts() : await SerialPort.list();
 
@@ -24,10 +25,10 @@ export function registerGetPorts(manager: SerialPortManager): void {
         busy: activePorts.includes(p.path),
       }));
 
-      console.log('[Serial] Found ports:', result);
+      logger.info('[Serial] Found ports:', result);
       return result;
     } catch (err) {
-      console.error('[Serial] Error getting ports:', err);
+      logger.error('[Serial] Error getting ports:', err);
       throw err;
     }
   });

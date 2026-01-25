@@ -55,7 +55,6 @@ export const DatabaseLocationSelector = () => {
         addDangerToaster(t('database.info.error'), result.error || 'Unknown error');
       }
     } catch (err) {
-      console.error('[DatabaseLocationSelector] Error:', err);
       addDangerToaster(t('database.info.error'), String(err));
     } finally {
       setLoading(false);

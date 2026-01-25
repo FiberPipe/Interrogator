@@ -1,0 +1,48 @@
+{
+  "title": "光源控制",
+  "autoMode": "自动模式",
+
+  "laser": {
+    "label": "光源电流（激光二极管）",
+    "unit": "毫安",
+    "min": "0 毫安",
+    "max": "3000 毫安"
+  },
+
+  "tec": {
+    "label": "热电控制器电流（TEC）",
+    "currentUnit": "毫安",
+    "target": "目标",
+    "ranges": {
+      "min": "-4000 毫安（15°C）",
+      "zero": "0 毫安（27.5°C）",
+      "max": "+4000 毫安（40°C）"
+    }
+  },
+
+  "amplifier": {
+    "gain": "跨阻放大器增益",
+    "offset": "跨阻放大器偏移"
+  },
+
+  "actions": {
+    "apply": "应用设置"
+  },
+
+  "monitoring": {
+    "title": "参数监控",
+    "minOpticalPower": "最小光功率",
+    "maxLaserCurrent": "最大激光电流",
+    "currentTemperature": "当前温度"
+  },
+
+  "info": {
+    "title": "系统信息",
+    "items": [
+      "激光电流范围：0–3000 毫安",
+      "TEC 电流范围：±4000 毫安",
+      "温度范围：15–40 °C",
+      "数据每 2 秒更新一次"
+    ]
+  }
+}

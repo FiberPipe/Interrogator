@@ -2,6 +2,8 @@ import { config } from 'dotenv';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 
+import { logger } from './logger/utils';
+
 export type NodeEnv = 'development' | 'production' | 'test';
 
 interface MainEnvConfig {
@@ -17,11 +19,11 @@ function loadEnvFile(): void {
   const envPath = join(rootDir, envFile);
 
   if (existsSync(envPath)) {
-    console.log(`[Env] Loading environment from: ${envPath}`);
+    logger.info(`[Env] Loading environment from: ${envPath}`);
     config({ path: envPath });
   } else {
-    console.warn(`[Env] Environment file not found: ${envPath}`);
-    console.warn(`[Env] Using default values`);
+    logger.warn(`[Env] Environment file not found: ${envPath}`);
+    logger.warn(`[Env] Using default values`);
   }
 }
 
@@ -61,8 +63,8 @@ function initEnv(): MainEnvConfig {
 export const ENV = initEnv();
 
 export function logEnvConfig(): void {
-  console.log('[Env] =================================');
-  console.log('[Env] Configuration:');
-  console.log('[Env] Environment:', ENV.NODE_ENV);
-  console.log('[Env] =================================');
+  logger.info('[Env] =================================');
+  logger.info('[Env] Configuration:');
+  logger.info('[Env] Environment:', ENV.NODE_ENV);
+  logger.info('[Env] =================================');
 }

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { addDangerToaster } from '../../shared/ui';
+
 export async function getAppData() {
   if (!window.appData) throw new Error('appData IPC not available');
   return await window.appData.getAll();
@@ -19,7 +21,7 @@ export function useOnboarding() {
         const data = await getAppData();
         setIsFirstLaunch(Boolean(data?.isFirstLaunch ?? true));
       } catch (err) {
-        console.error('[useOnboarding] Error fetching app data:', err);
+        addDangerToaster('[useOnboarding] Error fetching app data:', err);
         setIsFirstLaunch(true); // fallback
       }
     }

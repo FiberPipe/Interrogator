@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 
+import { addDangerToaster, addSuccessToaster } from '../../../shared/ui';
+
 interface DataPoint {
   id: string;
   time: string;
@@ -23,7 +25,7 @@ export const useSerialData = (port: string | null) => {
       return;
     }
 
-    console.log('[useSerialData] Starting monitoring:', port);
+    addSuccessToaster('[useSerialData] Starting monitoring:', port);
     setIsReceiving(true);
 
     const handleData = (event: { port: string; data: string }) => {
@@ -47,7 +49,7 @@ export const useSerialData = (port: string | null) => {
             : updated;
         });
       } catch (err) {
-        console.error('[useSerialData] Parse error:', err);
+        addDangerToaster('[useSerialData] Parse error:', err);
       }
     };
 

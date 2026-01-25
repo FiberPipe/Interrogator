@@ -3,9 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, RotateCcw, Settings2, AlertCircle } from 'lucide-react';
 
+import { SensorConfigCard, SensorCountInput } from '../../../features';
 import { useSensorConfig } from '../../../features/sensor-configuration/model/useSensorConfig';
-import { SensorCountInput } from '../../../features/sensor-configuration/ui/SensorCountInput';
-import { SensorConfigCard } from '../../../features/sensor-configuration/ui/SensorConfigCard';
 
 export const SensorConfigWidget = () => {
   const { t } = useTranslation();

@@ -26,7 +26,6 @@ export const DatabaseBackupCard = () => {
         addDangerToaster(t('database.backup.error'), result.error || 'Unknown error');
       }
     } catch (err) {
-      console.error('[DatabaseBackup] Error:', err);
       addDangerToaster(t('database.backup.error'), String(err));
     } finally {
       setCreating(false);
@@ -47,7 +46,6 @@ export const DatabaseBackupCard = () => {
         addDangerToaster(t('database.backup.error'), result.error || 'Unknown error');
       }
     } catch (err) {
-      console.error('[DatabaseBackup] Error:', err);
       addDangerToaster(t('database.backup.error'), String(err));
     } finally {
       setRestoring(false);

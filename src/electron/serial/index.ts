@@ -6,9 +6,10 @@ import { registerGetPorts } from './register';
 import { registerOpenPort } from './open';
 import { registerClosePort } from './close';
 import { autoConnectSerial } from './auto-connect';
+import { logger } from '../logger/utils';
 
 export function registerSerialPortIpc(win: BrowserWindow): void {
-  console.log('[Serial] Registering IPC handlers');
+  logger.info('[Serial] Registering IPC handlers');
 
   // Создаём менеджер портов
   const manager = new SerialPortManager(win);
@@ -21,13 +22,13 @@ export function registerSerialPortIpc(win: BrowserWindow): void {
 
   // Автоподключение после загрузки окна
   win.webContents.on('did-finish-load', () => {
-    console.log('[Serial] Window loaded, attempting auto-connect');
+    logger.info('[Serial] Window loaded, attempting auto-connect');
     autoConnectSerial(win, manager);
   });
 
   // Закрываем все порты при выходе
   win.on('close', async () => {
-    console.log('[Serial] Window closing, cleaning up ports');
+    logger.info('[Serial] Window closing, cleaning up ports');
     await manager.closeAllPorts();
   });
 }

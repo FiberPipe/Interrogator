@@ -32,7 +32,6 @@ export const DatabaseExportCard = () => {
         addDangerToaster(t('database.export.error'), result.error || 'Unknown error');
       }
     } catch (err) {
-      console.error('[DatabaseExport] Error:', err);
       addDangerToaster(t('database.export.error'), String(err));
     } finally {
       setExporting(false);

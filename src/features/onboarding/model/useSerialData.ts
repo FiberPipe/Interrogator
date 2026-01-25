@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+import { addDangerToaster, addSuccessToaster } from '../../../shared/ui';
+
 interface SensorRecord {
   id_record: number;
   time: string;
@@ -28,17 +30,17 @@ export const useSerialData = (port: string | null) => {
     setRecordCount(0);
 
     if (!port) {
-      console.log('[useSerialData] No port connected');
+      addSuccessToaster('[useSerialData] No port connected');
       return;
     }
 
-    console.log('[useSerialData] Starting to listen for data from:', port);
+    addSuccessToaster('[useSerialData] Starting to listen for data from:', port);
 
     const handleData = (event: { port: string; data: string }) => {
       if (event.port !== port) return;
       if (!isMountedRef.current) return;
 
-      console.log('[useSerialData] Received data:', event.data);
+      addSuccessToaster('[useSerialData] Received data:', event.data);
 
       setRawData(event.data);
       setRecordCount((prev) => prev + 1);
@@ -47,14 +49,14 @@ export const useSerialData = (port: string | null) => {
         const parsed = JSON.parse(event.data);
         setLatestData(parsed);
       } catch (err) {
-        console.error('[useSerialData] Parse error:', err);
+        addDangerToaster('[useSerialData] Parse error:', err);
       }
     };
 
     unsubscribeRef.current = window.serial.onData(handleData);
 
     return () => {
-      console.log('[useSerialData] Cleaning up listener');
+      addSuccessToaster('[useSerialData] Cleaning up listener');
       if (unsubscribeRef.current) {
         unsubscribeRef.current();
         unsubscribeRef.current = null;

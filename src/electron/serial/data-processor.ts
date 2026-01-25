@@ -2,6 +2,7 @@ import type { BrowserWindow } from 'electron';
 
 import { sensorDataService } from '../database/service/sensor-data.service';
 import { appStorage } from '../storage/app-storage';
+import { logger } from '../logger/utils';
 
 interface RawSensorData {
   id: string;
@@ -40,9 +41,9 @@ export class SerialDataProcessor {
   async startSession() {
     try {
       this.sessionId = await sensorDataService.createSession(this.port);
-      console.log(`[DataProcessor ${this.port}] ✅ Session started: ${this.sessionId}`);
+      logger.info(`[DataProcessor ${this.port}] ✅ Session started: ${this.sessionId}`);
     } catch (err) {
-      console.error(`[DataProcessor ${this.port}] ❌ Failed to start session:`, err);
+      logger.error(`[DataProcessor ${this.port}] ❌ Failed to start session:`, err);
     }
   }
 
@@ -75,7 +76,7 @@ export class SerialDataProcessor {
 
       this.recordCount++;
     } catch (err) {
-      console.error(`[DataProcessor ${this.port}] Parse error:`, err);
+      logger.error(`[DataProcessor ${this.port}] Parse error:`, err);
     }
   }
 
@@ -203,7 +204,7 @@ export class SerialDataProcessor {
         this.lastSaveTime = now;
       }
     } catch (err) {
-      console.error(`[DataProcessor ${this.port}] DB save error:`, err);
+      logger.error(`[DataProcessor ${this.port}] DB save error:`, err);
       throw err;
     }
   }
@@ -212,11 +213,11 @@ export class SerialDataProcessor {
     if (this.sessionId) {
       try {
         await sensorDataService.endSession(this.sessionId);
-        console.log(
+        logger.info(
           `[DataProcessor ${this.port}] ✅ Session ended: ${this.sessionId}, Records: ${this.recordCount}`,
         );
       } catch (err) {
-        console.error(`[DataProcessor ${this.port}] ❌ Failed to end session:`, err);
+        logger.error(`[DataProcessor ${this.port}] ❌ Failed to end session:`, err);
       }
     }
   }

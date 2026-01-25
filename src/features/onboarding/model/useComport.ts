@@ -47,9 +47,8 @@ export const useComPort = (): UseComPortReturn => {
   const isInitializedRef = useRef(false);
   const isMountedRef = useRef(true);
 
-  // Загрузка списка портов
   const loadPorts = useCallback(async () => {
-    console.log('[useComPort] 📡 Loading ports...');
+    addSuccessToaster('[useComPort] 📡 Loading ports...');
 
     if (!isMountedRef.current) return;
 
@@ -58,7 +57,7 @@ export const useComPort = (): UseComPortReturn => {
 
     try {
       const list = await window.serial.getPorts();
-      console.log('[useComPort] ✅ Ports loaded:', list);
+      addSuccessToaster('[useComPort] ✅ Ports loaded:', list);
 
       if (!isMountedRef.current) return;
 
@@ -70,17 +69,17 @@ export const useComPort = (): UseComPortReturn => {
 
         if (!connectedPortInfo) {
           // Порт отключен физически
-          console.log('[useComPort] Connected port no longer exists');
+          addSuccessToaster('[useComPort] Connected port no longer exists');
           setConnectedPort(null);
         } else if (!connectedPortInfo.busy) {
           // Порт существует, но не занят - значит отключился
-          console.log('[useComPort] Connected port is no longer busy');
+          addSuccessToaster('[useComPort] Connected port is no longer busy');
           setConnectedPort(null);
         }
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      console.error('[useComPort] ❌ Error loading ports:', err);
+      addDangerToaster('[useComPort] ❌ Error loading ports:', err);
 
       if (isMountedRef.current) {
         setError(errorMsg);
@@ -97,29 +96,29 @@ export const useComPort = (): UseComPortReturn => {
   useEffect(() => {
     if (isInitializedRef.current) return;
 
-    console.log('[useComPort] 🔄 Initializing...');
+    addSuccessToaster('[useComPort] 🔄 Initializing...');
     isInitializedRef.current = true;
 
     const initialize = async () => {
       try {
         const savedData = await window.appData.getAll();
-        console.log('[useComPort] Saved data:', savedData);
+        addSuccessToaster('[useComPort] Saved data:', savedData);
 
         if (!isMountedRef.current) return;
 
         if (savedData?.selectedPort && typeof savedData.selectedPort === 'string') {
-          console.log('[useComPort] ✅ Setting saved port:', savedData.selectedPort);
+          addSuccessToaster('[useComPort] ✅ Setting saved port:', savedData.selectedPort);
           setSelectedPort(savedData.selectedPort);
         }
 
         if (savedData?.autoConnect === true) {
-          console.log('[useComPort] ✅ Auto-connect enabled');
+          addSuccessToaster('[useComPort] ✅ Auto-connect enabled');
           setAutoConnectState(true);
         }
 
         await loadPorts();
       } catch (err) {
-        console.error('[useComPort] ❌ Error during initialization:', err);
+        addDangerToaster('[useComPort] ❌ Error during initialization:', err);
       }
     };
 
@@ -128,38 +127,38 @@ export const useComPort = (): UseComPortReturn => {
 
   // Обработчик изменения выбранного порта
   const handlePortChange = useCallback((port: string) => {
-    console.log('[useComPort] 🔄 Changing selected port to:', port);
+    addSuccessToaster('[useComPort] 🔄 Changing selected port to:', port);
     setSelectedPort(port);
 
     window.appData.set('selectedPort', port).catch((err) => {
-      console.error('[useComPort] ❌ Error saving port:', err);
+      addDangerToaster('[useComPort] ❌ Error saving port:', err);
     });
   }, []);
 
   // Автосохранение
   const setAutoConnect = useCallback(async (value: boolean) => {
-    console.log('[useComPort] 🔄 Setting auto-connect:', value);
+    addSuccessToaster('[useComPort] 🔄 Setting auto-connect:', value);
     setAutoConnectState(value);
 
     try {
       await window.appData.set('autoConnect', value);
-      console.log('[useComPort] ✅ Auto-connect saved');
+      addSuccessToaster('[useComPort] ✅ Auto-connect saved');
     } catch (err) {
-      console.error('[useComPort] ❌ Error saving auto-connect:', err);
+      addDangerToaster('[useComPort] ❌ Error saving auto-connect:', err);
     }
   }, []);
 
   // Подключение к порту
   const connectToPort = useCallback(
     async (port: string, baudRate = 115200): Promise<boolean> => {
-      console.log('[useComPort] 🔌 Connecting to:', port);
+      addSuccessToaster('[useComPort] 🔌 Connecting to:', port);
 
       setConnecting(true);
       setError(null);
 
       try {
         const result: SerialOpenResult = await window.serial.open(port, baudRate);
-        console.log('[useComPort] Connection result:', result);
+        addSuccessToaster('[useComPort] Connection result:', result);
 
         if (!isMountedRef.current) return false;
 
@@ -206,18 +205,18 @@ export const useComPort = (): UseComPortReturn => {
   // Отключение от порта
   const disconnectPort = useCallback(async () => {
     if (!connectedPort) {
-      console.log('[useComPort] No port to disconnect');
+      addSuccessToaster('[useComPort] No port to disconnect');
       return;
     }
 
-    console.log('[useComPort] 🔌 Disconnecting from:', connectedPort);
+    addSuccessToaster('[useComPort] 🔌 Disconnecting from:', connectedPort);
 
     setDisconnecting(true);
     setError(null);
 
     try {
       const result: SerialOpenResult = await window.serial.close(connectedPort);
-      console.log('[useComPort] Disconnect result:', result);
+      addSuccessToaster('[useComPort] Disconnect result:', result);
 
       if (!isMountedRef.current) return;
 
@@ -233,7 +232,7 @@ export const useComPort = (): UseComPortReturn => {
       await loadPorts();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      console.error('[useComPort] ❌ Disconnect error:', err);
+      addDangerToaster('[useComPort] ❌ Disconnect error:', err);
 
       if (isMountedRef.current) {
         addDangerToaster('Ошибка отключения', errorMsg);
@@ -248,10 +247,10 @@ export const useComPort = (): UseComPortReturn => {
 
   // Подписка на события портов
   useEffect(() => {
-    console.log('[useComPort] 🎧 Setting up event listeners');
+    addSuccessToaster('[useComPort] 🎧 Setting up event listeners');
 
     const handleClosed = (port: string) => {
-      console.log('[useComPort] 🔴 Port closed event:', port);
+      addSuccessToaster('[useComPort] 🔴 Port closed event:', port);
 
       if (port === connectedPort && isMountedRef.current) {
         setConnectedPort(null);
@@ -261,7 +260,7 @@ export const useComPort = (): UseComPortReturn => {
     };
 
     const handleError = (data: { port: string; error: string }) => {
-      console.error('[useComPort] ❌ Port error:', data);
+      addDangerToaster('[useComPort] ❌ Port error:', data);
 
       if (data.port === connectedPort && isMountedRef.current) {
         setError(data.error);
@@ -275,7 +274,7 @@ export const useComPort = (): UseComPortReturn => {
     unsubscribeErrorRef.current = window.serial.onError(handleError);
 
     return () => {
-      console.log('[useComPort] 🧹 Cleaning up event listeners');
+      addSuccessToaster('[useComPort] 🧹 Cleaning up event listeners');
       if (unsubscribeClosedRef.current) unsubscribeClosedRef.current();
       if (unsubscribeErrorRef.current) unsubscribeErrorRef.current();
     };
@@ -286,7 +285,7 @@ export const useComPort = (): UseComPortReturn => {
     isMountedRef.current = true;
 
     return () => {
-      console.log('[useComPort] 🧹 Component unmounting');
+      addSuccessToaster('[useComPort] 🧹 Component unmounting');
       isMountedRef.current = false;
     };
   }, []);

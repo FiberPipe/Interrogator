@@ -7,6 +7,7 @@ import type { DatabaseLocation } from '../config';
 import { getDatabasePathManager, initializeDatabasePath } from '../config';
 import { getDatabase, importDatabase, initDatabase, saveDatabase } from '../db';
 import { sensorDataService } from '../service/sensor-data.service';
+import { logger } from '../../logger/utils';
 
 // Утилита форматирования размера
 function formatBytes(bytes: number, decimals = 2): string {
@@ -19,7 +20,7 @@ function formatBytes(bytes: number, decimals = 2): string {
 }
 
 export function registerDatabaseIpc() {
-  console.log('[IPC] Registering database handlers...');
+  logger.info('[IPC] Registering database handlers...');
 
   // ==================== PATH & CONFIG ====================
 
@@ -32,8 +33,7 @@ export function registerDatabaseIpc() {
 
       let size = 0;
       if (exists) {
-        const stats = statSync(dbPath);
-        size = stats.size;
+        size = statSync(dbPath).size;
       }
 
       return {
@@ -46,7 +46,7 @@ export function registerDatabaseIpc() {
         allPossiblePaths: pathManager.getAllPossiblePaths(),
       };
     } catch (err) {
-      console.error('[IPC] getPath error:', err);
+      logger.error('[IPC] getPath error: ' + (err instanceof Error ? err.stack : String(err)));
       throw err;
     }
   });
@@ -55,7 +55,7 @@ export function registerDatabaseIpc() {
     'db:changeLocation',
     async (_, location: DatabaseLocation, customPath?: string) => {
       try {
-        console.log('[IPC] Changing location to:', location, customPath);
+        logger.info('[IPC] Changing location to:', location, customPath);
 
         saveDatabase();
         initializeDatabasePath({ location, customPath });
@@ -63,7 +63,9 @@ export function registerDatabaseIpc() {
 
         return { success: true, path: getDatabasePathManager().getPath() };
       } catch (err) {
-        console.error('[IPC] changeLocation error:', err);
+        logger.error(
+          '[IPC] changeLocation error: ' + (err instanceof Error ? err.stack : String(err)),
+        );
         return { success: false, error: String(err) };
       }
     },
@@ -77,13 +79,12 @@ export function registerDatabaseIpc() {
         buttonLabel: 'Select Folder',
       });
 
-      if (result.canceled || result.filePaths.length === 0) {
-        return null;
-      }
-
+      if (result.canceled || result.filePaths.length === 0) return null;
       return result.filePaths[0];
     } catch (err) {
-      console.error('[IPC] selectCustomPath error:', err);
+      logger.error(
+        '[IPC] selectCustomPath error: ' + (err instanceof Error ? err.stack : String(err)),
+      );
       return null;
     }
   });
@@ -91,12 +92,11 @@ export function registerDatabaseIpc() {
   ipcMain.handle('db:openFolder', () => {
     try {
       const pathManager = getDatabasePathManager();
-      const dbPath = pathManager.getPath();
-      const folderPath = dirname(dbPath);
+      const folderPath = dirname(pathManager.getPath());
       shell.openPath(folderPath);
       return folderPath;
     } catch (err) {
-      console.error('[IPC] openFolder error:', err);
+      logger.error('[IPC] openFolder error: ' + (err instanceof Error ? err.stack : String(err)));
       throw err;
     }
   });
@@ -106,19 +106,12 @@ export function registerDatabaseIpc() {
   ipcMain.handle('db:getStats', async () => {
     try {
       const sessions = await sensorDataService.getAllSessions();
-      const pathManager = getDatabasePathManager();
-      const dbPath = pathManager.getPath();
+      const dbPath = getDatabasePathManager().getPath();
 
       let totalSize = 0;
-      let activeSessions = 0;
+      if (existsSync(dbPath)) totalSize = statSync(dbPath).size;
 
-      if (existsSync(dbPath)) {
-        const stats = statSync(dbPath);
-        totalSize = stats.size;
-      }
-
-      // Считаем активные сессии
-      activeSessions = sessions.filter((s) => s.status === 'active').length;
+      const activeSessions = sessions.filter((s) => s.status === 'active').length;
 
       return {
         totalSessions: sessions.length,
@@ -129,7 +122,7 @@ export function registerDatabaseIpc() {
         sessions: sessions.slice(0, 10),
       };
     } catch (err) {
-      console.error('[IPC] getStats error:', err);
+      logger.error('[IPC] getStats error: ' + (err instanceof Error ? err.stack : String(err)));
       return null;
     }
   });
@@ -140,7 +133,9 @@ export function registerDatabaseIpc() {
       try {
         return await sensorDataService.getChannelStats(port, channel, startTime, endTime);
       } catch (err) {
-        console.error('[IPC] getChannelStats error:', err);
+        logger.error(
+          '[IPC] getChannelStats error: ' + (err instanceof Error ? err.stack : String(err)),
+        );
         throw err;
       }
     },
@@ -154,7 +149,9 @@ export function registerDatabaseIpc() {
       try {
         return await sensorDataService.getDataByTimeRange(port, startTime, endTime, limit);
       } catch (err) {
-        console.error('[IPC] getDataByTimeRange error:', err);
+        logger.error(
+          '[IPC] getDataByTimeRange error: ' + (err instanceof Error ? err.stack : String(err)),
+        );
         throw err;
       }
     },
@@ -164,7 +161,9 @@ export function registerDatabaseIpc() {
     try {
       return await sensorDataService.getLastRecords(port, limit);
     } catch (err) {
-      console.error('[IPC] getLastRecords error:', err);
+      logger.error(
+        '[IPC] getLastRecords error: ' + (err instanceof Error ? err.stack : String(err)),
+      );
       throw err;
     }
   });
@@ -185,19 +184,15 @@ export function registerDatabaseIpc() {
         ],
       });
 
-      if (result.canceled || !result.filePath) {
-        return { success: false, cancelled: true };
-      }
+      if (result.canceled || !result.filePath) return { success: false, cancelled: true };
 
       saveDatabase();
-      const pathManager = getDatabasePathManager();
-      const dbPath = pathManager.getPath();
+      copyFileSync(getDatabasePathManager().getPath(), result.filePath);
 
-      copyFileSync(dbPath, result.filePath);
-
+      logger.info('[IPC] Backup created at: ' + result.filePath);
       return { success: true, path: result.filePath };
     } catch (err) {
-      console.error('[IPC] createBackup error:', err);
+      logger.error('[IPC] createBackup error: ' + (err instanceof Error ? err.stack : String(err)));
       return { success: false, error: String(err) };
     }
   });
@@ -213,15 +208,16 @@ export function registerDatabaseIpc() {
         properties: ['openFile'],
       });
 
-      if (result.canceled || result.filePaths.length === 0) {
+      if (result.canceled || result.filePaths.length === 0)
         return { success: false, cancelled: true };
-      }
 
       await importDatabase(result.filePaths[0]);
-
+      logger.info('[IPC] Backup restored from: ' + result.filePaths[0]);
       return { success: true };
     } catch (err) {
-      console.error('[IPC] restoreBackup error:', err);
+      logger.error(
+        '[IPC] restoreBackup error: ' + (err instanceof Error ? err.stack : String(err)),
+      );
       return { success: false, error: String(err) };
     }
   });
@@ -239,15 +235,13 @@ export function registerDatabaseIpc() {
         filters: [{ name: options.format.toUpperCase(), extensions }],
       });
 
-      if (result.canceled || !result.filePath) {
-        return { success: false, cancelled: true };
-      }
+      if (result.canceled || !result.filePath) return { success: false, cancelled: true };
 
       // TODO: Реализовать экспорт в разных форматах
-
+      logger.info('[IPC] Data exported to: ' + result.filePath);
       return { success: true, path: result.filePath };
     } catch (err) {
-      console.error('[IPC] exportData error:', err);
+      logger.error('[IPC] exportData error: ' + (err instanceof Error ? err.stack : String(err)));
       return { success: false, error: String(err) };
     }
   });
@@ -259,10 +253,10 @@ export function registerDatabaseIpc() {
       const db = getDatabase();
       db.run('VACUUM');
       saveDatabase();
-
+      logger.info('[IPC] Database vacuum completed');
       return { success: true };
     } catch (err) {
-      console.error('[IPC] vacuum error:', err);
+      logger.error('[IPC] vacuum error: ' + (err instanceof Error ? err.stack : String(err)));
       return { success: false, error: String(err) };
     }
   });
@@ -280,13 +274,13 @@ export function registerDatabaseIpc() {
       db.run('VACUUM');
 
       saveDatabase();
-
+      logger.info('[IPC] Database cleared successfully');
       return { success: true };
     } catch (err) {
-      console.error('[IPC] clear error:', err);
+      logger.error('[IPC] clear error: ' + (err instanceof Error ? err.stack : String(err)));
       return { success: false, error: String(err) };
     }
   });
 
-  console.log('[IPC] ✅ Database handlers registered');
+  logger.info('[IPC] ✅ Database handlers registered');
 }

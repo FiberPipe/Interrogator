@@ -2,11 +2,9 @@ import { Divider } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 
-import { DatabaseBackupCard } from '../../../features/database-export/ui/DatabaseBackupCard';
-import { DatabaseExportCard } from '../../../features/database-export/ui/DatabaseExportCard';
-import { DatabaseStatsCards } from '../../../features/database-export/ui/DatabaseStatsCard';
-import { DatabaseLocationSelector } from '../../DatabaseInfo/ui/DatabaseLocationSelector';
-import { DatabaseInfoWidget } from '../../DatabaseInfo/ui/DatabaseInfoWidget';
+import { DatabaseStatsCards, DatabaseBackupCard, DatabaseExportCard } from '../../../features';
+import { DatabaseInfoWidget } from './DatabaseInfoWidget';
+import { DatabaseLocationSelector } from './DatabaseLocationSelector';
 
 export const DatabaseManagementWidget = () => {
   const { t } = useTranslation();

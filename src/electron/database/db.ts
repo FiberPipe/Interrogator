@@ -6,85 +6,90 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 
 import type { DatabaseConfig } from './config';
 import { getDatabasePathManager, initializeDatabasePath } from './config';
+import { logger } from '../logger/utils';
 
 const isWindows = process.platform === 'win32';
 
 let sqliteDb: SqlJsDatabase | null = null;
 let saveQueue: Promise<void> = Promise.resolve();
 
-// Функция для получения правильного пути к WASM
+/**
+ * Функция для получения правильного пути к WASM
+ */
 function getWasmPath(): string {
-  if (!app.isPackaged) {
-    const devPaths = [
-      join(__dirname, '../../../node_modules/sql.js/dist/sql-wasm.wasm'),
-      join(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm'),
-      join(__dirname, '../../../node_modules/sql.js/dist/sql-wasm.wasm'),
+  try {
+    if (!app.isPackaged) {
+      const devPaths = [
+        join(__dirname, '../../../node_modules/sql.js/dist/sql-wasm.wasm'),
+        join(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm'),
+        join(__dirname, '../../../node_modules/sql.js/dist/sql-wasm.wasm'),
+      ];
+
+      for (const path of devPaths) {
+        if (existsSync(path)) {
+          logger.info(`[Database] Found development WASM at: ${path}`);
+          return path;
+        }
+      }
+    }
+
+    const prodPaths = [
+      join(process.resourcesPath, 'sql-wasm.wasm'),
+      join(
+        process.resourcesPath,
+        'app.asar.unpacked',
+        'node_modules',
+        'sql.js',
+        'dist',
+        'sql-wasm.wasm',
+      ),
+      join(__dirname, 'sql-wasm.wasm'),
+      join(__dirname, '../sql-wasm.wasm'),
     ];
 
-    for (const path of devPaths) {
+    for (const path of prodPaths) {
       if (existsSync(path)) {
-        console.log('[Database] Found development WASM at:', path);
+        logger.info(`[Database] Found production WASM at: ${path}`);
         return path;
       }
     }
+
+    throw new Error('WASM file not found in any expected location');
+  } catch (err) {
+    logger.error(
+      '[Database] WASM resolution error: ' + (err instanceof Error ? err.stack : String(err)),
+    );
+    throw err;
   }
-
-  const prodPaths = [
-    join(process.resourcesPath, 'sql-wasm.wasm'),
-    join(
-      process.resourcesPath,
-      'app.asar.unpacked',
-      'node_modules',
-      'sql.js',
-      'dist',
-      'sql-wasm.wasm',
-    ),
-    join(__dirname, 'sql-wasm.wasm'),
-    join(__dirname, '../sql-wasm.wasm'),
-  ];
-
-  for (const path of prodPaths) {
-    if (existsSync(path)) {
-      console.log('[Database] Found production WASM at:', path);
-      return path;
-    }
-  }
-
-  throw new Error('WASM file not found in any expected location');
 }
 
+/**
+ * Инициализация базы
+ */
 export async function initDatabase(config?: Partial<DatabaseConfig>) {
   try {
-    console.log('[Database] Initializing...');
+    logger.info('[Database] Initializing...');
 
-    if (config) {
-      initializeDatabasePath(config);
-    }
+    if (config) initializeDatabasePath(config);
 
     const pathManager = getDatabasePathManager();
     const dbPath = pathManager.getPath();
 
-    console.log('[Database] DB path:', dbPath);
-    console.log('[Database] Config:', pathManager.getConfig());
+    logger.info(`[Database] DB path: ${dbPath}`);
+    logger.debug(`[Database] Config: ${JSON.stringify(pathManager.getConfig())}`);
 
     const wasmPath = getWasmPath();
-
     const SQL = await initSqlJs({
-      locateFile: (file) => {
-        if (file.includes('sql-wasm.wasm')) {
-          return wasmPath;
-        }
-        return join(process.resourcesPath, file);
-      },
+      locateFile: (file) =>
+        file.includes('sql-wasm.wasm') ? wasmPath : join(process.resourcesPath, file),
     });
 
     let buffer: Uint8Array | undefined;
-
     if (existsSync(dbPath)) {
-      console.log('[Database] Loading existing database');
+      logger.info('[Database] Loading existing database');
       buffer = readFileSync(dbPath);
     } else {
-      console.log('[Database] Creating new database');
+      logger.info('[Database] Creating new database');
     }
 
     sqliteDb = new SQL.Database(buffer);
@@ -93,26 +98,37 @@ export async function initDatabase(config?: Partial<DatabaseConfig>) {
     createTables();
     setupAutoSave();
 
-    console.log('[Database] ✅ Initialized successfully');
+    logger.info('[Database] ✅ Initialized successfully');
   } catch (err) {
-    console.error('[Database] ❌ Initialization error:', err);
+    logger.error(
+      '[Database] ❌ Initialization error: ' + (err instanceof Error ? err.stack : String(err)),
+    );
     throw err;
   }
 }
 
+/**
+ * Настройка оптимизаций SQLite
+ */
 function configureDatabaseOptimizations() {
   if (!sqliteDb) return;
-
   try {
     sqliteDb.run('PRAGMA journal_mode = MEMORY');
     sqliteDb.run('PRAGMA synchronous = OFF');
     sqliteDb.run('PRAGMA cache_size = 10000');
     sqliteDb.run('PRAGMA temp_store = MEMORY');
+    logger.debug('[Database] Optimizations applied');
   } catch (err) {
-    console.error('[Database] Error applying optimizations:', err);
+    logger.error(
+      '[Database] Error applying optimizations: ' +
+        (err instanceof Error ? err.stack : String(err)),
+    );
   }
 }
 
+/**
+ * Создание таблиц и индексов
+ */
 function createTables() {
   if (!sqliteDb) throw new Error('Database not initialized');
 
@@ -151,7 +167,6 @@ function createTables() {
     )
   `);
 
-  // Индексы
   const indexes = [
     'CREATE INDEX IF NOT EXISTS idx_sensor_data_timestamp ON sensor_data(timestamp)',
     'CREATE INDEX IF NOT EXISTS idx_sensor_data_port ON sensor_data(port)',
@@ -163,9 +178,12 @@ function createTables() {
 
   indexes.forEach((sql) => sqliteDb!.run(sql));
 
-  console.log('[Database] Tables and indexes created');
+  logger.info('[Database] Tables and indexes created');
 }
 
+/**
+ * Автосохранение
+ */
 function setupAutoSave() {
   const saveInterval = isWindows ? 15000 : 10000;
 
@@ -175,11 +193,9 @@ function setupAutoSave() {
 
   app.on('before-quit', (event) => {
     event.preventDefault();
-    console.log('[Database] Saving before quit...');
+    logger.info('[Database] Saving before quit...');
     saveDatabase();
-    setTimeout(() => {
-      app.exit(0);
-    }, 1000);
+    setTimeout(() => app.exit(0), 1000);
   });
 }
 
@@ -187,9 +203,12 @@ function saveDatabaseAsync() {
   saveQueue = saveQueue.then(() => saveDatabase());
 }
 
+/**
+ * Сохранение базы
+ */
 export function saveDatabase() {
   if (!sqliteDb) {
-    console.warn('[Database] Cannot save: not initialized');
+    logger.warn('[Database] Cannot save: not initialized');
     return;
   }
 
@@ -199,58 +218,62 @@ export function saveDatabase() {
 
     const startTime = Date.now();
     const data = sqliteDb.export();
-
     writeFileSync(dbPath, Buffer.from(data), { flag: 'w' });
 
     const duration = Date.now() - startTime;
-    console.log(`[Database] Saved in ${duration}ms`);
+    logger.info(`[Database] Saved in ${duration}ms`);
   } catch (err) {
-    console.error('[Database] Save error:', err);
+    logger.error('[Database] Save error: ' + (err instanceof Error ? err.stack : String(err)));
     setTimeout(() => saveDatabase(), 1000);
   }
 }
 
+/**
+ * Получение экземпляра базы
+ */
 export function getDatabase(): SqlJsDatabase {
-  if (!sqliteDb) {
-    throw new Error('Database not initialized. Call initDatabase() first.');
-  }
+  if (!sqliteDb) throw new Error('Database not initialized. Call initDatabase() first.');
   return sqliteDb;
 }
 
+/**
+ * Экспорт базы
+ */
 export function exportDatabase(exportPath: string): boolean {
   if (!sqliteDb) return false;
 
   try {
     const data = sqliteDb.export();
     writeFileSync(exportPath, Buffer.from(data));
-    console.log('[Database] Exported to:', exportPath);
+    logger.info('[Database] Exported to: ' + exportPath);
     return true;
   } catch (err) {
-    console.error('[Database] Export error:', err);
+    logger.error('[Database] Export error: ' + (err instanceof Error ? err.stack : String(err)));
     return false;
   }
 }
 
+/**
+ * Импорт базы
+ */
 export async function importDatabase(importPath: string): Promise<boolean> {
   try {
     if (!existsSync(importPath)) {
-      console.error('[Database] Import file does not exist');
+      logger.error('[Database] Import file does not exist: ' + importPath);
       return false;
     }
 
     const buffer = readFileSync(importPath);
     const wasmPath = getWasmPath();
-    const SQL = await initSqlJs({
-      locateFile: () => wasmPath,
-    });
+    const SQL = await initSqlJs({ locateFile: () => wasmPath });
 
     sqliteDb = new SQL.Database(buffer);
     configureDatabaseOptimizations();
 
-    console.log('[Database] Imported from:', importPath);
+    logger.info('[Database] Imported from: ' + importPath);
     return true;
   } catch (err) {
-    console.error('[Database] Import error:', err);
+    logger.error('[Database] Import error: ' + (err instanceof Error ? err.stack : String(err)));
     return false;
   }
 }

@@ -6,7 +6,7 @@ import {
   type SensorConfig,
   type SensorType,
 } from '../../../entities/sensor/model/types';
-import { addSuccessToaster } from '../../../shared/ui';
+import { addDangerToaster, addSuccessToaster } from '../../../shared/ui';
 
 export const useSensorConfig = () => {
   const { t } = useTranslation();
@@ -29,7 +29,7 @@ export const useSensorConfig = () => {
           setSensors(data.sensorConfig as Record<number, SensorConfig>);
         }
       } catch (err) {
-        console.error('[useSensorConfig] Load error:', err);
+        addDangerToaster('[useSensorConfig] Load error:', JSON.stringify(err));
       } finally {
         setIsLoading(false);
       }
@@ -136,7 +136,7 @@ export const useSensorConfig = () => {
 
       addSuccessToaster(t('sensors.messages.saved'), t('sensors.messages.savedDescription'));
     } catch (err) {
-      console.error('[useSensorConfig] Save error:', err);
+      addDangerToaster('[useSensorConfig] Save error:', err);
     } finally {
       setIsSaving(false);
     }

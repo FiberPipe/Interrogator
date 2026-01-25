@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
+import { addDangerToaster } from '../../../shared/ui';
+
 export interface DatabaseStats {
   totalSize: number;
   totalSizeFormatted: string;
@@ -24,7 +26,7 @@ export const useDatabaseStats = () => {
       const data = await window.database.getStats();
       setStats(data);
     } catch (err) {
-      console.error('[useDatabaseStats] Error:', err);
+      addDangerToaster('[useDatabaseStats] Error:', err);
     } finally {
       setLoading(false);
     }

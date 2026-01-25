@@ -33,7 +33,7 @@ export const useSensorCalibration = () => {
           setFilePath(saved.sensorDataFilePath as string);
         }
       } catch (err) {
-        console.error('[useSensorCalibration] Load error:', err);
+        addDangerToaster('[useSensorCalibration] Load error:', err);
       } finally {
         setIsLoading(false);
       }
@@ -78,7 +78,6 @@ export const useSensorCalibration = () => {
         setFilePath(selectedPath);
       }
     } catch (err) {
-      console.error('[useSensorCalibration] File selection error:', err);
       addDangerToaster(
         t('calibration.errors.fileSelection'),
         t('calibration.errors.fileSelectionDescription'),
@@ -112,7 +111,6 @@ export const useSensorCalibration = () => {
           t('calibration.messages.csvLoadedDescription'),
         );
       } catch (err) {
-        console.error('[useSensorCalibration] CSV parse error:', err);
         addDangerToaster(
           t('calibration.errors.csvParse'),
           t('calibration.errors.csvParseDescription'),
@@ -135,7 +133,6 @@ export const useSensorCalibration = () => {
           t('calibration.messages.jsonLoadedDescription'),
         );
       } catch (err) {
-        console.error('[useSensorCalibration] JSON parse error:', err);
         addDangerToaster(
           t('calibration.errors.jsonParse'),
           t('calibration.errors.jsonParseDescription'),
@@ -161,7 +158,6 @@ export const useSensorCalibration = () => {
         t('calibration.messages.savedDescription'),
       );
     } catch (err) {
-      console.error('[useSensorCalibration] Save error:', err);
       addDangerToaster(t('calibration.errors.save'), t('calibration.errors.saveDescription'));
     } finally {
       setIsSaving(false);

@@ -1,4 +1,4 @@
-import { Card, CardBody, Chip } from '@heroui/react';
+import { Card, CardBody } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { Activity, Database, Clock, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';

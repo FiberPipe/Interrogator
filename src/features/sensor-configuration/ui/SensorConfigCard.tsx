@@ -6,6 +6,7 @@ import { MAX_CHANNELS_PER_SENSOR } from '../../../entities/sensor/model/types';
 import { SensorCard } from '../../../entities/sensor/ui/SensorCard';
 import { SensorTypeSelector } from './SensorTypeSelector';
 import { ChannelSelector } from './ChannelSelector';
+import { addDangerToaster } from '../../../shared/ui';
 
 interface SensorConfigCardProps {
   sensor: SensorConfig;
@@ -25,7 +26,7 @@ export const SensorConfigCard = ({
   const { t } = useTranslation();
 
   if (!sensor) {
-    console.error('[SensorConfigCard] Sensor is undefined');
+    addDangerToaster('[SensorConfigCard] Sensor is undefined');
     return null;
   }
 

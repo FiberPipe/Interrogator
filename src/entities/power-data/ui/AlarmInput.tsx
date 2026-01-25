@@ -10,8 +10,6 @@ interface AlarmInputProps {
 }
 
 export const AlarmInput = ({ value, onChange, type, isAlarm }: AlarmInputProps) => {
-  const { t } = useTranslation();
-
   return (
     <Input
       type="number"

@@ -5,9 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, Usb } from 'lucide-react';
 
 import { useSerialPortContext } from '../../../app/providers/SerialPortProvider';
-import { PortSelector } from '../../../features/serial-connection/ui/PortSelector';
-import { ConnectionControls } from '../../../features/serial-connection/ui/ConnectionControls';
-import { DataPreview } from '../../../features/onboarding/ui/DataPreview';
+import { PortSelector, ConnectionControls } from '../../../features';
+import { DataPreview } from '../../../features';
 
 export const SerialPortWidget = () => {
   const { t } = useTranslation();
@@ -27,7 +26,7 @@ export const SerialPortWidget = () => {
     disconnectPort,
   } = useSerialPortContext();
 
-  const handleConnect = async () => {
+  const handleConnect = async ()=> {
     if (selectedPort) {
       await connectToPort(selectedPort);
     }

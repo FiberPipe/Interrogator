@@ -8,6 +8,7 @@ import navigation from './navigation.json';
 import common from './common.json';
 import calibration from './calibration.json';
 import monitoring from './monitoring.json';
+import lightManagement from './light-management.json';
 
 export default {
   charts,
@@ -20,4 +21,5 @@ export default {
   common,
   calibration,
   monitoring,
+  lightManagement,
 };

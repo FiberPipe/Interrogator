@@ -69,7 +69,7 @@ export const DataPreview = ({ data, packetsReceived, dataBuffer }: DataPreviewPr
                   {t('serialPort.dataPreview.recentValues')} (P0):
                 </div>
                 <div className="flex gap-1 h-20 items-end">
-                  {dataBuffer.slice(-20).map((packet, idx) => {
+                  {dataBuffer.slice(-20).map((packet) => {
                     const value = packet.P0 || 0;
                     const height = Math.min(100, (value / 3) * 100);
 

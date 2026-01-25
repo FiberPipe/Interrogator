@@ -1,6 +1,5 @@
 export * from './dashboard';
 export * from './database-info';
-export * from './database-management';
 export * from './light-management';
 export * from './monitoring-dashboard';
 export * from './sensor-calibration';

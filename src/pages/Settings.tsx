@@ -2,12 +2,16 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Divider } from '@heroui/react';
-import { LightManagement } from '@widgets';
 
-import { LanguageSelector } from '../features/settings/LanguageSelector';
-import { ThemeSelector } from '../features/settings/ThemeSelector';
-import { ResetToFactoryCard } from '../features/reset/ResetToFactory';
-import { SensorConfigWidget } from '../widgets/sensor-config/ui/SensorConfigWidget';
+import {
+  SettingsTabs,
+  SerialPortWidget,
+  SensorCalibrationWidget,
+  DatabaseManagementWidget,
+  LightManagement,
+  SensorConfigWidget,
+} from '../widgets';
+import { LanguageSelector, ResetToFactoryCard, ThemeSelector } from '../features';
 
 type SettingsProps = {
   onReset: () => void;

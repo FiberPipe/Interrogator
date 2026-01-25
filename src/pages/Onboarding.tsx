@@ -11,6 +11,7 @@ import LanguageStep from '../features/onboarding/ui/LanguageStep';
 import FinalStep from '../features/onboarding/ui/FinalStep';
 import { finishOnboarding } from '../app/hooks/useOnboarding';
 import { AppRoutes } from '../shared/types/routes';
+import { addDangerToaster, addSuccessToaster } from '../shared/ui';
 
 type OnboardingProps = {
   setIsFirstLaunch: (v: boolean) => void;
@@ -58,11 +59,11 @@ export default function Onboarding({ setIsFirstLaunch }: OnboardingProps) {
 
     try {
       await finishOnboarding(finalData, setIsFirstLaunch);
-      console.log('[Onboarding] Final data:', finalData);
+      addSuccessToaster('[Onboarding] Final data:', finalData);
 
       navigate(AppRoutes.CHARTS);
     } catch (err) {
-      console.error('[Onboarding] Finish error:', err);
+      addDangerToaster('[Onboarding] Finish error:', err);
     }
   };
 

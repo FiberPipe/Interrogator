@@ -14,11 +14,12 @@ import { PowerTable } from '../../../features/power-monitoring/ui/PowerTable';
 import { WavelengthTable } from '../../../features/wavelength-monitoring/ui/WavelengthTable';
 import { TemperatureTable } from '../../../features/temperature-monitoring/ui/TemperatureTable';
 import { DisplacementTable } from '../../../features/displacement-monitoring/ui/DisplacementTable';
-import { ChartControls } from '../../../features/data-visualization/ChartsControls';
-import { ViewModeSelector } from '../../../features/data-visualization/ViewModeSelector';
+import { ChartControls } from '../../../features/data-visualization/ui/ChartsControls';
+import { ViewModeSelector } from '../../../features/data-visualization/ui/ViewModeSelector';
 import { WavelengthChart } from '../../../features/wavelength-monitoring';
 import { TemperatureChart } from '../../../features/temperature-monitoring';
 import { DisplacementChart } from '../../../features/displacement-monitoring';
+import { addDangerToaster } from '../../../shared/ui';
 
 interface MonitoringDashboardProps {
   type: SensorType;
@@ -58,7 +59,9 @@ export const MonitoringDashboard = ({ type }: MonitoringDashboardProps) => {
   const handleInputChange = useCallback((key: string, value: string) => {
     setInputValues((prev) => ({ ...prev, [key]: value }));
     // TODO: Сохранять в appData
-    window.appData.set(key, value).catch(console.error);
+    window.appData.set(key, value).catch((e) => {
+      addDangerToaster(e);
+    });
   }, []);
 
   // Управление каналами

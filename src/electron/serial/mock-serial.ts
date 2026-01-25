@@ -2,6 +2,7 @@
 import { EventEmitter } from 'events';
 
 import type { ISerialPort } from './types';
+import { logger } from '../logger/utils';
 
 export class MockSerialPort extends EventEmitter implements ISerialPort {
   public path: string;
@@ -19,7 +20,7 @@ export class MockSerialPort extends EventEmitter implements ISerialPort {
     this.recordId = 0;
     this.portIndex = parseInt(path.match(/\d+$/)?.[0] || '0');
 
-    console.log(`[Mock Serial] Creating port ${path} with index ${this.portIndex}`);
+    logger.info(`[Mock Serial] Creating port ${path} with index ${this.portIndex}`);
 
     // Задержка перед началом отправки данных
     setTimeout(() => {
@@ -47,11 +48,11 @@ export class MockSerialPort extends EventEmitter implements ISerialPort {
 
   private startSendingData() {
     if (!this.isOpen) {
-      console.log(`[Mock Serial ${this.path}] Port is closed, not starting data transmission`);
+      logger.info(`[Mock Serial ${this.path}] Port is closed, not starting data transmission`);
       return;
     }
 
-    console.log(`[Mock Serial ${this.path}] Starting to send data every 1000ms`);
+    logger.info(`[Mock Serial ${this.path}] Starting to send data every 1000ms`);
 
     // Отправляем первый пакет сразу
     this.sendDataPacket();
@@ -61,7 +62,7 @@ export class MockSerialPort extends EventEmitter implements ISerialPort {
       if (this.isOpen) {
         this.sendDataPacket();
       } else {
-        console.log(`[Mock Serial ${this.path}] Port closed, stopping data transmission`);
+        logger.info(`[Mock Serial ${this.path}] Port closed, stopping data transmission`);
         if (this.interval) {
           clearInterval(this.interval);
           this.interval = undefined;
@@ -77,7 +78,7 @@ export class MockSerialPort extends EventEmitter implements ISerialPort {
     const mockData = this.generateMockData();
     const dataString = JSON.stringify(mockData) + '\n';
 
-    console.log(`[Mock Serial ${this.path}] Sending data #${this.recordId}`);
+    logger.info(`[Mock Serial ${this.path}] Sending data #${this.recordId}`);
 
     // Используем setImmediate для эмуляции асинхронности
     setImmediate(() => {
@@ -88,10 +89,10 @@ export class MockSerialPort extends EventEmitter implements ISerialPort {
   }
 
   public close(callback?: (error?: Error | null) => void): void {
-    console.log(`[Mock Serial ${this.path}] Closing port (isOpen: ${this.isOpen})`);
+    logger.info(`[Mock Serial ${this.path}] Closing port (isOpen: ${this.isOpen})`);
 
     if (!this.isOpen) {
-      console.log(`[Mock Serial ${this.path}] Port already closed`);
+      logger.info(`[Mock Serial ${this.path}] Port already closed`);
       if (callback) {
         callback(null);
       }
@@ -108,7 +109,7 @@ export class MockSerialPort extends EventEmitter implements ISerialPort {
 
     // Эмулируем задержку закрытия порта
     setTimeout(() => {
-      console.log(`[Mock Serial ${this.path}] Port closed successfully`);
+      logger.info(`[Mock Serial ${this.path}] Port closed successfully`);
       this.emit('close');
       if (callback) {
         callback(null);

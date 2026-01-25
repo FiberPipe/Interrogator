@@ -1,0 +1,48 @@
+{
+  "title": "Light Source Control",
+  "autoMode": "Automatic mode",
+
+  "laser": {
+    "label": "Light source current (LD)",
+    "unit": "mA",
+    "min": "0 mA",
+    "max": "3000 mA"
+  },
+
+  "tec": {
+    "label": "Thermoelectric controller current (TEC)",
+    "currentUnit": "mA",
+    "target": "Target",
+    "ranges": {
+      "min": "-4000 mA (15°C)",
+      "zero": "0 mA (27.5°C)",
+      "max": "+4000 mA (40°C)"
+    }
+  },
+
+  "amplifier": {
+    "gain": "TIA gain",
+    "offset": "TIA offset"
+  },
+
+  "actions": {
+    "apply": "Apply settings"
+  },
+
+  "monitoring": {
+    "title": "Parameter monitoring",
+    "minOpticalPower": "Min optical power",
+    "maxLaserCurrent": "Max LD current",
+    "currentTemperature": "Current temperature"
+  },
+
+  "info": {
+    "title": "System information",
+    "items": [
+      "LD current range: 0–3000 mA",
+      "TEC current range: ±4000 mA",
+      "Temperature range: 15–40 °C",
+      "Data updates every 2 seconds"
+    ]
+  }
+}

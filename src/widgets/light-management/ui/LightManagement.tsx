@@ -10,8 +10,11 @@ import {
   Switch,
 } from '@heroui/react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export const LightManagement = () => {
+  const { t } = useTranslation();
+
   const [laserCurrent, setLaserCurrent] = useState(0);
   const [tecCurrent, setTecCurrent] = useState(0);
   const [amplifierGain, setAmplifierGain] = useState(1);
@@ -31,7 +34,6 @@ export const LightManagement = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Функция отправки данных
   const sendData = () => {
     const dataToSend = {
       laserCurrent,
@@ -39,13 +41,9 @@ export const LightManagement = () => {
       amplifierGain,
       amplifierOffset,
     };
-    console.log('Отправка данных в ПАИ:', dataToSend);
-    // Здесь должен быть API запрос
   };
 
-  // Расчет температуры на основе тока TEC
   const calculateTargetTemp = (current: number) => {
-    // Линейная интерполяция: -4A = 15°C, 0A = 27.5°C, +4A = 40°C
     return 27.5 + current * 3.125;
   };
 
@@ -53,20 +51,22 @@ export const LightManagement = () => {
     <div className="w-full max-w-6xl mx-auto p-4 space-y-4">
       <Card>
         <CardHeader className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">Управление источником излучения</h2>
+          <h2 className="text-2xl font-bold">{t('lightManagement.title')}</h2>
           <Switch isSelected={autoMode} onValueChange={setAutoMode} size="sm">
-            Автоматический режим
+            {t('lightManagement.autoMode')}
           </Switch>
         </CardHeader>
+
         <CardBody className="space-y-6">
-          {/* Управление током КИИ */}
+          {/* Laser current */}
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium">Ток источника излучения (КИИ)</label>
+              <label className="text-sm font-medium">{t('lightManagement.laser.label')}</label>
               <Chip color="primary" variant="flat">
-                {laserCurrent} мА
+                {laserCurrent} {t('lightManagement.laser.unit')}
               </Chip>
             </div>
+
             <Slider
               size="sm"
               step={10}
@@ -74,37 +74,41 @@ export const LightManagement = () => {
               maxValue={3000}
               value={laserCurrent}
               onChange={(value) => setLaserCurrent(Number(value))}
-              className="max-w-full"
               isDisabled={autoMode}
               color="primary"
               showTooltip
               renderValue={({ children, ...props }) => (
                 <output {...props}>
-                  <span className="text-small">{children} мА</span>
+                  <span className="text-small">
+                    {children} {t('lightManagement.laser.unit')}
+                  </span>
                 </output>
               )}
             />
+
             <div className="flex justify-between text-xs text-gray-500">
-              <span>0 мА</span>
-              <span>3000 мА</span>
+              <span>{t('lightManagement.laser.min')}</span>
+              <span>{t('lightManagement.laser.max')}</span>
             </div>
           </div>
 
           <Divider />
 
-          {/* Управление температурой */}
+          {/* TEC */}
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium">Ток термоконтроллера (TEC)</label>
+              <label className="text-sm font-medium">{t('lightManagement.tec.label')}</label>
               <div className="flex gap-2">
                 <Chip color="secondary" variant="flat">
-                  {tecCurrent} мА
+                  {tecCurrent} {t('lightManagement.tec.currentUnit')}
                 </Chip>
                 <Chip color="warning" variant="flat">
-                  Целевая: {calculateTargetTemp(tecCurrent / 1000).toFixed(1)}°C
+                  {t('lightManagement.tec.target')}:{' '}
+                  {calculateTargetTemp(tecCurrent / 1000).toFixed(1)}°C
                 </Chip>
               </div>
             </div>
+
             <Slider
               size="sm"
               step={50}
@@ -112,47 +116,44 @@ export const LightManagement = () => {
               maxValue={4000}
               value={tecCurrent}
               onChange={(value) => setTecCurrent(Number(value))}
-              className="max-w-full"
               isDisabled={autoMode}
               color="secondary"
               showTooltip
               renderValue={({ children, ...props }) => (
                 <output {...props}>
-                  <span className="text-small">{children} мА</span>
+                  <span className="text-small">
+                    {children} {t('lightManagement.tec.currentUnit')}
+                  </span>
                 </output>
               )}
             />
+
             <div className="flex justify-between text-xs text-gray-500">
-              <span>-4000 мА (15°C)</span>
-              <span>0 мА (27.5°C)</span>
-              <span>+4000 мА (40°C)</span>
+              <span>{t('lightManagement.tec.ranges.min')}</span>
+              <span>{t('lightManagement.tec.ranges.zero')}</span>
+              <span>{t('lightManagement.tec.ranges.max')}</span>
             </div>
           </div>
 
           <Divider />
 
-          {/* Управление усилителем */}
+          {/* Amplifier */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Коэффициент усиления (КУ) ТИА</label>
+              <label className="text-sm font-medium">{t('lightManagement.amplifier.gain')}</label>
               <Input
                 type="number"
-                placeholder="1.0"
                 value={amplifierGain.toString()}
                 onChange={(e) => setAmplifierGain(Number(e.target.value))}
                 isDisabled={autoMode}
-                endContent={
-                  <div className="pointer-events-none flex items-center">
-                    <span className="text-default-400 text-small">x</span>
-                  </div>
-                }
+                endContent={<span className="text-default-400 text-small">x</span>}
               />
             </div>
+
             <div className="space-y-2">
-              <label className="text-sm font-medium">Коэффициент смещения (КС) ТИА</label>
+              <label className="text-sm font-medium">{t('lightManagement.amplifier.offset')}</label>
               <Input
                 type="number"
-                placeholder="0"
                 value={amplifierOffset.toString()}
                 onChange={(e) => setAmplifierOffset(Number(e.target.value))}
                 isDisabled={autoMode}
@@ -162,7 +163,6 @@ export const LightManagement = () => {
 
           <Divider />
 
-          {/* Кнопка отправки */}
           <div className="flex justify-center">
             <Button
               color="primary"
@@ -171,65 +171,63 @@ export const LightManagement = () => {
               isDisabled={autoMode}
               className="min-w-[200px]"
             >
-              Применить настройки
+              {t('lightManagement.actions.apply')}
             </Button>
           </div>
         </CardBody>
       </Card>
 
-      {/* Карточка с получаемыми данными */}
+      {/* Monitoring */}
       <Card>
         <CardHeader>
-          <h3 className="text-xl font-semibold">Мониторинг параметров</h3>
+          <h3 className="text-xl font-semibold">{t('lightManagement.monitoring.title')}</h3>
         </CardHeader>
+
         <CardBody>
           <div className="grid grid-cols-3 gap-4">
             <Card shadow="sm">
               <CardBody className="text-center space-y-2">
-                <p className="text-sm text-gray-500">Мин. оптическая мощность</p>
+                <p className="text-sm text-gray-500">
+                  {t('lightManagement.monitoring.minOpticalPower')}
+                </p>
                 <p className="text-2xl font-bold text-primary">{minOpticalPower.toFixed(2)} дБм</p>
               </CardBody>
             </Card>
 
             <Card shadow="sm">
               <CardBody className="text-center space-y-2">
-                <p className="text-sm text-gray-500">Макс. ток КИИ</p>
+                <p className="text-sm text-gray-500">
+                  {t('lightManagement.monitoring.maxLaserCurrent')}
+                </p>
                 <p className="text-2xl font-bold text-secondary">{maxLaserCurrent} мА</p>
               </CardBody>
             </Card>
 
             <Card shadow="sm">
               <CardBody className="text-center space-y-2">
-                <p className="text-sm text-gray-500">Текущая температура</p>
+                <p className="text-sm text-gray-500">
+                  {t('lightManagement.monitoring.currentTemperature')}
+                </p>
                 <p className="text-2xl font-bold text-warning">
                   {currentTemperature.toFixed(1)} °C
                 </p>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-warning h-2 rounded-full transition-all"
-                    style={{
-                      width: `${((currentTemperature - 15) / 25) * 100}%`,
-                    }}
-                  />
-                </div>
               </CardBody>
             </Card>
           </div>
         </CardBody>
       </Card>
 
-      {/* Информационная панель */}
+      {/* Info */}
       <Card className="bg-blue-50 dark:bg-blue-950">
         <CardBody>
-          <div className="space-y-2">
-            <h4 className="font-semibold">Информация о системе</h4>
-            <ul className="text-sm space-y-1 text-gray-600 dark:text-gray-300">
-              <li>• Диапазон тока КИИ: 0 - 3000 мА</li>
-              <li>• Диапазон тока TEC: ±4000 мА</li>
-              <li>• Диапазон температур: 15 - 40 °C</li>
-              <li>• Данные обновляются каждые 2 секунды</li>
-            </ul>
-          </div>
+          <h4 className="font-semibold">{t('lightManagement.info.title')}</h4>
+
+          <ul className="text-sm space-y-1 text-gray-600 dark:text-gray-300">
+            <li>• {t('lightManagement.info.items.laserRange')}</li>
+            <li>• {t('lightManagement.info.items.tecRange')}</li>
+            <li>• {t('lightManagement.info.items.temperatureRange')}</li>
+            <li>• {t('lightManagement.info.items.updateInterval')}</li>
+          </ul>
         </CardBody>
       </Card>
     </div>

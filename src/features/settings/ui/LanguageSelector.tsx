@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Languages, Check } from 'lucide-react';
 
-import { patchAppData } from '../../app/hooks/useOnboarding';
-import { addSuccessToaster } from '../../shared/ui';
+import { patchAppData } from '../../../app/hooks/useOnboarding';
+import { addSuccessToaster } from '../../../shared/ui';
 
 const languages = [
   { code: 'ru', label: 'settings.language.russian', nativeLabel: 'Русский', flag: '🇷🇺' },

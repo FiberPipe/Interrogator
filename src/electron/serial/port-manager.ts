@@ -2,6 +2,7 @@ import type { BrowserWindow } from 'electron';
 
 import type { ISerialPort } from './types';
 import { SerialDataProcessor } from './data-processor';
+import { logger } from '../logger/utils';
 
 interface PortConnection {
   port: ISerialPort;
@@ -26,7 +27,7 @@ export class SerialPortManager {
   }
 
   async openPort(path: string, port: ISerialPort): Promise<void> {
-    console.log(`[PortManager] Opening port ${path}`);
+    logger.info(`[PortManager] Opening port ${path}`);
 
     // Проверяем, не закрывается ли порт сейчас
     if (this.closingPorts.has(path)) {
@@ -43,15 +44,15 @@ export class SerialPortManager {
     // Настраиваем обработчики событий
     this.setupPortHandlers(path, port, processor);
 
-    console.log(`[PortManager] Port ${path} opened and ready`);
+    logger.info(`[PortManager] Port ${path} opened and ready`);
   }
 
   async closePort(path: string): Promise<void> {
-    console.log(`[PortManager] Closing port ${path}`);
+    logger.info(`[PortManager] Closing port ${path}`);
 
     const connection = this.connections.get(path);
     if (!connection) {
-      console.warn(`[PortManager] Port ${path} not found in active connections`);
+      logger.warn(`[PortManager] Port ${path} not found in active connections`);
       return;
     }
 
@@ -63,7 +64,7 @@ export class SerialPortManager {
     try {
       return await new Promise<void>((resolve, reject) => {
         if (!port.isOpen) {
-          console.log(`[PortManager] Port ${path} already closed`);
+          logger.info(`[PortManager] Port ${path} already closed`);
           this.connections.delete(path);
           this.closingPorts.delete(path);
           resolve();
@@ -72,7 +73,7 @@ export class SerialPortManager {
 
         // Таймаут на случай зависания
         const timeout = setTimeout(() => {
-          console.error(`[PortManager] Timeout closing port ${path}`);
+          logger.error(`[PortManager] Timeout closing port ${path}`);
           this.connections.delete(path);
           this.closingPorts.delete(path);
           reject(new Error('Close timeout'));
@@ -82,21 +83,21 @@ export class SerialPortManager {
           clearTimeout(timeout);
 
           if (err) {
-            console.error(`[PortManager] Error closing port ${path}:`, err);
+            logger.error(`[PortManager] Error closing port ${path}:`, err);
           }
 
           // Завершаем сессию в БД
           try {
             await processor.endSession();
           } catch (dbErr) {
-            console.error(`[PortManager] Error ending session for ${path}:`, dbErr);
+            logger.error(`[PortManager] Error ending session for ${path}:`, dbErr);
           }
 
           // Удаляем из активных подключений
           this.connections.delete(path);
           this.closingPorts.delete(path);
 
-          console.log(`[PortManager] Port ${path} closed successfully`);
+          logger.info(`[PortManager] Port ${path} closed successfully`);
           resolve();
         });
       });
@@ -107,24 +108,24 @@ export class SerialPortManager {
   }
 
   async closeAllPorts(): Promise<void> {
-    console.log(`[PortManager] Closing all ports (${this.connections.size})`);
+    logger.info(`[PortManager] Closing all ports (${this.connections.size})`);
 
     const closeTasks = Array.from(this.connections.keys()).map((path) =>
       this.closePort(path).catch((err) => {
-        console.error(`[PortManager] Error closing ${path}:`, err);
+        logger.error(`[PortManager] Error closing ${path}:`, err);
       }),
     );
 
     await Promise.all(closeTasks);
-    console.log(`[PortManager] All ports closed`);
+    logger.info(`[PortManager] All ports closed`);
   }
 
   async switchPort(fromPath: string | null, toPath: string, newPort: ISerialPort): Promise<void> {
-    console.log(`[PortManager] Switching from ${fromPath || 'none'} to ${toPath}`);
+    logger.info(`[PortManager] Switching from ${fromPath || 'none'} to ${toPath}`);
 
     // Если уже подключены к целевому порту
     if (fromPath === toPath && this.connections.has(toPath)) {
-      console.log(`[PortManager] Already connected to ${toPath}`);
+      logger.info(`[PortManager] Already connected to ${toPath}`);
       return;
     }
 
@@ -151,12 +152,12 @@ export class SerialPortManager {
       try {
         await processor.processData(dataString);
       } catch (err) {
-        console.error(`[PortManager ${path}] Data processing error:`, err);
+        logger.error(`[PortManager ${path}] Data processing error:`, err);
       }
     });
 
     port.on('close', async () => {
-      console.log(`[PortManager ${path}] Port closed event`);
+      logger.info(`[PortManager ${path}] Port closed event`);
 
       if (this.closingPorts.has(path)) {
         // Закрытие инициировано нами, не уведомляем клиент
@@ -170,7 +171,7 @@ export class SerialPortManager {
     });
 
     port.on('error', async (err: Error) => {
-      console.error(`[PortManager ${path}] Port error:`, err);
+      logger.error(`[PortManager ${path}] Port error:`, err);
 
       await processor.endSession();
       this.connections.delete(path);

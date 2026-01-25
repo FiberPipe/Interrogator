@@ -6,6 +6,7 @@ import { appStorage } from '../storage/app-storage';
 import { createMockSerialPort } from './mock-serial';
 import type { SerialOpenResult, ISerialPort } from './types';
 import type { SerialPortManager } from './port-manager';
+import { logger } from '../logger/utils';
 
 const isDev = process.env.NODE_ENV === 'development' || true;
 
@@ -14,7 +15,7 @@ export function registerOpenPort(win: BrowserWindow, manager: SerialPortManager)
     'serial:open',
     async (_, path: string, baudRate = 115200): Promise<SerialOpenResult> => {
       try {
-        console.log(`[Serial] Opening port ${path} at ${baudRate} baud`);
+        logger.info(`[Serial] Opening port ${path} at ${baudRate} baud`);
 
         // Получаем текущий открытый порт
         const activePorts = manager.getActivePorts();
@@ -22,12 +23,12 @@ export function registerOpenPort(win: BrowserWindow, manager: SerialPortManager)
 
         // Если пытаемся открыть уже открытый порт
         if (currentPort === path) {
-          console.log(`[Serial] Port ${path} already open`);
+          logger.info(`[Serial] Port ${path} already open`);
           return { ok: true };
         }
 
         // Создаём новый порт
-        console.log(`[Serial] Creating ${isDev ? 'MOCK' : 'REAL'} port for ${path}`);
+        logger.info(`[Serial] Creating ${isDev ? 'MOCK' : 'REAL'} port for ${path}`);
 
         const port: ISerialPort = isDev
           ? createMockSerialPort(path, baudRate)
@@ -40,10 +41,10 @@ export function registerOpenPort(win: BrowserWindow, manager: SerialPortManager)
         appStorage.set('lastPort', path);
         appStorage.set('baudRate', baudRate);
 
-        console.log(`[Serial] ✅ Successfully opened ${path}`);
+        logger.info(`[Serial] ✅ Successfully opened ${path}`);
         return { ok: true };
       } catch (err: any) {
-        console.error(`[Serial] ❌ Failed to open port ${path}:`, err);
+        logger.error(`[Serial] ❌ Failed to open port ${path}:`, err);
         return { error: err.message || 'Failed to open port' };
       }
     },

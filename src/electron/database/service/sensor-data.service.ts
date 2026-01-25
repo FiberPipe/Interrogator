@@ -1,3 +1,4 @@
+import { logger } from '../../logger/utils';
 import { getDatabase } from '../db';
 
 export interface SensorDataRecord {
@@ -67,7 +68,7 @@ export class SensorDataService {
 
       return sensorDataId;
     } catch (err) {
-      console.error('[SensorDataService] Error saving data:', err);
+      logger.error('[SensorDataService] Error saving data:', err);
       throw err;
     }
   }
@@ -105,7 +106,7 @@ export class SensorDataService {
         return obj as SensorDataRecord;
       });
     } catch (err) {
-      console.error('[SensorDataService] Error getting data by time range:', err);
+      logger.error('[SensorDataService] Error getting data by time range:', err);
       throw err;
     }
   }
@@ -138,7 +139,7 @@ export class SensorDataService {
         return obj as SensorDataRecord;
       });
     } catch (err) {
-      console.error('[SensorDataService] Error getting last records:', err);
+      logger.error('[SensorDataService] Error getting last records:', err);
       throw err;
     }
   }
@@ -181,7 +182,7 @@ export class SensorDataService {
         avg: (avg as number) || 0,
       };
     } catch (err) {
-      console.error('[SensorDataService] Error getting channel stats:', err);
+      logger.error('[SensorDataService] Error getting channel stats:', err);
       throw err;
     }
   }
@@ -206,7 +207,7 @@ export class SensorDataService {
 
       return (result[0].values[0][0] as number) || 0;
     } catch (err) {
-      console.error('[SensorDataService] Error getting total record count:', err);
+      logger.error('[SensorDataService] Error getting total record count:', err);
       return 0;
     }
   }
@@ -227,11 +228,11 @@ export class SensorDataService {
       const result = db.exec('SELECT last_insert_rowid() as id');
       const sessionId = result[0].values[0][0] as number;
 
-      console.log(`[SensorDataService] Created session ${sessionId} for port ${port}`);
+      logger.info(`[SensorDataService] Created session ${sessionId} for port ${port}`);
 
       return sessionId;
     } catch (err) {
-      console.error('[SensorDataService] Error creating session:', err);
+      logger.error('[SensorDataService] Error creating session:', err);
       throw err;
     }
   }
@@ -250,7 +251,7 @@ export class SensorDataService {
         [sessionId],
       );
     } catch (err) {
-      console.error('[SensorDataService] Error incrementing session records:', err);
+      logger.error('[SensorDataService] Error incrementing session records:', err);
       // Не выбрасываем ошибку, чтобы не прервать поток данных
     }
   }
@@ -269,9 +270,9 @@ export class SensorDataService {
         [Date.now(), sessionId],
       );
 
-      console.log(`[SensorDataService] Ended session ${sessionId}`);
+      logger.info(`[SensorDataService] Ended session ${sessionId}`);
     } catch (err) {
-      console.error('[SensorDataService] Error ending session:', err);
+      logger.error('[SensorDataService] Error ending session:', err);
       throw err;
     }
   }
@@ -305,7 +306,7 @@ export class SensorDataService {
 
       return obj as SessionRecord;
     } catch (err) {
-      console.error('[SensorDataService] Error getting active session:', err);
+      logger.error('[SensorDataService] Error getting active session:', err);
       return null;
     }
   }
@@ -337,7 +338,7 @@ export class SensorDataService {
         return obj as SessionRecord;
       });
     } catch (err) {
-      console.error('[SensorDataService] Error getting all sessions:', err);
+      logger.error('[SensorDataService] Error getting all sessions:', err);
       return [];
     }
   }
@@ -370,7 +371,7 @@ export class SensorDataService {
         return obj as SessionRecord;
       });
     } catch (err) {
-      console.error('[SensorDataService] Error getting sessions by port:', err);
+      logger.error('[SensorDataService] Error getting sessions by port:', err);
       return [];
     }
   }
@@ -409,7 +410,7 @@ export class SensorDataService {
         std_dev: row[2] as number | undefined,
       }));
     } catch (err) {
-      console.error('[SensorDataService] Error getting channel data:', err);
+      logger.error('[SensorDataService] Error getting channel data:', err);
       return [];
     }
   }
@@ -437,11 +438,11 @@ export class SensorDataService {
       const changesResult = db.exec('SELECT changes() as count');
       const deletedCount = (changesResult[0]?.values[0]?.[0] as number) || 0;
 
-      console.log(`[SensorDataService] Deleted ${deletedCount} old records`);
+      logger.info(`[SensorDataService] Deleted ${deletedCount} old records`);
 
       return deletedCount;
     } catch (err) {
-      console.error('[SensorDataService] Error deleting old data:', err);
+      logger.error('[SensorDataService] Error deleting old data:', err);
       throw err;
     }
   }
@@ -494,7 +495,7 @@ export class SensorDataService {
         newestRecord,
       };
     } catch (err) {
-      console.error('[SensorDataService] Error getting database stats:', err);
+      logger.error(`[SensorDataService] Error getting database stats:`, err);
       throw err;
     }
   }

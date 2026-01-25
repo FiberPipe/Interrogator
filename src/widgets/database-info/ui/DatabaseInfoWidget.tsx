@@ -13,6 +13,8 @@ import {
   XCircle,
 } from 'lucide-react';
 
+import { addDangerToaster, addSuccessToaster } from '../../../shared/ui';
+
 interface DatabaseInfo {
   path: string;
   exists: boolean;
@@ -59,7 +61,7 @@ export const DatabaseInfoWidget = () => {
       setDbInfo(info);
       setDbStats(stats);
     } catch (err) {
-      console.error('[DatabaseInfo] Error loading info:', err);
+      addDangerToaster('[DatabaseInfo] Error loading info:', err);
     } finally {
       setLoading(false);
     }
@@ -72,9 +74,9 @@ export const DatabaseInfoWidget = () => {
   const handleOpenFolder = async () => {
     try {
       const path = await window.database.openFolder();
-      console.log('[DatabaseInfo] Opened folder:', path);
+      addSuccessToaster('[DatabaseInfo] Opened folder:', path);
     } catch (err) {
-      console.error('[DatabaseInfo] Error opening folder:', err);
+      addDangerToaster('[DatabaseInfo] Error opening folder:', err);
     }
   };
 

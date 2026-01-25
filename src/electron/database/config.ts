@@ -2,6 +2,8 @@ import { app } from 'electron';
 import { join, dirname } from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
 
+import { logger } from '../logger/utils';
+
 export type DatabaseLocation = 'userData' | 'appPath' | 'documents' | 'custom';
 
 export interface DatabaseConfig {
@@ -73,7 +75,7 @@ export class DatabasePathManager {
   private ensureDirectoryExists(dirPath: string): void {
     if (!existsSync(dirPath)) {
       mkdirSync(dirPath, { recursive: true });
-      console.log('[DatabasePath] Created directory:', dirPath);
+      logger.info(`[DatabasePath] Created directory:${dirPath}`);
     }
   }
 
@@ -114,6 +116,6 @@ export function getDatabasePathManager(): DatabasePathManager {
 
 export function initializeDatabasePath(config?: Partial<DatabaseConfig>): void {
   pathManager = new DatabasePathManager(config);
-  console.log('[DatabasePath] Initialized with config:', pathManager.getConfig());
-  console.log('[DatabasePath] Database will be stored at:', pathManager.getPath());
+  logger.info(`[DatabasePath] Initialized with config:${pathManager.getConfig()}`);
+  logger.info(`[DatabasePath] Database will be stored at:${pathManager.getPath()}`);
 }
