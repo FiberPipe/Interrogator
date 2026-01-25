@@ -1,52 +1,84 @@
-// src/features/displacement-monitoring/ui/DisplacementChart.tsx
-import { useMemo, useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardBody, Code, Switch, Chip, Divider } from '@heroui/react';
+import { Card, CardBody, Switch, Chip, Spinner, Divider } from '@heroui/react';
 
-import type { DisplacementCoefficients } from '../../../entities/sensor-data/model/types';
+import type { RowData } from '../../../shared/types/microcontroller-data';
+import type { DisplacementCoefficients } from '../../../entities/displacement';
+import { DisplacementFormulaDisplay } from '../../../entities/displacement';
 import { useDisplacementCalculations } from '../model/useDisplacementCalculations';
 import type { ChartSeries } from '../../../shared/ui';
 import { LineChartWithConfidence } from '../../../shared/ui';
 
 interface DisplacementChartProps {
-  data: any[];
+  data: RowData[];
   selectedChannels: number[];
   colors: string[];
-  inputValues: Record<string, string>;
 }
 
-export const DisplacementChart = ({
-  data,
-  selectedChannels,
-  colors,
-  inputValues,
-}: DisplacementChartProps) => {
+export const DisplacementChart = ({ data, selectedChannels, colors }: DisplacementChartProps) => {
   const { t } = useTranslation();
   const [showWavelength, setShowWavelength] = useState(false);
+  const [coefficientsMap, setCoefficientsMap] = useState<Record<number, DisplacementCoefficients>>(
+    {},
+  );
+  const [isLoadingCoefficients, setIsLoadingCoefficients] = useState(true);
 
-  // Строим карту коэффициентов
-  const coefficientsMap = useMemo((): Record<number, DisplacementCoefficients> => {
-    const map: Record<number, DisplacementCoefficients> = {};
+  // Загружаем коэффициенты для выбранных каналов
+  useEffect(() => {
+    const loadCoefficients = async () => {
+      setIsLoadingCoefficients(true);
+      try {
+        const map: Record<number, DisplacementCoefficients> = {};
 
-    selectedChannels.forEach((sensorIndex) => {
-      map[sensorIndex] = {
-        lambda0: parseFloat(inputValues[`Displacement_lambda0_${sensorIndex}`] || '0'),
-        k: parseFloat(inputValues[`Displacement_k_${sensorIndex}`] || '0'),
-        C: parseFloat(inputValues[`Displacement_C_${sensorIndex}`] || '0'),
-        B: parseFloat(inputValues[`Displacement_B_${sensorIndex}`] || '0'),
-        alpha: parseFloat(inputValues[`Displacement_alpha_${sensorIndex}`] || '0'),
-        T: parseFloat(inputValues[`Displacement_T_${sensorIndex}`] || '0'),
-        T0: parseFloat(inputValues[`Displacement_T0_${sensorIndex}`] || '0'),
-      };
-    });
+        await Promise.all(
+          selectedChannels.map(async (sensorIndex) => {
+            const keys: Array<keyof DisplacementCoefficients> = [
+              'lambda0',
+              'k',
+              'C',
+              'B',
+              'alpha',
+              'T',
+              'T0',
+            ];
 
-    return map;
-  }, [selectedChannels, inputValues]);
+            const coeffs: Partial<DisplacementCoefficients> = {};
 
-  // Пересчитываем смещение
+            await Promise.all(
+              keys.map(async (key) => {
+                const storageKey = `Displacement_${key}_${sensorIndex}`;
+                const value = await window.appData.get(storageKey);
+
+                if ((key === 'T' || key === 'T0') && (value === undefined || value === null)) {
+                  coeffs[key] = 20;
+                } else {
+                  coeffs[key] = value !== undefined && value !== null ? Number(value) : 0;
+                }
+              }),
+            );
+
+            map[sensorIndex] = coeffs as DisplacementCoefficients;
+          }),
+        );
+
+        setCoefficientsMap(map);
+      } catch (error) {
+        console.error('Failed to load displacement coefficients:', error);
+      } finally {
+        setIsLoadingCoefficients(false);
+      }
+    };
+
+    if (selectedChannels.length > 0) {
+      loadCoefficients();
+    } else {
+      setIsLoadingCoefficients(false);
+      setCoefficientsMap({});
+    }
+  }, [selectedChannels]);
+
   const calculatedData = useDisplacementCalculations(data, coefficientsMap);
 
-  // Серии для графика
   const series = useMemo((): ChartSeries[] => {
     if (calculatedData.length === 0) return [];
 
@@ -54,18 +86,21 @@ export const DisplacementChart = ({
       return selectedChannels.map((sensorIndex) => ({
         key: `WL${sensorIndex}`,
         label: t('monitoring.displacement.wavelength', { index: sensorIndex }),
-        color: colors[sensorIndex],
-        data: calculatedData.map((point) => ({
-          x: point.timestamp,
-          y: parseFloat(point[`wavelength${sensorIndex}`]) || NaN,
-          timestamp: point.timestamp,
-        })),
+        color: colors[sensorIndex % colors.length],
+        data: calculatedData.map((point) => {
+          const wavelengthKey = `wavelength${sensorIndex}` as keyof typeof point.wavelengths;
+          return {
+            x: point.timestamp,
+            y: Number(point.wavelengths[wavelengthKey]) || NaN,
+            timestamp: point.timestamp,
+          };
+        }),
       }));
     } else {
       return selectedChannels.map((sensorIndex) => ({
         key: `D${sensorIndex}`,
         label: t('monitoring.displacement.sensor', { index: sensorIndex }),
-        color: colors[sensorIndex],
+        color: colors[sensorIndex % colors.length],
         data: calculatedData.map((point) => ({
           x: point.timestamp,
           y: point.displacements?.[`D${sensorIndex}`] || NaN,
@@ -75,14 +110,13 @@ export const DisplacementChart = ({
     }
   }, [calculatedData, selectedChannels, colors, showWavelength, t]);
 
-  // Статистика
   const stats = useMemo(() => {
-    if (calculatedData.length === 0) return null;
+    if (calculatedData.length === 0 || showWavelength) return null;
 
     const latest = calculatedData[calculatedData.length - 1];
     const displacements = selectedChannels
       .map((idx) => latest.displacements?.[`D${idx}`])
-      .filter((v) => isFinite(v));
+      .filter((v): v is number => typeof v === 'number' && isFinite(v));
 
     if (displacements.length === 0) return null;
 
@@ -91,11 +125,78 @@ export const DisplacementChart = ({
       min: Math.min(...displacements),
       max: Math.max(...displacements),
     };
-  }, [calculatedData, selectedChannels]);
+  }, [calculatedData, selectedChannels, showWavelength]);
+
+  const hasCoefficients = useMemo(() => {
+    return selectedChannels.some((idx) => {
+      const coeffs = coefficientsMap[idx];
+      return coeffs && coeffs.lambda0 !== 0 && coeffs.k !== 0;
+    });
+  }, [coefficientsMap, selectedChannels]);
+
+  if (isLoadingCoefficients) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Spinner size="lg" label={t('common.loading')} />
+      </div>
+    );
+  }
+
+  if (selectedChannels.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-96 text-default-400 border-2 border-dashed border-default-200 rounded-lg">
+        <div className="text-center">
+          <div className="text-lg font-medium">
+            {t('monitoring.displacement.noChannelsSelected')}
+          </div>
+          <div className="text-sm mt-1">{t('monitoring.displacement.selectChannelsHint')}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasCoefficients && !showWavelength) {
+    return (
+      <div className="space-y-4">
+        <Card className="bg-warning-50 dark:bg-warning-100/10 border-warning">
+          <CardBody className="text-center py-8">
+            <div className="text-warning text-lg font-semibold mb-2">
+              ⚠️ {t('monitoring.displacement.noCoefficients')}
+            </div>
+            <p className="text-sm text-default-600">
+              {t('monitoring.displacement.configureCoefficientsHint')}
+            </p>
+          </CardBody>
+        </Card>
+
+        <LineChartWithConfidence
+          series={selectedChannels.map((sensorIndex) => ({
+            key: `WL${sensorIndex}`,
+            label: t('monitoring.displacement.wavelength', { index: sensorIndex }),
+            color: colors[sensorIndex % colors.length],
+            data: data.map((point, index) => {
+              const wavelengthKey = `wavelength${sensorIndex}` as keyof typeof point.wavelengths;
+              return {
+                x: index,
+                y: Number(point.wavelengths[wavelengthKey]) || NaN,
+                timestamp: index,
+              };
+            }),
+          }))}
+          height={500}
+          xAxisLabel={t('charts.info.time')}
+          yAxisLabel="Wavelength (nm)"
+          xAxisDataKey="x"
+          enableZoom
+          defaultVisiblePoints={50}
+          showLegend={false}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {/* Переключатель и статистика */}
       <Card className="bg-default-50 dark:bg-default-100/5">
         <CardBody>
           <div className="space-y-3">
@@ -127,11 +228,15 @@ export const DisplacementChart = ({
                 <Divider />
                 <div className="flex gap-4 text-xs">
                   <div>
-                    <span className="text-default-500">{t('monitoring.displacement.min')}:</span>
+                    <span className="text-default-500">
+                      {t('monitoring.displacement.stats.min')}:
+                    </span>
                     <span className="ml-1 font-semibold">{stats.min.toFixed(2)} μm/m</span>
                   </div>
                   <div>
-                    <span className="text-default-500">{t('monitoring.displacement.max')}:</span>
+                    <span className="text-default-500">
+                      {t('monitoring.displacement.stats.max')}:
+                    </span>
                     <span className="ml-1 font-semibold">{stats.max.toFixed(2)} μm/m</span>
                   </div>
                 </div>
@@ -141,7 +246,6 @@ export const DisplacementChart = ({
         </CardBody>
       </Card>
 
-      {/* График */}
       <LineChartWithConfidence
         series={series}
         height={500}
@@ -153,30 +257,7 @@ export const DisplacementChart = ({
         showLegend={false}
       />
 
-      {/* Формула */}
-      <Card className="bg-default-50 dark:bg-default-100/5">
-        <CardBody className="py-3">
-          <div className="text-sm space-y-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold">{t('monitoring.formula')}:</span>
-              <Code size="sm" className="text-xs">
-                ε = (10⁶ · (λ - λ₀)) / (k · λ₀) - C(T² - T₀²) - (B + α)(T - T₀)
-              </Code>
-            </div>
-            <div className="text-xs text-default-500 space-y-1">
-              <p>где:</p>
-              <ul className="list-disc list-inside space-y-0.5 ml-2">
-                <li>λ - измеренная длина волны, λ₀ - эталонная длина волны</li>
-                <li>k - калибровочный коэффициент датчика</li>
-                <li>C - коэффициент температурной компенсации (квадратичный)</li>
-                <li>B - коэффициент температурной компенсации (линейный)</li>
-                <li>α - коэффициент теплового расширения</li>
-                <li>T - текущая температура, T₀ - эталонная температура</li>
-              </ul>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
+      <DisplacementFormulaDisplay />
     </div>
   );
 };

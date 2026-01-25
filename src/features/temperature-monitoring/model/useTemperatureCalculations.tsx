@@ -1,27 +1,28 @@
 import { useMemo } from 'react';
 
-import type { DisplacementCoefficients } from '../../../entities/displacement';
-import { calculateDisplacement } from '../../../entities/displacement';
 import type { RowData } from '../../../shared/types/microcontroller-data';
+import type { TemperatureCoefficients } from '../../../entities/temperature';
+import { calculateTemperature } from '../../../entities/temperature';
 
-export interface CalculatedDisplacementData extends RowData {
-  displacements: Record<string, number>;
+export interface CalculatedTemperatureData extends RowData {
+  temperatures: Record<string, number>;
   timestamp: number;
 }
 
 /**
- * Хук для вычисления смещения из данных wavelength
+ * Хук для вычисления температуры из данных wavelength
  */
-export const useDisplacementCalculations = (
+export const useTemperatureCalculations = (
   data: RowData[],
-  coefficientsMap: Record<number, DisplacementCoefficients>,
-): CalculatedDisplacementData[] => {
+  coefficientsMap: Record<number, TemperatureCoefficients>,
+): CalculatedTemperatureData[] => {
   return useMemo(() => {
     if (data.length === 0) return [];
 
     return data.map((point, index) => {
-      const displacements: Record<string, number> = {};
+      const temperatures: Record<string, number> = {};
 
+      // Вычисляем температуру для каждого датчика
       Object.keys(coefficientsMap).forEach((sensorIndexStr) => {
         const sensorIndex = parseInt(sensorIndexStr, 10);
         const coeffs = coefficientsMap[sensorIndex];
@@ -29,16 +30,16 @@ export const useDisplacementCalculations = (
         const wavelength = point.wavelengths[wavelengthKey];
 
         if (wavelength !== undefined && !isNaN(wavelength) && isFinite(wavelength)) {
-          const displacement = calculateDisplacement(wavelength, coeffs);
-          if (isFinite(displacement)) {
-            displacements[`D${sensorIndex}`] = displacement;
+          const temperature = calculateTemperature(wavelength, coeffs);
+          if (isFinite(temperature)) {
+            temperatures[`T${sensorIndex}`] = temperature;
           }
         }
       });
 
       return {
         ...point,
-        displacements,
+        temperatures,
         timestamp: index,
       };
     });

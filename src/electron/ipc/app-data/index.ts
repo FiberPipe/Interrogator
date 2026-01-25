@@ -4,6 +4,7 @@ import { appStorage } from '../../storage/app-storage';
 
 export enum AppDataChannel {
   GetAllAppData = 'app-data:get-all',
+  GetAppData = 'app-data:get',
   SetAppData = 'app-data:set',
   DeleteAppData = 'app-data:delete',
   PatchAppData = 'app-data:patch',
@@ -12,6 +13,9 @@ export enum AppDataChannel {
 export function registerAppDataIpc() {
   ipcMain.handle(AppDataChannel.GetAllAppData, () => {
     return appStorage.getAll();
+  });
+  ipcMain.handle(AppDataChannel.GetAppData, (_, key: string) => {
+    return appStorage.get(key);
   });
 
   ipcMain.handle(AppDataChannel.SetAppData, (_, key: string, value: unknown) => {

@@ -32,6 +32,7 @@ export interface AppDataAPI {
   set(key: string, value: unknown): Promise<void>;
   delete(key: string): Promise<void>;
   patch(patch: Record<string, unknown>): Promise<void>;
+  get(key: string): Promise<string | undefined>;
 }
 
 // Database Types

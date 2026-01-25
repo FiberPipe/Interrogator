@@ -26,7 +26,7 @@ export const SerialPortWidget = () => {
     disconnectPort,
   } = useSerialPortContext();
 
-  const handleConnect = async ()=> {
+  const handleConnect = async () => {
     if (selectedPort) {
       await connectToPort(selectedPort);
     }

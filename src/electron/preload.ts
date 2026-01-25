@@ -153,6 +153,10 @@ const appDataAPI: AppDataAPI = {
     log.info(`🔧 patch called: ${JSON.stringify(patch)}`);
     return ipcRenderer.invoke('app-data:patch', patch);
   },
+  get: (key: string): Promise<string | undefined> => {
+    log.info(`🔧 get called: ${JSON.stringify(key)}`);
+    return ipcRenderer.invoke('app-data:get', key);
+  },
 };
 
 /**

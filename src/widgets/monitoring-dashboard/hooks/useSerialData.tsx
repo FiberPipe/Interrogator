@@ -1,19 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 
 import { addDangerToaster, addSuccessToaster } from '../../../shared/ui';
-
-interface DataPoint {
-  id: string;
-  time: string;
-  timestamp: string;
-  [key: string]: any;
-}
+import type { RowData } from '../../../shared/types/microcontroller-data';
 
 const MAX_BUFFER_SIZE = 200;
 
 export const useSerialData = (port: string | null) => {
-  const [dataBuffer, setDataBuffer] = useState<DataPoint[]>([]);
-  const [latestData, setLatestData] = useState<DataPoint | null>(null);
+  const [dataBuffer, setDataBuffer] = useState<RowData[]>([]);
+  const [latestData, setLatestData] = useState<RowData | null>(null);
   const [isReceiving, setIsReceiving] = useState(false);
 
   const unsubscribeRef = useRef<(() => void) | null>(null);
@@ -34,16 +28,16 @@ export const useSerialData = (port: string | null) => {
       try {
         const parsed = JSON.parse(event.data);
 
-        const dataPoint: DataPoint = {
+        const RowData: RowData = {
           ...parsed,
           timestamp: parsed.time || new Date().toLocaleTimeString(),
           index: indexRef.current++,
         };
 
-        setLatestData(dataPoint);
+        setLatestData(RowData);
 
         setDataBuffer((prev) => {
-          const updated = [...prev, dataPoint];
+          const updated = [...prev, RowData];
           return updated.length > MAX_BUFFER_SIZE
             ? updated.slice(updated.length - MAX_BUFFER_SIZE)
             : updated;
