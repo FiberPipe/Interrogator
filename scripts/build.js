@@ -2,12 +2,18 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const VersionManager = require('./version-manager');
 
 // Настройка
 const args = process.argv.slice(2);
 const skipClean = args.includes('--skip-clean');
 const skipRebuild = args.includes('--skip-rebuild');
 const dev = args.includes('--dev');
+const channelArg = args.find(arg => arg.startsWith('--channel='));
+const channel = channelArg ? channelArg.split('=')[1] : 'alpha';
+
+// Устанавливаем переменную окружения
+process.env.BUILD_CHANNEL = channel;
 
 // Цвета для консоли
 const colors = {
@@ -17,6 +23,7 @@ const colors = {
   green: '\x1b[32m',
   red: '\x1b[31m',
   gray: '\x1b[90m',
+  magenta: '\x1b[35m',
 };
 
 function log(message, color = 'reset') {
@@ -30,7 +37,7 @@ function separator() {
 function exec(command, description) {
   try {
     log(`\n${description}...`, 'yellow');
-    execSync(command, { stdio: 'inherit' });
+    execSync(command, { stdio: 'inherit', env: process.env });
     log('[OK] ' + description + ' successful', 'green');
     return true;
   } catch (error) {
@@ -44,6 +51,19 @@ async function build() {
   separator();
   log('   Interrogator Build Script v1.0', 'cyan');
   separator();
+
+  // Version Management
+  const vm = new VersionManager();
+  const version = vm.getVersion(channel);
+  const buildConfig = vm.config[channel];
+
+  log(`\n📦 Building for channel: ${channel.toUpperCase()}`, 'magenta');
+  log(`📌 Version: ${version}`, 'magenta');
+  log(`🏷️  Description: ${buildConfig.description}`, 'gray');
+  separator();
+
+  // Sync version to package.json
+  vm.sync();
 
   // Step 1: Preparation
   if (!skipClean) {
@@ -76,28 +96,45 @@ async function build() {
   // Step 5: Create distributable
   if (!dev) {
     const rebuildFlag = skipRebuild ? '--config.npmRebuild=false' : '';
+    const productName = channel === 'beta' ? 'Interrogator Beta' : 'Interrogator';
+    
     exec(
-      `npx electron-builder --win --x64 ${rebuildFlag}`,
+      `npx electron-builder --win --x64 ${rebuildFlag} --config.productName="${productName}"`,
       '[5/5] Creating Windows executable'
     );
 
-    // Show results
-    log('\n[OK] Build complete!', 'green');
-    log('Output location: dist/', 'cyan');
-
+    // Переименование файлов по каналу
     const distPath = path.join(__dirname, '..', 'dist');
     if (fs.existsSync(distPath)) {
       const files = fs.readdirSync(distPath).filter(f => f.endsWith('.exe'));
-      if (files.length > 0) {
-        log('\nCreated executables:', 'green');
-        files.forEach(file => {
-          const filePath = path.join(distPath, file);
-          const stats = fs.statSync(filePath);
-          const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
-          log(`  - ${file} (${sizeMB} MB)`, 'reset');
-        });
-      }
+      
+      files.forEach(file => {
+        const oldPath = path.join(distPath, file);
+        const newName = file.replace('.exe', `-${channel}-${version}.exe`);
+        const newPath = path.join(distPath, newName);
+        
+        fs.renameSync(oldPath, newPath);
+        
+        const stats = fs.statSync(newPath);
+        const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
+        log(`\n📦 Created: ${newName} (${sizeMB} MB)`, 'green');
+      });
     }
+
+    // Создание метаданных сборки
+    const buildMeta = {
+      version,
+      channel,
+      buildNumber: vm.config.buildNumber,
+      timestamp: new Date().toISOString(),
+      autoUpdate: buildConfig.autoUpdate,
+      description: buildConfig.description,
+    };
+
+    const metaPath = path.join(distPath, `build-meta-${channel}.json`);
+    fs.writeFileSync(metaPath, JSON.stringify(buildMeta, null, 2));
+    log(`\n📄 Build metadata: ${metaPath}`, 'cyan');
+
   } else {
     log('\n[5/5] Skipping packaging (--dev flag)', 'gray');
     log('[OK] Development build complete!', 'green');
@@ -105,6 +142,7 @@ async function build() {
 
   separator();
   log('         BUILD SUCCESSFUL!', 'cyan');
+  log(`         Channel: ${channel.toUpperCase()} | Version: ${version}`, 'cyan');
   separator();
   log('');
 }
