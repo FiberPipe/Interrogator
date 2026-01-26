@@ -19,7 +19,11 @@ import type {
   DatabaseBackupResult,
   DatabaseExportOptions,
   DatabaseExportResult,
+  LogsStats,
+  LogsFilter,
 } from './types';
+import { LogsAPI } from '../shared/types/global';
+import { LogEntry } from './logger/utils';
 
 /**
  * --------------------
@@ -250,14 +254,131 @@ const databaseAPI: DatabaseAPI = {
 
 /**
  * --------------------
+ * Logs API
+ * --------------------
+ */
+const logsAPI: LogsAPI = {
+  /**
+   * Получение логов с фильтрацией
+   */
+  //@ts-ignore
+  get: (filter: LogsFilter): Promise<LogEntry[]> => {
+    log.info(`📜 getLogs called: ${JSON.stringify(filter)}`);
+    return ipcRenderer
+      .invoke('logs:get', filter)
+      .then((result: LogEntry[]) => {
+        log.info(`📥 getLogs result: ${result.length} logs`);
+        return result;
+      })
+      .catch((err: any) => {
+        log.error(`❌ getLogs error: ${err instanceof Error ? err.stack : String(err)}`);
+        throw err;
+      });
+  },
+
+  /**
+   * Получение статистики логов
+   */
+  getStats: (): Promise<LogsStats> => {
+    log.info('📊 getLogsStats called');
+    return ipcRenderer
+      .invoke('logs:getStats')
+      .then((result: LogsStats) => {
+        log.info(`📥 getLogsStats result: ${JSON.stringify(result)}`);
+        return result;
+      })
+      .catch((err: any) => {
+        log.error(`❌ getLogsStats error: ${err instanceof Error ? err.stack : String(err)}`);
+        throw err;
+      });
+  },
+
+  /**
+   * Очистка старых логов (старше 3 дней)
+   */
+  cleanup: (): Promise<{ success: boolean; deletedCount: number; error?: string }> => {
+    log.info('🧹 cleanupLogs called');
+    return ipcRenderer
+      .invoke('logs:cleanup')
+      .then((result: { success: boolean; deletedCount: number; error?: string }) => {
+        log.info(`📥 cleanupLogs result: ${JSON.stringify(result)}`);
+        return result;
+      })
+      .catch((err: any) => {
+        log.error(`❌ cleanupLogs error: ${err instanceof Error ? err.stack : String(err)}`);
+        return { success: false, deletedCount: 0, error: String(err) };
+      });
+  },
+
+  /**
+   * Полная очистка всех логов
+   */
+  clear: (): Promise<{ success: boolean; error?: string }> => {
+    log.info('🗑️ clearAllLogs called');
+    return ipcRenderer
+      .invoke('logs:clear')
+      .then((result: { success: boolean; error?: string }) => {
+        log.info(`📥 clearAllLogs result: ${JSON.stringify(result)}`);
+        return result;
+      })
+      .catch((err: any) => {
+        log.error(`❌ clearAllLogs error: ${err instanceof Error ? err.stack : String(err)}`);
+        return { success: false, error: String(err) };
+      });
+  },
+
+  /**
+   * Экспорт логов в JSON
+   */
+  export: (options?: {
+    level?: string;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<{ success: boolean; path?: string; cancelled?: boolean; error?: string }> => {
+    log.info(`📤 exportLogs called: ${JSON.stringify(options)}`);
+    return ipcRenderer
+      .invoke('logs:export', options)
+      .then(
+        (result: { success: boolean; path?: string; cancelled?: boolean; error?: string }) => {
+          log.info(`📥 exportLogs result: ${JSON.stringify(result)}`);
+          return result;
+        },
+      )
+      .catch((err: any) => {
+        log.error(`❌ exportLogs error: ${err instanceof Error ? err.stack : String(err)}`);
+        return { success: false, error: String(err) };
+      });
+  },
+
+  /**
+   * Отправка лога из renderer процесса
+   */
+  send: (level: 'debug' | 'info' | 'warn' | 'error', message: string, ...args: any[]): void => {
+    const channelMap = {
+      debug: 'log-debug',
+      info: 'log-info',
+      warn: 'log-warn',
+      error: 'log-error',
+    };
+
+    const channel = channelMap[level];
+    ipcRenderer.send(channel, message, ...args);
+  },
+};
+
+/**
+ * --------------------
  * Expose APIs to window
  * --------------------
  */
+
 contextBridge.exposeInMainWorld('serial', serialAPI);
 contextBridge.exposeInMainWorld('appData', appDataAPI);
 contextBridge.exposeInMainWorld('database', databaseAPI);
+contextBridge.exposeInMainWorld('logs', logsAPI);
 
 log.info('✅ Preload loaded successfully');
 log.info(`window.serial: ${!!serialAPI}`);
 log.info(`window.appData: ${!!appDataAPI}`);
 log.info(`window.database: ${!!databaseAPI}`);
+log.info(`window.logs: ${!!logsAPI}`);

@@ -157,13 +157,84 @@ export interface DatabaseAPI {
   clear(): Promise<{ success: boolean; error?: string }>;
 }
 
-// Global Window Interface
+export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
+
+export interface LogEntry {
+  id?: number;
+  timestamp: number;
+  level: LogLevel;
+  message: string;
+  context?: string;
+  stack?: string;
+  created_at?: number;
+}
+
+export interface LogsStats {
+  total: number;
+  byLevel: Record<string, number>;
+  oldestLog: number | null;
+  newestLog: number | null;
+}
+
+export interface LogsFilter {
+  level?: LogLevel;
+  startTime?: number;
+  endTime?: number;
+  limit?: number;
+  search?: string;
+}
+
+/**
+ * Logs API
+ */
+export interface LogsAPI {
+  /**
+   * Получение логов с фильтрацией
+   */
+  get: (filter: LogsFilter) => Promise<LogEntry[]>;
+
+  /**
+   * Получение статистики логов
+   */
+  getStats: () => Promise<LogsStats>;
+
+  /**
+   * Очистка старых логов (старше 3 дней)
+   */
+  cleanup: () => Promise<{ success: boolean; deletedCount: number; error?: string }>;
+
+  /**
+   * Полная очистка всех логов
+   */
+  clear: () => Promise<{ success: boolean; error?: string }>;
+
+  /**
+   * Экспорт логов в JSON
+   */
+  export: (options?: {
+    level?: string;
+    startTime?: number;
+    endTime?: number;
+  }) => Promise<{ success: boolean; path?: string; cancelled?: boolean; error?: string }>;
+
+  /**
+   * Отправка лога из renderer процесса
+   */
+  send: (level: 'debug' | 'info' | 'warn' | 'error', message: string, ...args: any[]) => void;
+}
+
+/**
+ * --------------------
+ * Window Interface
+ * --------------------
+ */
 declare global {
   interface Window {
     serial: SerialAPI;
     appData: AppDataAPI;
     database: DatabaseAPI;
+    logs: LogsAPI;
   }
 }
 
-export {};
+export { };

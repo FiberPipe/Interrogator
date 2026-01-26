@@ -8,7 +8,7 @@ import type { SerialOpenResult, ISerialPort } from './types';
 import type { SerialPortManager } from './port-manager';
 import { logger } from '../logger/utils';
 
-const isDev = process.env.NODE_ENV === 'development' || true;
+const isDev = false;
 
 export function registerOpenPort(win: BrowserWindow, manager: SerialPortManager): void {
   ipcMain.handle(
