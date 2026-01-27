@@ -1,14 +1,18 @@
-/* eslint-disable no-console */
+// src/electron/logger/utils.ts
+
 import fs from 'fs';
 import path from 'path';
-import { app } from 'electron';
 
 import { CURRENT_LOG_LEVEL, LogLevel } from './types';
 
 // -------------------- Настройки --------------------
 const MAX_LOG_SIZE = 40 * 1024 * 1024; // 40 МБ
-const LOG_RETENTION_DAYS = 7; // удалять старше 7 дней
+const LOG_RETENTION_DAYS = 7; // файловые логи
 const LOG_DIR = path.join(process.cwd(), 'logs');
+
+// Настройки батчинга для БД
+const BATCH_SIZE = 100; // количество логов в батче
+const BATCH_INTERVAL = 5000; // интервал сброса батча (5 сек)
 
 // -------------------- Подготовка папки --------------------
 if (!fs.existsSync(LOG_DIR)) {
@@ -28,7 +32,6 @@ function getLogFilePath(): string {
     return basePath;
   }
 
-  // Если размер превышен, создаём новый файл с индексом
   let index = 1;
   let newFile = path.join(LOG_DIR, `fbg_app_${index}.log`);
 
@@ -59,16 +62,28 @@ function cleanupOldLogs() {
   }
 }
 
-// Запускаем очистку при старте
 cleanupOldLogs();
+
+// -------------------- Типы --------------------
+export interface LogEntry {
+  timestamp: number;
+  level: string;
+  message: string;
+  context?: string;
+  stack?: string;
+}
 
 // -------------------- Logger --------------------
 class Logger {
   private static instance: Logger;
   private logFilePath: string;
+  private logBatch: LogEntry[] = [];
+  private batchTimer: NodeJS.Timeout | null = null;
+  private dbWriter: ((logs: LogEntry[]) => Promise<void>) | null = null;
 
   private constructor() {
     this.logFilePath = getLogFilePath();
+    this.startBatchTimer();
   }
 
   static getInstance(): Logger {
@@ -76,8 +91,55 @@ class Logger {
     return Logger.instance;
   }
 
+  /**
+   * Регистрация функции записи в БД
+   */
+  setDatabaseWriter(writer: (logs: LogEntry[]) => Promise<void>) {
+    this.dbWriter = writer;
+  }
+
+  /**
+   * Запуск таймера для периодического сброса батча
+   */
+  private startBatchTimer() {
+    this.batchTimer = setInterval(() => {
+      this.flushBatch();
+    }, BATCH_INTERVAL);
+  }
+
+  /**
+   * Сброс батча в БД
+   */
+  private async flushBatch() {
+    if (this.logBatch.length === 0 || !this.dbWriter) return;
+
+    const batch = [...this.logBatch];
+    this.logBatch = [];
+
+    try {
+      await this.dbWriter(batch);
+    } catch (err) {
+      console.error('[Logger] Failed to write batch to database:', err);
+      // В случае ошибки логи всё равно попадут в файл
+    }
+  }
+
+  /**
+   * Добавление лога в батч
+   */
+  private addToBatch(entry: LogEntry) {
+    this.logBatch.push(entry);
+
+    // Если батч переполнен, сбрасываем немедленно
+    if (this.logBatch.length >= BATCH_SIZE) {
+      this.flushBatch();
+    }
+  }
+
+  /**
+   * Запись в файл
+   */
   private writeToFile(message: string) {
-    // Проверяем размер файла перед записью
     try {
       const stats = fs.existsSync(this.logFilePath) ? fs.statSync(this.logFilePath) : { size: 0 };
 
@@ -91,42 +153,89 @@ class Logger {
     }
   }
 
-  private formatMessage(level: string, ...args: any[]) {
+  /**
+   * Форматирование сообщения
+   */
+  private formatMessage(level: string, ...args: any[]): { message: string; context?: any } {
     const timestamp = new Date().toISOString();
-    const msg = args.map((a) => (typeof a === 'string' ? a : JSON.stringify(a, null, 2))).join(' ');
-    return `[${timestamp}] [${level}] ${msg}`;
+    
+    // Разделяем строки и объекты
+    const strings: string[] = [];
+    const objects: any[] = [];
+
+    args.forEach((arg) => {
+      if (typeof arg === 'string') {
+        strings.push(arg);
+      } else if (arg !== undefined && arg !== null) {
+        objects.push(arg);
+      }
+    });
+
+    const msg = strings.join(' ');
+    const context = objects.length > 0 ? objects : undefined;
+    const fullMessage = `[${timestamp}] [${level}] ${msg}`;
+
+    return { message: fullMessage, context };
+  }
+
+  private log(level: string, logLevel: LogLevel, ...args: any[]) {
+    if (CURRENT_LOG_LEVEL > logLevel) return;
+
+    const { message, context } = this.formatMessage(level, ...args);
+    const timestamp = Date.now();
+
+    // Определяем stack trace для ошибок
+    let stack: string | undefined;
+    const errorArg = args.find((arg) => arg instanceof Error);
+    if (errorArg) {
+      stack = errorArg.stack;
+    }
+
+    // Создаём запись лога
+    const logEntry: LogEntry = {
+      timestamp,
+      level,
+      message,
+      context: context ? JSON.stringify(context) : undefined,
+      stack,
+    };
+
+    // Выводим в консоль
+    const consoleMethod = level.toLowerCase() as 'debug' | 'info' | 'warn' | 'error';
+    console[consoleMethod](message, context || '');
+
+    // Записываем в файл
+    this.writeToFile(message + (context ? '\n' + JSON.stringify(context, null, 2) : ''));
+
+    // Добавляем в батч для БД
+    this.addToBatch(logEntry);
   }
 
   debug(...args: any[]) {
-    if (CURRENT_LOG_LEVEL <= LogLevel.DEBUG) {
-      const message = this.formatMessage('DEBUG', ...args);
-      console.debug(message);
-      this.writeToFile(message);
-    }
+    this.log('DEBUG', LogLevel.DEBUG, ...args);
   }
 
   info(...args: any[]) {
-    if (CURRENT_LOG_LEVEL <= LogLevel.INFO) {
-      const message = this.formatMessage('INFO', ...args);
-      console.info(message);
-      this.writeToFile(message);
-    }
+    this.log('INFO', LogLevel.INFO, ...args);
   }
 
   warn(...args: any[]) {
-    if (CURRENT_LOG_LEVEL <= LogLevel.WARN) {
-      const message = this.formatMessage('WARN', ...args);
-      console.warn(message);
-      this.writeToFile(message);
-    }
+    this.log('WARN', LogLevel.WARN, ...args);
   }
 
   error(...args: any[]) {
-    if (CURRENT_LOG_LEVEL <= LogLevel.ERROR) {
-      const message = this.formatMessage('ERROR', ...args);
-      console.error(message);
-      this.writeToFile(message);
+    this.log('ERROR', LogLevel.ERROR, ...args);
+  }
+
+  /**
+   * Принудительный сброс всех логов (используется при завершении приложения)
+   */
+  async shutdown() {
+    if (this.batchTimer) {
+      clearInterval(this.batchTimer);
+      this.batchTimer = null;
     }
+    await this.flushBatch();
   }
 }
 

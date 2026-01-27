@@ -12,6 +12,7 @@ import { registerSerialPortIpc } from './serial';
 import { getPortManager } from './state';
 import { ENV, logEnvConfig } from './env';
 import { logger } from './logger/utils';
+import { registerLogsIpc } from './logger/ipc/logs.ipc';
 
 logEnvConfig();
 
@@ -109,6 +110,7 @@ async function createWindow() {
     });
 
     logger.info('[Main] Registering IPC handlers...');
+    registerLogsIpc();
     registerDatabaseIpc();
     registerSerialPortIpc(win);
     registerIpc(win);

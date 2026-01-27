@@ -7,6 +7,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import type { DatabaseConfig } from './config';
 import { getDatabasePathManager, initializeDatabasePath } from './config';
 import { logger } from '../logger/utils';
+import { logsService } from './service/logs.service';
 
 const isWindows = process.platform === 'win32';
 
@@ -64,50 +65,6 @@ function getWasmPath(): string {
 }
 
 /**
- * Инициализация базы
- */
-export async function initDatabase(config?: Partial<DatabaseConfig>) {
-  try {
-    logger.info('[Database] Initializing...');
-
-    if (config) initializeDatabasePath(config);
-
-    const pathManager = getDatabasePathManager();
-    const dbPath = pathManager.getPath();
-
-    logger.info(`[Database] DB path: ${dbPath}`);
-    logger.debug(`[Database] Config: ${JSON.stringify(pathManager.getConfig())}`);
-
-    const wasmPath = getWasmPath();
-    const SQL = await initSqlJs({
-      locateFile: (file) =>
-        file.includes('sql-wasm.wasm') ? wasmPath : join(process.resourcesPath, file),
-    });
-
-    let buffer: Uint8Array | undefined;
-    if (existsSync(dbPath)) {
-      logger.info('[Database] Loading existing database');
-      buffer = readFileSync(dbPath);
-    } else {
-      logger.info('[Database] Creating new database');
-    }
-
-    sqliteDb = new SQL.Database(buffer);
-
-    configureDatabaseOptimizations();
-    createTables();
-    setupAutoSave();
-
-    logger.info('[Database] ✅ Initialized successfully');
-  } catch (err) {
-    logger.error(
-      '[Database] ❌ Initialization error: ' + (err instanceof Error ? err.stack : String(err)),
-    );
-    throw err;
-  }
-}
-
-/**
  * Настройка оптимизаций SQLite
  */
 function configureDatabaseOptimizations() {
@@ -121,17 +78,15 @@ function configureDatabaseOptimizations() {
   } catch (err) {
     logger.error(
       '[Database] Error applying optimizations: ' +
-        (err instanceof Error ? err.stack : String(err)),
+      (err instanceof Error ? err.stack : String(err)),
     );
   }
 }
 
-/**
- * Создание таблиц и индексов
- */
 function createTables() {
   if (!sqliteDb) throw new Error('Database not initialized');
 
+  // Существующие таблицы
   sqliteDb.run(`
     CREATE TABLE IF NOT EXISTS sensor_data (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -178,7 +133,88 @@ function createTables() {
 
   indexes.forEach((sql) => sqliteDb!.run(sql));
 
+  // Инициализация таблицы логов
+  logsService.initializeTable();
+
   logger.info('[Database] Tables and indexes created');
+}
+
+/**
+ * Инициализация базы
+ */
+export async function initDatabase(config?: Partial<DatabaseConfig>) {
+  try {
+    logger.info('[Database] Initializing...');
+
+    if (config) initializeDatabasePath(config);
+
+    const pathManager = getDatabasePathManager();
+    const dbPath = pathManager.getPath();
+
+    logger.info(`[Database] DB path: ${dbPath}`);
+    logger.debug(`[Database] Config: ${JSON.stringify(pathManager.getConfig())}`);
+
+    const wasmPath = getWasmPath();
+    const SQL = await initSqlJs({
+      locateFile: (file) =>
+        file.includes('sql-wasm.wasm') ? wasmPath : join(process.resourcesPath, file),
+    });
+
+    let buffer: Uint8Array | undefined;
+    if (existsSync(dbPath)) {
+      logger.info('[Database] Loading existing database');
+      buffer = readFileSync(dbPath);
+    } else {
+      logger.info('[Database] Creating new database');
+    }
+
+    sqliteDb = new SQL.Database(buffer);
+
+    configureDatabaseOptimizations();
+    createTables();
+    setupAutoSave();
+
+    // Регистрируем writer для логгера
+    logger.setDatabaseWriter(async (logs) => {
+      await logsService.insertBatch(logs);
+    });
+
+    // Запускаем периодическую очистку старых логов
+    setupLogCleanup();
+
+    logger.info('[Database] ✅ Initialized successfully');
+  } catch (err) {
+    logger.error(
+      '[Database] ❌ Initialization error: ' + (err instanceof Error ? err.stack : String(err)),
+    );
+    throw err;
+  }
+}
+
+/**
+ * Настройка автоматической очистки логов
+ */
+function setupLogCleanup() {
+  // Очистка каждые 6 часов
+  setInterval(
+    async () => {
+      try {
+        await logsService.cleanupOldLogs();
+      } catch (err) {
+        logger.error('[Database] Log cleanup error:', err);
+      }
+    },
+    6 * 60 * 60 * 1000,
+  );
+
+  // Первая очистка через 1 минуту после запуска
+  setTimeout(async () => {
+    try {
+      await logsService.cleanupOldLogs();
+    } catch (err) {
+      logger.error('[Database] Initial log cleanup error:', err);
+    }
+  }, 60 * 1000);
 }
 
 /**

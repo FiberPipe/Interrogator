@@ -7,7 +7,7 @@ import { useOnboarding } from './hooks/useOnboarding';
 import { AppRoutes } from '../shared/types/routes';
 import './styles/global.css';
 import { SerialPortProvider } from './providers/SerialPortProvider';
-import { ChartsPage, DashboardPage } from '../pages';
+import { ChartsPage, DashboardPage, LogsPage } from '../pages';
 import Onboarding from '../pages/Onboarding';
 import Settings from '../pages/Settings';
 import { Sidebar } from '../widgets';
@@ -51,6 +51,7 @@ export default function App() {
                   />
                   <Route path={AppRoutes.CHARTS} element={<ChartsPage />} />
                   <Route path={AppRoutes.DASHBOARD} element={<DashboardPage />} />
+                  <Route path={AppRoutes.LOGS} element={<LogsPage />} />
                   <Route path="*" element={<Navigate replace to={AppRoutes.SETTINGS} />} />
                 </Routes>
               </div>

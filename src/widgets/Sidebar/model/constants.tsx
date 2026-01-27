@@ -1,4 +1,4 @@
-import { BarChart2, LayoutDashboard, Settings } from 'lucide-react';
+import { BarChart2, Code, LayoutDashboard, Settings } from 'lucide-react';
 
 import { AppRoutes } from '../../../shared/types/routes';
 
@@ -20,6 +20,13 @@ export const menuItems = [
     labelKey: 'navigation.dashboard',
     icon: LayoutDashboard,
     path: AppRoutes.DASHBOARD,
+    badge: 'beta',
+  },
+   {
+    id: 'logs',
+    labelKey: 'navigation.logs',
+    icon: Code,
+    path: AppRoutes.LOGS,
     badge: 'beta',
   },
 ];
