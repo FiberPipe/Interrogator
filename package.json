@@ -1,7 +1,7 @@
 {
   "name": "@interrogator/app",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0-beta.1",
   "description": "FBG Sensor Interrogator Desktop Application",
   "author": "Your Name",
   "main": "build/electron/main.js",
@@ -10,6 +10,7 @@
     "dev:web": "npm run dev:react -- --open",
     "dev:electron": "concurrently \"pnpm dev:react\" \"wait-on http://127.0.0.1:3000 && tsc -p tsconfig.electron.json -w\" \"wait-on http://127.0.0.1:3000 && tsc -p tsconfig.electron.json && electron .\"",
     "prepare:build": "node scripts/prepare-build.js",
+    "prebuild": "node scripts/prebuild.js",
     "build:web": "rsbuild build",
     "build:electron": "tsc -p tsconfig.electron.json",
     "build:core": "npm run prepare:build && npm run prebuild && npm run build:web && npm run build:electron",
@@ -18,10 +19,6 @@
     "build:beta": "node scripts/build.js --channel=beta",
     "build:dev": "node scripts/build.js --dev",
     "build:quick": "node scripts/build.js --skip-clean --skip-rebuild",
-    "dist": "npm run build",
-    "dist:alpha": "npm run build:alpha",
-    "dist:beta": "npm run build:beta",
-    "dist:quick": "npm run build:quick",
     "version:info": "node scripts/version-manager.js info",
     "version:sync": "node scripts/version-manager.js sync",
     "version:bump": "node scripts/version-manager.js bump",
@@ -32,6 +29,9 @@
     "version:bump:beta:minor": "node scripts/version-manager.js bump beta minor",
     "version:bump:beta:major": "node scripts/version-manager.js bump beta major",
     "version:promote": "node scripts/version-manager.js promote",
+    "assets:create": "node scripts/create-icons.js",
+    "assets:check": "node scripts/check-assets.js",
+    "assets:placeholder": "node scripts/create-placeholder-assets.js",
     "postinstall": "electron-builder install-app-deps",
     "clean": "rimraf build dist",
     "clean:build": "node scripts/prepare-build.js",
@@ -42,11 +42,7 @@
     "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
     "format:check": "prettier --check 'src/**/*.{ts,tsx,js,jsx,json,css,md}'",
     "format:fix": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json,css,md}'",
-    "prepare": "husky",
-    "assets:create": "node scripts/create-icons.js",
-    "assets:check": "node scripts/check-assets.js",
-    "assets:placeholder": "node scripts/create-placeholder-assets.js",
-    "prebuild": "npm run assets:check && node scripts/prebuild.js"
+    "prepare": "husky"
   },
   "dependencies": {
     "@heroui/react": "2.8.4",
@@ -54,6 +50,7 @@
     "@heroui/theme": "2.4.22",
     "@monaco-editor/react": "^4.7.0",
     "@rsbuild/plugin-node-polyfill": "^1.4.2",
+    "dotenv": "^17.2.3",
     "drizzle-orm": "0.44.7",
     "electron-store": "8.2.0",
     "i18next": "25.7.1",
@@ -111,8 +108,7 @@
     "npmRebuild": false,
     "files": [
       "build/**/*",
-      "!build/renderer/**/*.map",
-      "node_modules/**/*",
+      "!build/**/*.map",
       "package.json"
     ],
     "extraResources": [
@@ -134,46 +130,20 @@
           ]
         }
       ],
-      "icon": "assets/icon.ico",
-      "requestedExecutionLevel": "asInvoker",
-      "artifactName": "${productName}-${channel}-${version}-Setup.${ext}"
+      "requestedExecutionLevel": "asInvoker"
     },
     "nsis": {
       "oneClick": false,
       "perMachine": false,
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "assets/installer-icon.ico",
-      "uninstallerIcon": "assets/uninstaller-icon.ico",
-      "installerHeader": "assets/installer-header.bmp",
-      "installerHeaderIcon": "assets/icon.ico",
-      "installerSidebar": "assets/installer-sidebar.bmp",
-      "uninstallerSidebar": "assets/uninstaller-sidebar.bmp",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "${productName}",
-      "include": "scripts/installer.nsh",
-      "warningsAsErrors": false,
       "runAfterFinish": true,
-      "menuCategory": true,
-      "displayLanguageSelector": false,
-      "installerLanguages": [
-        "en_US",
-        "ru_RU"
-      ],
-      "language": "1033",
-      "multiLanguageInstaller": true,
-      "deleteAppDataOnUninstall": false,
-      "packElevateHelper": true,
-      "perMachineInstallation": false,
-      "oneClickInstall": false,
-      "guid": "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d"
+      "deleteAppDataOnUninstall": false
     },
     "asarUnpack": [
-      "**/node_modules/serialport/**/*",
-      "**/node_modules/@serialport/**/*",
-      "**/node_modules/better-sqlite3/**/*",
-      "**/node_modules/sql.js/**/*"
+      "**/*.node"
     ],
     "publish": null
   }

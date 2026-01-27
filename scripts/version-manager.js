@@ -14,7 +14,27 @@ class VersionManager {
   loadConfig() {
     if (!fs.existsSync(VERSION_CONFIG)) {
       console.error('❌ version.config.json not found!');
-      process.exit(1);
+      console.error('Creating default version.config.json...');
+
+      const defaultConfig = {
+        alpha: {
+          version: '1.0.0',
+          channel: 'production',
+          autoUpdate: true,
+          description: 'Stable production release',
+        },
+        beta: {
+          version: '1.1.0-beta.1',
+          channel: 'testing',
+          autoUpdate: false,
+          description: 'Internal testing release',
+        },
+        buildNumber: 1,
+        lastBuild: '',
+      };
+
+      fs.writeFileSync(VERSION_CONFIG, JSON.stringify(defaultConfig, null, 2));
+      return defaultConfig;
     }
     return JSON.parse(fs.readFileSync(VERSION_CONFIG, 'utf-8'));
   }
@@ -24,19 +44,11 @@ class VersionManager {
   }
 
   saveConfig() {
-    fs.writeFileSync(
-      VERSION_CONFIG,
-      JSON.stringify(this.config, null, 2),
-      'utf-8'
-    );
+    fs.writeFileSync(VERSION_CONFIG, JSON.stringify(this.config, null, 2), 'utf-8');
   }
 
   savePackageJson() {
-    fs.writeFileSync(
-      PACKAGE_JSON,
-      JSON.stringify(this.packageJson, null, 2),
-      'utf-8'
-    );
+    fs.writeFileSync(PACKAGE_JSON, JSON.stringify(this.packageJson, null, 2), 'utf-8');
   }
 
   getCurrentChannel() {
@@ -45,10 +57,19 @@ class VersionManager {
 
   getVersion(channel = null) {
     const ch = channel || this.getCurrentChannel();
+    if (!this.config[ch]) {
+      console.error(`❌ Unknown channel: ${ch}`);
+      process.exit(1);
+    }
     return this.config[ch].version;
   }
 
   incrementVersion(channel, type = 'patch') {
+    if (!this.config[channel]) {
+      console.error(`❌ Unknown channel: ${channel}`);
+      process.exit(1);
+    }
+
     const current = this.config[channel].version;
     const parts = current.replace(/-beta\.\d+/, '').split('.');
     let [major, minor, patch] = parts.map(Number);
@@ -66,6 +87,9 @@ class VersionManager {
       case 'patch':
         patch++;
         break;
+      default:
+        console.error(`❌ Unknown version type: ${type}`);
+        process.exit(1);
     }
 
     let newVersion = `${major}.${minor}.${patch}`;
@@ -130,33 +154,35 @@ class VersionManager {
 }
 
 // CLI
-const args = process.argv.slice(2);
-const command = args[0];
-const channel = args[1] || process.env.BUILD_CHANNEL || 'alpha';
-const type = args[2] || 'patch';
+if (require.main === module) {
+  const args = process.argv.slice(2);
+  const command = args[0];
+  const channel = args[1] || process.env.BUILD_CHANNEL || 'alpha';
+  const type = args[2] || 'patch';
 
-const vm = new VersionManager();
+  const vm = new VersionManager();
 
-switch (command) {
-  case 'bump':
-    vm.bump(channel, type);
-    break;
-  case 'sync':
-    vm.sync();
-    break;
-  case 'info':
-    vm.info();
-    break;
-  case 'promote':
-    vm.promote();
-    break;
-  default:
-    console.log('Usage:');
-    console.log('  node version-manager.js bump [alpha|beta] [major|minor|patch]');
-    console.log('  node version-manager.js sync');
-    console.log('  node version-manager.js info');
-    console.log('  node version-manager.js promote');
-    process.exit(1);
+  switch (command) {
+    case 'bump':
+      vm.bump(channel, type);
+      break;
+    case 'sync':
+      vm.sync();
+      break;
+    case 'info':
+      vm.info();
+      break;
+    case 'promote':
+      vm.promote();
+      break;
+    default:
+      console.log('Usage:');
+      console.log('  node version-manager.js bump [alpha|beta] [major|minor|patch]');
+      console.log('  node version-manager.js sync');
+      console.log('  node version-manager.js info');
+      console.log('  node version-manager.js promote');
+      process.exit(1);
+  }
 }
 
 module.exports = VersionManager;

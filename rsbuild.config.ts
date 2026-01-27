@@ -42,7 +42,7 @@ export default defineConfig({
   },
 
   output: {
-    assetPrefix: 'auto',
+    assetPrefix: './',
     distPath: {
       root: './build/renderer',
     },

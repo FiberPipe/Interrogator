@@ -1,7 +1,8 @@
-// src/main.ts
+// src/electron/main.ts
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 
 import { registerIpc } from './ipc';
 import { appStorage } from './storage/app-storage';
@@ -15,13 +16,14 @@ import { logger } from './logger/utils';
 logEnvConfig();
 
 let win: BrowserWindow | null = null;
-const isDev = ENV.NODE_ENV === 'development';
+const isDev = false;
 
 logger.info('[Main] =================================');
 logger.info(`[Main] app.isPackaged: ${app.isPackaged}`);
 logger.info(`[Main] __dirname: ${__dirname}`);
 logger.info(`[Main] process.cwd(): ${process.cwd()}`);
 logger.info(`[Main] app.getAppPath(): ${app.getAppPath()}`);
+logger.info(`[Main] process.resourcesPath: ${process.resourcesPath}`);
 logger.info('[Main] =================================');
 
 function initAppStorage() {
@@ -42,27 +44,44 @@ function initAppStorage() {
 
 function getAppUrl(): string {
   if (isDev) {
+    logger.info('[Main] 🔧 Development mode - using localhost');
     return 'http://localhost:3000';
   }
 
+  // Production mode
+  logger.info('[Main] 📦 Production mode - searching for HTML file');
+
+  // Возможные пути к HTML файлу
   const possiblePaths = [
-    join(__dirname, '../renderer/index.html'),
+    // После сборки структура: build/electron/main.js и build/renderer/index.html
+    join(__dirname, '..', 'renderer', 'index.html'),
+
+    // В упакованном приложении (app.asar)
     join(process.resourcesPath, 'app.asar', 'build', 'renderer', 'index.html'),
+
+    // Если не в ASAR
     join(process.resourcesPath, 'build', 'renderer', 'index.html'),
+
+    // Альтернативный путь
     join(app.getAppPath(), 'build', 'renderer', 'index.html'),
   ];
 
   for (const htmlPath of possiblePaths) {
-    logger.info(`[Main] Checking path: ${htmlPath}`);
+    logger.info(`[Main] 🔍 Checking: ${htmlPath}`);
+
     if (existsSync(htmlPath)) {
       logger.info(`[Main] ✅ Found HTML at: ${htmlPath}`);
-      return `file://${htmlPath}`;
+      const fileUrl = pathToFileURL(htmlPath).href;
+      logger.info(`[Main] 🌐 File URL: ${fileUrl}`);
+      return fileUrl;
     }
   }
 
+  // Если не нашли, используем первый путь (относительный)
+  const fallbackPath = possiblePaths[0];
   logger.error('[Main] ❌ HTML file not found in any location!');
-  logger.warn('[Main] Using fallback path...');
-  return `file://${possiblePaths[0]}`;
+  logger.warn(`[Main] ⚠️  Using fallback: ${fallbackPath}`);
+  return pathToFileURL(fallbackPath).href;
 }
 
 async function createWindow() {
@@ -84,6 +103,8 @@ async function createWindow() {
         contextIsolation: true,
         nodeIntegration: false,
         devTools: true,
+        // Добавляем для отладки
+        sandbox: false,
       },
     });
 
@@ -94,14 +115,12 @@ async function createWindow() {
     logger.info('[Main] ✅ IPC handlers registered');
 
     const url = getAppUrl();
-    logger.info(`[Main] Loading URL: ${url}`);
+    logger.info(`[Main] 🚀 Loading URL: ${url}`);
+
     await win.loadURL(url);
 
-    if (isDev) {
-      win.webContents.openDevTools({ mode: 'right' });
-    } else {
-      win.webContents.openDevTools({ mode: 'detach' });
-    }
+    // Открываем DevTools для отладки
+    win.webContents.openDevTools({ mode: 'detach' });
 
     win.once('ready-to-show', () => {
       logger.info('[Main] ✅ Window ready to show');
@@ -109,8 +128,12 @@ async function createWindow() {
     });
 
     win.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
-      logger.error(`[Main] ❌ Failed to load: ${errorCode} ${errorDescription}`);
+      logger.error(`[Main] ❌ Failed to load: ${errorCode} - ${errorDescription}`);
       logger.error(`[Main] URL was: ${validatedURL}`);
+    });
+
+    win.webContents.on('did-finish-load', () => {
+      logger.info('[Main] ✅ Page loaded successfully');
     });
 
     // Перенаправление console из renderer в main
@@ -148,9 +171,6 @@ async function createWindow() {
   }
 }
 
-/**
- * Инициализация приложения
- */
 app.whenReady().then(async () => {
   logger.info('[Main] 🚀 App ready');
 
@@ -166,9 +186,6 @@ app.whenReady().then(async () => {
   }
 });
 
-/**
- * Активация на macOS
- */
 app.on('activate', () => {
   logger.info('[Main] App activated');
 
@@ -177,9 +194,6 @@ app.on('activate', () => {
   }
 });
 
-/**
- * Перед выходом из приложения
- */
 app.on('before-quit', async (event) => {
   logger.info('[Main] 🛑 App quitting...');
   event.preventDefault();
@@ -214,9 +228,6 @@ app.on('before-quit', async (event) => {
   }
 });
 
-/**
- * Закрытие всех окон
- */
 app.on('window-all-closed', () => {
   logger.info('[Main] All windows closed');
 
@@ -225,9 +236,6 @@ app.on('window-all-closed', () => {
   }
 });
 
-/**
- * Обработка необработанных ошибок
- */
 process.on('uncaughtException', (err) => {
   logger.error('[Main] 💥 Uncaught Exception: ' + (err instanceof Error ? err.stack : String(err)));
   try {
