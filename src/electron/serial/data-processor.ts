@@ -49,7 +49,7 @@ export class SerialDataProcessor {
 
   async processData(dataString: string) {
     try {
-      const rawData: RawSensorData = JSON.parse(dataString);
+      const rawData: RawSensorData = parse(dataString);
 
       // 1. Получаем калибровочные данные
       const calibrationData = await this.getCalibrationData();
