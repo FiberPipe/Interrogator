@@ -17,7 +17,7 @@ import { registerLogsIpc } from './logger/ipc/logs.ipc';
 logEnvConfig();
 
 let win: BrowserWindow | null = null;
-const isDev = false;
+const isDev = true;
 
 logger.info('[Main] =================================');
 logger.info(`[Main] app.isPackaged: ${app.isPackaged}`);

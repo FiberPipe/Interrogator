@@ -35,8 +35,9 @@ export function parse(t: string) {
         return result;
         
     } catch(e) {
+        //@ts-ignore
         logger.error('❌ Parse error:', e.message);
-        
+        //@ts-ignore
         const posMatch = e.message.match(/position (\d+)/);
         if (posMatch) {
             const pos = parseInt(posMatch[1]);

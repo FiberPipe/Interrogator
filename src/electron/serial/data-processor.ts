@@ -3,6 +3,7 @@ import type { BrowserWindow } from 'electron';
 import { sensorDataService } from '../database/service/sensor-data.service';
 import { appStorage } from '../storage/app-storage';
 import { logger } from '../logger/utils';
+import {parse} from './parse-serial';
 
 interface RawSensorData {
   id: string;
