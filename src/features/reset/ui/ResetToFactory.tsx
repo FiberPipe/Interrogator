@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { RotateCcw, AlertTriangle } from 'lucide-react';
 
-import { addSuccessToaster } from '../../../shared/ui';
+import { addSuccessToaster } from '../../../ui/shared/ui';
 
 interface ResetToFactoryCardProps {
   onReset?: () => void;

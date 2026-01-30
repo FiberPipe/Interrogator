@@ -3,9 +3,10 @@
 import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
 import { Download, FileJson, Trash2, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
+
 import { addDangerToaster, addSuccessToaster } from '../../../shared/ui';
 import { logsApi } from '../../../shared/api/logs.api';
-import { LogsFilter } from '../../../shared/types/logs';
+import type { LogsFilter } from '../../../shared/types/logs';
 
 interface LogsExportProps {
   filter: LogsFilter;

@@ -1,17 +1,10 @@
 // src/features/logs/filter/ui/LogsFilter.tsx
 
-import {
-  Card,
-  CardBody,
-  Select,
-  SelectItem,
-  Input,
-  Button,
-  Chip,
-} from '@heroui/react';
+import { Card, CardBody, Select, SelectItem, Input, Button, Chip } from '@heroui/react';
 import { Search, X, Calendar, Filter } from 'lucide-react';
 import { useState } from 'react';
-import { LogLevel, LogsFilter as ILogsFilter } from '../../../electron/logger/types';
+
+import type { LogLevel, LogsFilter as ILogsFilter } from '../../../electron/logger/types';
 
 interface LogsFilterProps {
   filter: ILogsFilter;
@@ -55,12 +48,9 @@ export const LogsFilter = ({ filter, onFilterChange, onReset }: LogsFilterProps)
     onFilterChange({ ...filter, startTime: undefined, endTime: undefined });
   };
 
-  const activeFiltersCount = [
-    filter.level,
-    filter.search,
-    filter.startTime,
-    filter.endTime,
-  ].filter(Boolean).length;
+  const activeFiltersCount = [filter.level, filter.search, filter.startTime, filter.endTime].filter(
+    Boolean,
+  ).length;
 
   return (
     <Card className="mb-4">

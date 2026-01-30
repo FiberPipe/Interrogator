@@ -3,6 +3,7 @@
 import { Card, CardBody, Progress } from '@heroui/react';
 import { TrendingUp, Database, Clock, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
+
 import type { LogsStats as ILogsStats } from '../../../shared/types/logs';
 import { LogLevelBadge } from '../../../shared/ui';
 

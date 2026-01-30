@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-import type { TemperatureCoefficients } from '../../../entities/temperature';
-import { calculateTemperature } from '../../../entities/temperature';
-import type { RowData } from '../../../shared/types/microcontroller-data';
+import type { TemperatureCoefficients } from '../../../../entities/temperature';
+import { calculateTemperature } from '../../../../entities/temperature';
+import type { RowData } from '../../../ui/shared/types/microcontroller-data';
 
 export interface TemperatureTableRow {
   id: number;

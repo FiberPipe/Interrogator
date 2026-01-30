@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-import { addDangerToaster } from '../../../shared/ui';
+import { addDangerToaster } from '../../../ui/shared/ui';
 
 export interface DatabaseStats {
   totalSize: number;

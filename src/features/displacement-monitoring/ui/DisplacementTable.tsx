@@ -15,9 +15,9 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Save, Move, AlertCircle } from 'lucide-react';
 
-import type { RowData } from '../../../shared/types/microcontroller-data';
-import { DisplacementFormulaDisplay } from '../../../entities/displacement';
-import { safeToFixed } from '../../../shared/lib';
+import type { RowData } from '../../../ui/shared/types/microcontroller-data';
+import { DisplacementFormulaDisplay } from '../../../../entities/displacement';
+import { safeToFixed } from '../../../ui/shared/lib';
 import { useDisplacementMonitoring } from '../model/useDisplacementMonitoring';
 
 interface DisplacementTableProps {

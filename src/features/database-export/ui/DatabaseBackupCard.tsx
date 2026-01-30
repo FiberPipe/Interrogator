@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Download, Upload, Clock } from 'lucide-react';
 
-import { addSuccessToaster, addDangerToaster } from '../../../shared/ui';
+import { addSuccessToaster, addDangerToaster } from '../../../ui/shared/ui';
 
 export const DatabaseBackupCard = () => {
   const { t } = useTranslation();

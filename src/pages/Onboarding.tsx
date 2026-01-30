@@ -10,8 +10,8 @@ import ThemeStep from '../features/onboarding/ui/ThemeStep';
 import LanguageStep from '../features/onboarding/ui/LanguageStep';
 import FinalStep from '../features/onboarding/ui/FinalStep';
 import { finishOnboarding } from '../app/hooks/useOnboarding';
-import { AppRoutes } from '../shared/types/routes';
-import { addDangerToaster, addSuccessToaster } from '../shared/ui';
+import { AppRoutes } from '../ui/shared/types/routes';
+import { addDangerToaster, addSuccessToaster } from '../ui/shared/ui';
 
 type OnboardingProps = {
   setIsFirstLaunch: (v: boolean) => void;

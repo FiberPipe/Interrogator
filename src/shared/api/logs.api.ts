@@ -1,7 +1,6 @@
 // src/shared/api/logs.api.ts
 
-import { LogsFilter, LogEntry, LogsStats } from "../types/logs";
-
+import type { LogsFilter, LogEntry, LogsStats } from '../types/logs';
 
 // Проверка доступности logs API
 const isLogsAvailable = () => {

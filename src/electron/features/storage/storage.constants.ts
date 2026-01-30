@@ -1,0 +1,1 @@
+export const FEATURE_NAME = 'APP_DATA_STORAGE';

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { FileDown } from 'lucide-react';
 
-import { addSuccessToaster, addDangerToaster } from '../../../shared/ui';
+import { addSuccessToaster, addDangerToaster } from '../../../ui/shared/ui';
 
 const EXPORT_FORMATS = ['csv', 'json', 'sql'];
 const TIME_RANGES = ['allData', 'lastHour', 'lastDay', 'lastWeek', 'custom'];

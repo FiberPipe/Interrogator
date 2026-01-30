@@ -87,9 +87,7 @@ export const LogEntry = ({ log, index }: LogEntryProps) => {
                       {/* Context */}
                       {contextData && (
                         <div>
-                          <p className="text-xs font-semibold text-default-600 mb-1">
-                            📋 Context:
-                          </p>
+                          <p className="text-xs font-semibold text-default-600 mb-1">📋 Context:</p>
                           <Code
                             className="w-full text-xs"
                             color="default"

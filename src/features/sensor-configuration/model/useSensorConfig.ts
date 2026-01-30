@@ -5,8 +5,8 @@ import {
   createEmptySensor,
   type SensorConfig,
   type SensorType,
-} from '../../../entities/sensor/model/types';
-import { addDangerToaster, addSuccessToaster } from '../../../shared/ui';
+} from '../../../../entities/sensor/model/types';
+import { addDangerToaster, addSuccessToaster } from '../../../ui/shared/ui';
 
 export const useSensorConfig = () => {
   const { t } = useTranslation();

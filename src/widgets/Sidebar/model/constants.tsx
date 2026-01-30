@@ -22,7 +22,7 @@ export const menuItems = [
     path: AppRoutes.DASHBOARD,
     badge: 'beta',
   },
-   {
+  {
     id: 'logs',
     labelKey: 'navigation.logs',
     icon: Code,

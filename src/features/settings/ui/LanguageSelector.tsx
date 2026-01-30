@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Languages, Check } from 'lucide-react';
 
 import { patchAppData } from '../../../app/hooks/useOnboarding';
-import { addSuccessToaster } from '../../../shared/ui';
+import { addSuccessToaster } from '../../../ui/shared/ui';
 
 const languages = [
   { code: 'ru', label: 'settings.language.russian', nativeLabel: 'Русский', flag: '🇷🇺' },

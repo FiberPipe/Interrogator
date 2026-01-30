@@ -2,6 +2,7 @@
 
 import { Card, CardBody, Spinner, Button } from '@heroui/react';
 import { RefreshCw, AlertCircle } from 'lucide-react';
+
 import type { LogEntry as ILogEntry } from '../../../shared/types/logs';
 import { LogEntry } from '../../../shared/ui';
 

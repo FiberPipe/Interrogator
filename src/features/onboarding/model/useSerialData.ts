@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { addDangerToaster, addSuccessToaster } from '../../../shared/ui';
+import { addDangerToaster, addSuccessToaster } from '../../../ui/shared/ui';
 
 interface SensorRecord {
   id_record: number;

@@ -1,4 +1,4 @@
-import versionConfig from '../../../version.config.json';
+import versionConfig from '../../../../version.config.json';
 
 export const getAppVersion = (): string => {
   const channel = process.env.BUILD_CHANNEL || 'alpha';

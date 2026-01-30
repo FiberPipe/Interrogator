@@ -5,19 +5,19 @@ import { existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 import { registerIpc } from './ipc';
-import { appStorage } from './storage/app-storage';
-import { registerDatabaseIpc } from './database/ipc/database.ipc';
-import { initDatabase, saveDatabase } from './database/db';
-import { registerSerialPortIpc } from './serial';
-import { getPortManager } from './state';
-import { ENV, logEnvConfig } from './env';
+import { appStorage } from './features/storage/storage';
+import { registerDatabaseIpc } from './features/database/ipc/database.ipc';
+import { initDatabase, saveDatabase } from './features/database/db';
+import { registerSerialPortIpc } from './features/serial';
+import { getPortManager } from './core/state';
+import { ENV, logEnvConfig } from './core/env';
 import { logger } from './logger/utils';
 import { registerLogsIpc } from './logger/ipc/logs.ipc';
 
 logEnvConfig();
 
 let win: BrowserWindow | null = null;
-const isDev = true;
+const isDev = ENV.NODE_ENV;
 
 logger.info('[Main] =================================');
 logger.info(`[Main] app.isPackaged: ${app.isPackaged}`);

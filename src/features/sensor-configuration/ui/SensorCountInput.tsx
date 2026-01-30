@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Hash } from 'lucide-react';
 
-import { MIN_SENSORS, MAX_SENSORS } from '../../../entities/sensor/model/constants';
+import { MIN_SENSORS, MAX_SENSORS } from '../../../../entities/sensor/model/constants';
 
 interface SensorCountInputProps {
   value: number;

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-import type { DisplacementCoefficients } from '../../../entities/displacement';
-import { calculateDisplacement } from '../../../entities/displacement';
-import type { RowData } from '../../../shared/types/microcontroller-data';
+import type { DisplacementCoefficients } from '../../../../entities/displacement';
+import { calculateDisplacement } from '../../../../entities/displacement';
+import type { RowData } from '../../../ui/shared/types/microcontroller-data';
 
 export interface DisplacementTableRow {
   id: number;

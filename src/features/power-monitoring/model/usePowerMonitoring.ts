@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-import type { RowData } from '../../../shared/types/microcontroller-data';
+import type { RowData } from '../../../ui/shared/types/microcontroller-data';
 
 export interface PowerTableRow {
   id: number;

@@ -5,7 +5,7 @@ import { Sun, Moon, Monitor, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { patchAppData } from '../../../app/hooks/useOnboarding';
-import { addSuccessToaster } from '../../../shared/ui';
+import { addSuccessToaster } from '../../../ui/shared/ui';
 
 const themes = [
   { value: 'light', icon: Sun, label: 'settings.theme.light' },

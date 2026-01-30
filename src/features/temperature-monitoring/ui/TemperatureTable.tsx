@@ -15,9 +15,9 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Save, Thermometer, AlertCircle } from 'lucide-react';
 
-import type { RowData } from '../../../shared/types/microcontroller-data';
-import { FormulaDisplay } from '../../../entities/temperature/ui/FormulaDisplay';
-import { safeToFixed } from '../../../shared/lib';
+import type { RowData } from '../../../ui/shared/types/microcontroller-data';
+import { FormulaDisplay } from '../../../../entities/temperature/ui/FormulaDisplay';
+import { safeToFixed } from '../../../ui/shared/lib';
 import { useTemperatureMonitoring } from '../model/useTemperatureMonitoring';
 
 interface TemperatureTableProps {

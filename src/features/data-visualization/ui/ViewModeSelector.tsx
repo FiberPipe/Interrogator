@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { LineChart, Table } from 'lucide-react';
 
-import type { ViewMode } from '../../../entities/sensor-data/model/types';
+import type { ViewMode } from '../../../../entities/sensor-data/model/types';
 
 interface ViewModeSelectorProps {
   activeMode: ViewMode;

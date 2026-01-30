@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, Code } from '@heroui/react';
 
-import type { RowData } from '../../../shared/types/microcontroller-data';
-import type { ChartSeries } from '../../../shared/ui';
-import { LineChartWithConfidence } from '../../../shared/ui';
+import type { RowData } from '../../../ui/shared/types/microcontroller-data';
+import type { ChartSeries } from '../../../ui/shared/ui';
+import { LineChartWithConfidence } from '../../../ui/shared/ui';
 
 interface WavelengthChartProps {
   data: RowData[];

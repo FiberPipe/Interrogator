@@ -1,7 +1,7 @@
 import { Select, SelectItem, Chip } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 
-import type { SerialPortInfo } from '../../../shared/types/global';
+import type { SerialPortInfo } from '../../../ui/shared/types/global';
 
 interface PortSelectorProps {
   ports: SerialPortInfo[];

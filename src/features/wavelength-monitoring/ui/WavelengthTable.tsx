@@ -15,8 +15,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Waves, Save } from 'lucide-react';
 
-import { safeToFixed } from '../../../shared/lib';
-import type { RowData } from '../../../shared/types/microcontroller-data';
+import { safeToFixed } from '../../../ui/shared/lib';
+import type { RowData } from '../../../ui/shared/types/microcontroller-data';
 import type { WavelengthTableRow } from '..';
 import { useWavelengthMonitoring, checkAlarmStatus } from '..';
 

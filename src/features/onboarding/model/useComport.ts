@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 
-import { addSuccessToaster, addDangerToaster } from '../../../shared/ui';
+import { addSuccessToaster, addDangerToaster } from '../../../ui/shared/ui';
 
 interface SerialOpenResult {
   ok?: boolean;

@@ -1,4 +1,4 @@
-import type { RowData } from '../../../shared/types/microcontroller-data';
+import type { RowData } from '../../../ui/shared/types/microcontroller-data';
 
 export interface PowerTableRow {
   id: number; // 0-15

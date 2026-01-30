@@ -1,6 +1,7 @@
 // src/shared/ui/LogLevelBadge/LogLevelBadge.tsx
 
 import { Chip } from '@heroui/react';
+
 import type { LogLevel } from '../../types/logs.types';
 
 interface LogLevelBadgeProps {
