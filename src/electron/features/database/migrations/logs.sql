@@ -1,3 +1,4 @@
+--electron/features/database/migrations/logs.sql
 CREATE TABLE IF NOT EXISTS logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   timestamp INTEGER NOT NULL,

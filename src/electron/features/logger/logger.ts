@@ -12,11 +12,9 @@ import {
   generateOperationId,
   safeStringify,
 } from './logger.utils';
-
-import { LogEntry, LogArea, LogMetadata, LogLevel } from '../../../shared/types/logs.types';
-import { getAreaFromErrorCode } from '../errors';
-import { AppError } from '../errors/error.types';
-
+import type { LogEntry, LogArea, LogMetadata, LogLevel } from '../../../shared/types/logs.types';
+import { getAreaFromErrorCode } from '../../../shared/errors';
+import { AppError } from '../../../shared/errors/error.types';
 
 // Инициализация при импорте
 ensureLogDirectory();

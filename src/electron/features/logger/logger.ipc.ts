@@ -4,8 +4,8 @@ import { ipcMain, dialog } from 'electron';
 
 import { logger } from './logger';
 import { LogsIPC } from './logger.types';
-import { logsService } from '../database/service/logs.service';
 import type { LogsFilter, LogArea, LogMetadata } from '../../../shared/types/logs.types';
+import { logsService } from '../database';
 
 export function registerLoggerIpc(): void {
   logger.info('IPC', 'Registering logger IPC handlers');

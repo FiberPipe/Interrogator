@@ -1,16 +1,25 @@
-import { logger } from '../../logger/utils';
-import { appStorage } from '../../features/storage/storage';
+// src/electron/core/bootstrap/init-storage.ts
 
-export function initAppStorage() {
-  if (appStorage.get('isFirstLaunch') === undefined) {
-    logger.info('[Main] First app launch detected');
+import { appDataStorage } from '../../features/app-data';
+import { logger } from '../../features/logger';
 
-    appStorage.patch({
-      isFirstLaunch: true,
-      theme: 'system',
-      language: 'ru',
-      baudRate: 115200,
-      autoConnect: false,
+export function initAppStorage(): void {
+  return logger.withLoggingSync('App', 'Initialize storage', () => {
+    if (appDataStorage.get('isFirstLaunch') === undefined) {
+      logger.info('App', 'First app launch detected');
+
+      appDataStorage.patch({
+        isFirstLaunch: true,
+        theme: 'system',
+        language: 'ru',
+        baudRate: 115200,
+        autoConnect: false,
+      });
+    }
+
+    logger.info('App', 'Storage initialized', {
+      storePath: appDataStorage.getStorePath(),
+      size: appDataStorage.getSize(),
     });
-  }
+  });
 }

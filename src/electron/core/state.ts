@@ -1,4 +1,7 @@
-import type { SerialPortManager } from '../features/serial/port-manager';
+// src/electron/core/state.ts
+
+import { SerialPortManager } from "../serial/port-manager";
+
 
 export let portManager: SerialPortManager | null = null;
 

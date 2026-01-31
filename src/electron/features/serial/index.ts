@@ -1,34 +1,66 @@
-import type { BrowserWindow } from 'electron';
+export type {
+  SerialAPI,
+  SerialPortInfo,
+  SerialOpenResult,
+  SerialDataEvent,
+  SerialErrorEvent,
+  SerialAutoConnectErrorEvent,
+  ISerialPort,
+  ISerialPortManager,
+  IDataProcessor,
+  PortConnection,
+  SerialConfig,
+  RawSensorData,
+  ProcessedSensorData,
+  CalibrationData,
+  SensorMapping,
+  ChannelRecord,
+} from './serial.types';
 
-import { SerialPortManager } from './port-manager';
-import { setPortManager } from '../../core/state';
-import { registerGetPorts } from './register';
-import { registerOpenPort } from './open';
-import { registerClosePort } from './close';
-import { autoConnectSerial } from './auto-connect';
-import { logger } from '../logger/logger.utils';
+export { SerialIPC } from './serial.types';
 
-export function registerSerialPortIpc(win: BrowserWindow): void {
-  logger.info('[Serial] Registering IPC handlers');
+// ==================== CONSTANTS ====================
+export {
+  DEFAULT_SERIAL_CONFIG,
+  SUPPORTED_BAUD_RATES,
+  TIMEOUTS,
+  DATA_PROCESSING,
+  MOCK_PORTS,
+  STORAGE_KEYS,
+} from './serial.constants';
 
-  // Создаём менеджер портов
-  const manager = new SerialPortManager(win);
-  setPortManager(manager);
+// ==================== CONFIG ====================
+export {
+  SerialConfigManager,
+  getSerialConfigManager,
+  initializeSerialConfig,
+} from './serial.config';
 
-  // Регистрируем IPC обработчики
-  registerGetPorts(manager);
-  registerOpenPort(win, manager);
-  registerClosePort(manager);
+// ==================== UTILS ====================
+export {
+  cleanJSON,
+  parseSerialData,
+  isValidPortPath,
+  formatPortName,
+  extractPortIndex,
+  createPortError,
+  createTimeoutError,
+  safeParseFloat,
+  isValidNumber,
+} from './serial.utils';
 
-  // Автоподключение после загрузки окна
-  win.webContents.on('did-finish-load', () => {
-    logger.info('[Serial] Window loaded, attempting auto-connect');
-    autoConnectSerial(win, manager);
-  });
+// ==================== API (Renderer) ====================
+export { serialAPI } from './serial.api';
 
-  // Закрываем все порты при выходе
-  win.on('close', async () => {
-    logger.info('[Serial] Window closing, cleaning up ports');
-    await manager.closeAllPorts();
-  });
-}
+// ==================== IPC (Main) ====================
+export { registerSerialIpc } from './serial.ipc';
+
+// ==================== SERVICES ====================
+export { createPortManager } from './services/port-manager.service';
+export { createDataProcessor } from './services/data-processor.service';
+export { createConnectionService } from './services/connection.service';
+export {
+  createMockSerialPort,
+  getMockSerialPorts,
+  MockSerialPort,
+} from './services/mock-port.service';

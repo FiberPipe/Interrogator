@@ -20,7 +20,12 @@ export type LogArea =
   | 'FileSystem' // Файловая система
   | 'Performance' // Производительность
   | 'Security' // Безопасность
+  | 'Connection' // Подключение к порту
+  | 'Preload' // Подключение методов
+  | 'DataProcessor' //Обработка сырых данных
+  | 'PortManager'
   | 'Unknown'; // Неопределенная область
+
 
 export interface LogMetadata {
   [key: string]: unknown;
