@@ -1,0 +1,2 @@
+pnpm check:i18n:strict
+pnpm lint

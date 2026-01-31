@@ -1,132 +1,182 @@
 #!/usr/bin/env node
-
+/* eslint-disable no-console */
+let totalMissingLocaleKeys = 0;
+let totalExtraLocaleKeys = 0;
 const fs = require('fs');
 const path = require('path');
 
-/* ================= CONFIG ================= */
+const ROOT = process.cwd();
+const LOCALES_DIR = path.join(ROOT, 'src/shared/i18n/locales');
+const CODE_DIR = path.join(ROOT, 'src');
 
-const I18N_DIR = 'src/i18n';
-const CODE_DIR = 'src';
+const BASE_LOCALE = 'en';
+const FAIL_ON_UNUSED = process.argv.includes('--fail-unused');
 
-const I18N_EXT = '.json';
-const CODE_EXTS = ['.ts', '.tsx', '.js', '.jsx'];
+/* -------------------------------- utils -------------------------------- */
 
-const TRANSLATION_REGEX = /\bt\(\s*['"`]([^'"`]+)['"`]\s*\)/g;
-
-/* ========================================== */
-
-function readJson(filePath) {
-  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+function die(msg) {
+    console.error(`❌ ${msg}`);
+    process.exit(1);
 }
 
-function walk(dir) {
-  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const fullPath = path.join(dir, entry.name);
-    return entry.isDirectory() ? walk(fullPath) : fullPath;
-  });
+function warn(msg) {
+    console.warn(`⚠️  ${msg}`);
 }
 
-function flattenKeys(obj, prefix = '') {
-  return Object.entries(obj).flatMap(([key, value]) => {
-    const fullKey = prefix ? `${prefix}.${key}` : key;
-    return typeof value === 'object'
-      ? flattenKeys(value, fullKey)
-      : fullKey;
-  });
+function info(msg) {
+    console.log(`ℹ️  ${msg}`);
 }
 
-/* ============ 1. COLLECT I18N KEYS ============ */
+function collectKeys(obj, prefix, out) {
+    for (const [key, value] of Object.entries(obj)) {
+        const fullKey = prefix ? `${prefix}.${key}` : key;
 
-const localeFiles = fs
-  .readdirSync(I18N_DIR)
-  .filter((f) => f.endsWith(I18N_EXT));
-
-const localeKeyMap = {};
-const allLocaleKeys = new Set();
-
-for (const file of localeFiles) {
-  const locale = path.basename(file, I18N_EXT);
-  const json = readJson(path.join(I18N_DIR, file));
-  const keys = flattenKeys(json);
-
-  localeKeyMap[locale] = new Set(keys);
-  keys.forEach((k) => allLocaleKeys.add(k));
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+            collectKeys(value, fullKey, out);
+        } else {
+            out.add(fullKey);
+        }
+    }
 }
 
-/* ============ 2. COLLECT USED KEYS ============ */
+/* ------------------------------ load locales ----------------------------- */
+
+if (!fs.existsSync(LOCALES_DIR)) {
+    die(`Locales directory not found: ${LOCALES_DIR}`);
+}
+
+const locales = fs
+    .readdirSync(LOCALES_DIR, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name);
+
+if (!locales.includes(BASE_LOCALE)) {
+    die(`Base locale "${BASE_LOCALE}" not found. Found: ${locales.join(', ')}`);
+}
+
+info(`Found locales: ${locales.join(', ')}`);
+info(`Base locale: ${BASE_LOCALE}`);
+
+function loadLocaleKeys(locale) {
+    const dir = path.join(LOCALES_DIR, locale);
+    const files = fs.readdirSync(dir).filter((f) => f.endsWith('.json'));
+
+    const keys = new Set();
+
+    for (const file of files) {
+        const jsonPath = path.join(dir, file);
+        const json = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+
+        const domain = file.replace('.json', '');
+        collectKeys(json, domain, keys);
+    }
+
+    return keys;
+}
+
+const localeKeys = Object.fromEntries(
+    locales.map((l) => [l, loadLocaleKeys(l)]),
+);
+
+const baseKeys = localeKeys[BASE_LOCALE];
+
+/* -------------------------- compare locale sets -------------------------- */
+
+let hasErrors = false;
+
+for (const locale of locales) {
+    if (locale === BASE_LOCALE) continue;
+
+    const current = localeKeys[locale];
+
+    const missing = [...baseKeys].filter((k) => !current.has(k));
+    const extra = [...current].filter((k) => !baseKeys.has(k));
+
+    if (missing.length > 0) {
+        hasErrors = true;
+        totalMissingLocaleKeys += missing.length;
+
+        console.error(`❌ [${locale}] Missing keys:`);
+        missing.forEach((k) => console.error(`   - ${k}`));
+    }
+
+    if (extra.length > 0) {
+        totalExtraLocaleKeys += extra.length;
+
+        warn(`[${locale}] Extra keys:`);
+        extra.forEach((k) => warn(`   - ${k}`));
+    }
+}
+
+/* -------------------------- scan code for usage -------------------------- */
+
+function collectCodeFiles(dir, out = []) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+
+        if (entry.isDirectory()) {
+            collectCodeFiles(full, out);
+        } else if (/\.(ts|tsx|js|jsx)$/.test(entry.name)) {
+            out.push(full);
+        }
+    }
+    return out;
+}
+
+const codeFiles = collectCodeFiles(CODE_DIR);
 
 const usedKeys = new Set();
+const keyRegex = /(?:t|i18n\.t)\(\s*['"`]([^'"`]+)['"`]\s*\)/g;
 
-walk(CODE_DIR)
-  .filter((f) => CODE_EXTS.includes(path.extname(f)))
-  .forEach((file) => {
+for (const file of codeFiles) {
     const content = fs.readFileSync(file, 'utf8');
+
     let match;
-    while ((match = TRANSLATION_REGEX.exec(content))) {
-      usedKeys.add(match[1]);
+    while ((match = keyRegex.exec(content))) {
+        usedKeys.add(match[1]);
     }
-  });
-
-/* ============ 3. ANALYSIS ============ */
-
-const unusedKeys = [...allLocaleKeys].filter((k) => !usedKeys.has(k));
-const missingKeys = [...usedKeys].filter((k) => !allLocaleKeys.has(k));
-
-/* ============ 4. LOCALE COMPARISON ============ */
-
-const baseLocale = localeFiles[0].replace(I18N_EXT, '');
-const baseKeys = localeKeyMap[baseLocale];
-
-const localeDiffs = {};
-
-for (const [locale, keys] of Object.entries(localeKeyMap)) {
-  if (locale === baseLocale) continue;
-
-  const missing = [...baseKeys].filter((k) => !keys.has(k));
-  const extra = [...keys].filter((k) => !baseKeys.has(k));
-
-  if (missing.length || extra.length) {
-    localeDiffs[locale] = { missing, extra };
-  }
 }
 
-/* ============ 5. REPORT ============ */
+/* --------------------------- unused key check ---------------------------- */
 
-console.log('\n📦 i18n CHECK REPORT\n');
+const unusedKeys = [...baseKeys].filter((k) => !usedKeys.has(k));
 
-if (unusedKeys.length) {
-  console.log('❌ Unused keys (can be removed):');
-  unusedKeys.forEach((k) => console.log('  -', k));
-} else {
-  console.log('✅ No unused keys');
-}
+if (unusedKeys.length > 0) {
+    warn('Unused i18n keys:');
+    unusedKeys.forEach((k) => warn(`   - ${k}`));
 
-console.log();
-
-if (missingKeys.length) {
-  console.log('❌ Missing keys (used in code but not in i18n):');
-  missingKeys.forEach((k) => console.log('  -', k));
-} else {
-  console.log('✅ No missing keys');
-}
-
-console.log();
-
-if (Object.keys(localeDiffs).length) {
-  console.log('⚠️ Locale mismatches:');
-  for (const [locale, diff] of Object.entries(localeDiffs)) {
-    console.log(`\n🌍 ${locale}:`);
-    if (diff.missing.length) {
-      console.log('  Missing:');
-      diff.missing.forEach((k) => console.log('   -', k));
+    if (FAIL_ON_UNUSED) {
+        console.error('❌ Strict mode enabled: unused keys detected');
+        process.exit(1);
     }
-    if (diff.extra.length) {
-      console.log('  Extra:');
-      diff.extra.forEach((k) => console.log('   -', k));
-    }
-  }
-} else {
-  console.log('✅ All locales have identical key sets');
 }
 
-console.log('\n✔ Done\n');
+/* --------------------- missing keys in locales (from code) --------------------- */
+
+const missingInLocales = [...usedKeys].filter((k) => !baseKeys.has(k));
+
+if (missingInLocales.length > 0) {
+    console.error('❌ i18n keys used in code but missing in locales:');
+    missingInLocales.forEach((k) => console.error(`   - ${k}`));
+    hasErrors = true;
+}
+
+/* -------------------------------- result -------------------------------- */
+console.log('\n📊 i18n summary');
+
+console.table({
+    locales: locales.length,
+    'base locale keys': baseKeys.size,
+    'used keys in code': usedKeys.size,
+    'unused keys': unusedKeys.length,
+    'missing keys in locales (from code)': missingInLocales.length,
+    'missing locale keys (translations)': totalMissingLocaleKeys,
+    'extra locale keys': totalExtraLocaleKeys,
+});
+
+if (hasErrors) {
+    die('i18n check failed');
+}
+
+info('✅ i18n check passed');
+
