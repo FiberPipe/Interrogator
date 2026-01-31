@@ -15,11 +15,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, TrendingUp, TrendingDown, Save } from 'lucide-react';
 
-import { safeToFixed } from '../../../ui/shared/lib';
-import type { RowData } from '../../../ui/shared/types/microcontroller-data';
+import { safeToFixed } from '../../../shared/lib';
+import type { RowData } from '../../../shared/types/microcontroller-data';
 import { usePowerMonitoring } from '../model/usePowerMonitoring';
 import { checkAlarmStatus } from '../model/parseSensorData';
 import type { PowerTableRow } from '../model/usePowerMonitoring';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 interface PowerTableProps {
   data: RowData[];
@@ -200,7 +201,7 @@ const PowerAlarmInput = ({ channelId, type }: { channelId: number; type: 'min' |
   useEffect(() => {
     const load = async () => {
       const storageKey = `power${channelId}_${type}`;
-      const stored = await window.appData.get(storageKey);
+      const stored = await appDataApi.get(storageKey);
       if (stored !== undefined && stored !== null) {
         setValue(String(stored));
       }
@@ -210,7 +211,7 @@ const PowerAlarmInput = ({ channelId, type }: { channelId: number; type: 'min' |
 
   const handleSave = async () => {
     const storageKey = `power${channelId}_${type}`;
-    await window.appData.set(storageKey, value);
+    await appDataApi.set(storageKey, value);
     setIsDirty(false);
   };
 

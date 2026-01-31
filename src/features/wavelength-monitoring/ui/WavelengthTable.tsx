@@ -15,10 +15,11 @@ import {
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Waves, Save } from 'lucide-react';
 
-import { safeToFixed } from '../../../ui/shared/lib';
-import type { RowData } from '../../../ui/shared/types/microcontroller-data';
+import { safeToFixed } from '../../../shared/lib';
+import type { RowData } from '../../../shared/types/microcontroller-data';
 import type { WavelengthTableRow } from '..';
 import { useWavelengthMonitoring, checkAlarmStatus } from '..';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 interface WavelengthTableProps {
   data: RowData[];
@@ -202,7 +203,7 @@ const WavelengthAlarmInput = ({ sensorId, type }: { sensorId: number; type: 'min
   useEffect(() => {
     const load = async () => {
       const storageKey = `wavelength${sensorId}_${type}`;
-      const stored = await window.appData.get(storageKey);
+      const stored = await appDataApi.get(storageKey);
       if (stored !== undefined && stored !== null) {
         setValue(String(stored));
       }
@@ -212,7 +213,7 @@ const WavelengthAlarmInput = ({ sensorId, type }: { sensorId: number; type: 'min
 
   const handleSave = async () => {
     const storageKey = `wavelength${sensorId}_${type}`;
-    await window.appData.set(storageKey, value);
+    await appDataApi.set(storageKey, value);
     setIsDirty(false);
   };
 

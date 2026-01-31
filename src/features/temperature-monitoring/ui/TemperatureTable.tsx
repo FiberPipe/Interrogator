@@ -15,10 +15,11 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Save, Thermometer, AlertCircle } from 'lucide-react';
 
-import type { RowData } from '../../../ui/shared/types/microcontroller-data';
-import { FormulaDisplay } from '../../../../entities/temperature/ui/FormulaDisplay';
-import { safeToFixed } from '../../../ui/shared/lib';
+import type { RowData } from '../../../shared/types/microcontroller-data';
+import { FormulaDisplay } from '../../../entities/temperature/ui/FormulaDisplay';
+import { safeToFixed } from '../../../shared/lib';
 import { useTemperatureMonitoring } from '../model/useTemperatureMonitoring';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 interface TemperatureTableProps {
   data: RowData[];
@@ -153,7 +154,7 @@ const TemperatureCellCoefficient = ({
   useEffect(() => {
     const load = async () => {
       const storageKey = `Temp_${coeffKey}_${sensorId}`;
-      const stored = await window.appData.get(storageKey);
+      const stored = await appDataApi.get(storageKey);
       if (stored !== undefined && stored !== null) {
         setValue(String(stored));
       }
@@ -164,7 +165,7 @@ const TemperatureCellCoefficient = ({
   // Сохранение значения
   const handleSave = async () => {
     const storageKey = `Temp_${coeffKey}_${sensorId}`;
-    await window.appData.set(storageKey, value);
+    await appDataApi.set(storageKey, value);
     setIsDirty(false);
   };
 

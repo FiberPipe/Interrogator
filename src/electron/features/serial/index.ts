@@ -1,5 +1,4 @@
 export type {
-  SerialAPI,
   SerialPortInfo,
   SerialOpenResult,
   SerialDataEvent,

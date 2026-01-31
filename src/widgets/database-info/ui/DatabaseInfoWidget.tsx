@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 import { addDangerToaster, addSuccessToaster } from '../../../shared/ui';
+import { databaseApi } from '../../../shared/api/database.api';
 
 interface DatabaseInfo {
   path: string;
@@ -53,10 +54,7 @@ export const DatabaseInfoWidget = () => {
   const loadDatabaseInfo = async () => {
     setLoading(true);
     try {
-      const [info, stats] = await Promise.all([
-        window.database.getPath(),
-        window.database.getStats(),
-      ]);
+      const [info, stats] = await Promise.all([databaseApi.getPath(), databaseApi.getStats()]);
 
       setDbInfo(info);
       setDbStats(stats);
@@ -73,7 +71,7 @@ export const DatabaseInfoWidget = () => {
 
   const handleOpenFolder = async () => {
     try {
-      const path = await window.database.openFolder();
+      const path = await databaseApi.openFolder();
       addSuccessToaster('[DatabaseInfo] Opened folder:', path);
     } catch (err) {
       addDangerToaster('[DatabaseInfo] Error opening folder:', err);

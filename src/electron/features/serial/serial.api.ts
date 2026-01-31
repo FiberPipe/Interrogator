@@ -3,7 +3,6 @@
 import { ipcRenderer } from 'electron';
 
 import type {
-  SerialAPI,
   SerialPortInfo,
   SerialOpenResult,
   SerialDataEvent,
@@ -11,6 +10,7 @@ import type {
   SerialAutoConnectErrorEvent,
 } from './serial.types';
 import { SerialIPC } from './serial.types';
+import type { SerialAPI } from '../../../shared/types/serial.types';
 
 export const serialAPI: SerialAPI = {
   /**

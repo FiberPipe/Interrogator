@@ -116,7 +116,7 @@ importers:
         version: 39.2.4
       electron-builder:
         specifier: 26.0.12
-        version: 26.0.12(electron-builder-squirrel-windows@26.0.12)
+        version: 26.0.12(electron-builder-squirrel-windows@26.0.12(dmg-builder@26.0.12))
       eslint:
         specifier: 9.39.1
         version: 9.39.1(jiti@2.6.1)
@@ -8223,7 +8223,7 @@ snapshots:
 
   app-builder-bin@5.0.0-alpha.12: {}
 
-  app-builder-lib@26.0.12(dmg-builder@26.0.12)(electron-builder-squirrel-windows@26.0.12):
+  app-builder-lib@26.0.12(dmg-builder@26.0.12(electron-builder-squirrel-windows@26.0.12))(electron-builder-squirrel-windows@26.0.12(dmg-builder@26.0.12)):
     dependencies:
       '@develar/schema-utils': 2.6.5
       '@electron/asar': 3.2.18
@@ -8908,7 +8908,7 @@ snapshots:
 
   dmg-builder@26.0.12(electron-builder-squirrel-windows@26.0.12):
     dependencies:
-      app-builder-lib: 26.0.12(dmg-builder@26.0.12)(electron-builder-squirrel-windows@26.0.12)
+      app-builder-lib: 26.0.12(dmg-builder@26.0.12(electron-builder-squirrel-windows@26.0.12))(electron-builder-squirrel-windows@26.0.12(dmg-builder@26.0.12))
       builder-util: 26.0.11
       builder-util-runtime: 9.3.1
       fs-extra: 10.1.0
@@ -8976,7 +8976,7 @@ snapshots:
 
   electron-builder-squirrel-windows@26.0.12(dmg-builder@26.0.12):
     dependencies:
-      app-builder-lib: 26.0.12(dmg-builder@26.0.12)(electron-builder-squirrel-windows@26.0.12)
+      app-builder-lib: 26.0.12(dmg-builder@26.0.12(electron-builder-squirrel-windows@26.0.12))(electron-builder-squirrel-windows@26.0.12(dmg-builder@26.0.12))
       builder-util: 26.0.11
       electron-winstaller: 5.4.0
     transitivePeerDependencies:
@@ -8984,9 +8984,9 @@ snapshots:
       - dmg-builder
       - supports-color
 
-  electron-builder@26.0.12(electron-builder-squirrel-windows@26.0.12):
+  electron-builder@26.0.12(electron-builder-squirrel-windows@26.0.12(dmg-builder@26.0.12)):
     dependencies:
-      app-builder-lib: 26.0.12(dmg-builder@26.0.12)(electron-builder-squirrel-windows@26.0.12)
+      app-builder-lib: 26.0.12(dmg-builder@26.0.12(electron-builder-squirrel-windows@26.0.12))(electron-builder-squirrel-windows@26.0.12(dmg-builder@26.0.12))
       builder-util: 26.0.11
       builder-util-runtime: 9.3.1
       chalk: 4.1.2

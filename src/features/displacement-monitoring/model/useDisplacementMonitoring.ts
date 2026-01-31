@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-import type { DisplacementCoefficients } from '../../../../entities/displacement';
-import { calculateDisplacement } from '../../../../entities/displacement';
-import type { RowData } from '../../../ui/shared/types/microcontroller-data';
+import type { DisplacementCoefficients } from '../../../entities/displacement';
+import { calculateDisplacement } from '../../../entities/displacement';
+import type { RowData } from '../../../shared/types/microcontroller-data';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 export interface DisplacementTableRow {
   id: number;
@@ -54,7 +55,7 @@ export const useDisplacementMonitoring = (data: RowData[]) => {
           await Promise.all(
             keys.map(async (key) => {
               const storageKey = `Displacement_${key}_${sensorId}`;
-              const value = await window.appData.get(storageKey);
+              const value = await appDataApi.get(storageKey);
 
               // Для температур используем комнатную по умолчанию
               if ((key === 'T' || key === 'T0') && (value === undefined || value === null)) {

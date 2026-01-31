@@ -1,16 +1,15 @@
 // src/electron/core/state.ts
 
-import { SerialPortManager } from "../serial/port-manager";
+import type { ISerialPortManager } from '../features/serial';
 
+export let portManager: ISerialPortManager | null = null;
 
-export let portManager: SerialPortManager | null = null;
-
-export function setPortManager(manager: SerialPortManager): void {
+export function setPortManager(manager: ISerialPortManager): void {
   portManager = manager;
 }
 
-export function getPortManager(): SerialPortManager {
-  if (!portManager) {
+export function getPortManager(): ISerialPortManager {
+  if (portManager === null) {
     throw new Error('PortManager not initialized');
   }
   return portManager;

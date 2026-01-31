@@ -4,7 +4,7 @@ import type { SerialConfig } from './serial.types';
 import { DEFAULT_SERIAL_CONFIG } from './serial.constants';
 import { ENV } from '../../core/env';
 import { logger } from '../logger';
-import { LogMetadata } from '../../../shared/types/logs.types';
+import type { LogMetadata } from '../../../shared/types/logs.types';
 
 export class SerialConfigManager {
   private config: SerialConfig;

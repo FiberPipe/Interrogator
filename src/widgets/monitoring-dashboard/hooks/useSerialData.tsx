@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 
 import { addDangerToaster, addSuccessToaster } from '../../../shared/ui';
 import type { RowData } from '../../../shared/types/microcontroller-data';
+import { serialApi } from '../../../shared/api/serial.api';
 
 const MAX_BUFFER_SIZE = 200;
 
@@ -47,7 +48,7 @@ export const useSerialData = (port: string | null) => {
       }
     };
 
-    unsubscribeRef.current = window.serial.onData(handleData);
+    unsubscribeRef.current = serialApi.onData(handleData);
 
     return () => {
       if (unsubscribeRef.current) {

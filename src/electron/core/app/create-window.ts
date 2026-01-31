@@ -5,6 +5,7 @@ import { join } from 'node:path';
 
 import { getAppUrl } from './get-app-url';
 import { logger } from '../../features/logger';
+import { registerIpcHandlers } from '../register-ipc';
 
 export async function createMainWindow(): Promise<BrowserWindow> {
   return logger.withLogging('App', 'Create main window', async () => {
@@ -20,7 +21,7 @@ export async function createMainWindow(): Promise<BrowserWindow> {
       },
     });
 
-    registerAllIpc(win);
+    registerIpcHandlers(win);
 
     await win.loadURL(getAppUrl());
 

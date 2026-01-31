@@ -2,7 +2,12 @@
 
 import type { BrowserWindow } from 'electron';
 
-import type { ISerialPort, PortConnection, ISerialPortManager, IDataProcessor } from '../serial.types';
+import type {
+  ISerialPort,
+  PortConnection,
+  ISerialPortManager,
+  IDataProcessor,
+} from '../serial.types';
 import { SerialIPC } from '../serial.types';
 import { TIMEOUTS } from '../serial.constants';
 import { createDataProcessor } from './data-processor.service';

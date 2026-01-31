@@ -1,32 +1,43 @@
+// src/shared/types/logs.types.ts
+
+/**
+ * Уровни логирования
+ */
 export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
 
+/**
+ * Области логирования
+ */
 export type LogArea =
-  | 'App' // Основное приложение
-  | 'Database' // База данных
-  | 'Serial' // Работа с Serial портами
-  | 'Updater' // Система обновлений
-  | 'Logger' // Сам логгер
-  | 'IPC' // IPC коммуникация
-  | 'UI' // Пользовательский интерфейс
-  | 'Storage' // Хранилище данных
-  | 'Settings' // Настройки
-  | 'Export' // Экспорт данных
-  | 'Import' // Импорт данных
-  | 'Backup' // Резервное копирование
-  | 'Session' // Сессии
-  | 'Chart' // Графики
-  | 'Filter' // Фильтрация
-  | 'Network' // Сетевые операции
-  | 'FileSystem' // Файловая система
-  | 'Performance' // Производительность
-  | 'Security' // Безопасность
-  | 'Connection' // Подключение к порту
-  | 'Preload' // Подключение методов
-  | 'DataProcessor' //Обработка сырых данных
+  | 'App'
+  | 'Database'
+  | 'Serial'
+  | 'Updater'
+  | 'Logger'
+  | 'IPC'
+  | 'UI'
+  | 'Storage'
+  | 'Settings'
+  | 'Export'
+  | 'Import'
+  | 'Backup'
+  | 'Session'
+  | 'Chart'
+  | 'Filter'
+  | 'Network'
+  | 'FileSystem'
+  | 'Performance'
+  | 'Security'
+  | 'Connection'
+  | 'Preload'
+  | 'DataProcessor'
   | 'PortManager'
-  | 'Unknown'; // Неопределенная область
+  | 'Window'
+  | 'Unknown';
 
-
+/**
+ * Метаданные лога
+ */
 export interface LogMetadata {
   [key: string]: unknown;
   errorCode?: string;
@@ -40,6 +51,9 @@ export interface LogMetadata {
   context?: Record<string, unknown>;
 }
 
+/**
+ * Запись лога
+ */
 export interface LogEntry {
   id?: number;
   timestamp: number;
@@ -51,14 +65,9 @@ export interface LogEntry {
   created_at?: number;
 }
 
-export interface LogsStats {
-  total: number;
-  byLevel: Record<string, number>;
-  byArea: Record<string, number>;
-  oldestLog: number | null;
-  newestLog: number | null;
-}
-
+/**
+ * Фильтр для логов
+ */
 export interface LogsFilter {
   level?: LogLevel;
   area?: LogArea;
@@ -69,17 +78,37 @@ export interface LogsFilter {
   errorCode?: string;
 }
 
+/**
+ * Статистика логов
+ */
+export interface LogsStats {
+  total: number;
+  byLevel: Record<string, number>;
+  byArea: Record<string, number>;
+  oldestLog: number | null;
+  newestLog: number | null;
+}
+
+/**
+ * Результат очистки логов
+ */
 export interface LogsCleanupResult {
   success: boolean;
   deletedCount: number;
   error?: string;
 }
 
+/**
+ * Результат полной очистки
+ */
 export interface LogsClearResult {
   success: boolean;
   error?: string;
 }
 
+/**
+ * Опции экспорта логов
+ */
 export interface LogsExportOptions {
   level?: string;
   area?: string;
@@ -87,6 +116,9 @@ export interface LogsExportOptions {
   endTime?: number;
 }
 
+/**
+ * Результат экспорта логов
+ */
 export interface LogsExportResult {
   success: boolean;
   path?: string;
@@ -94,11 +126,44 @@ export interface LogsExportResult {
   error?: string;
 }
 
+/**
+ * API для работы с логами (Renderer Process)
+ */
 export interface LogsAPI {
   get: (filter: LogsFilter) => Promise<LogEntry[]>;
   getStats: () => Promise<LogsStats>;
   cleanup: () => Promise<LogsCleanupResult>;
   clear: () => Promise<LogsClearResult>;
   export: (options?: LogsExportOptions) => Promise<LogsExportResult>;
-  send: (level: LogLevel, area: LogArea, message: string, metadata?: LogMetadata) => void;
+}
+
+/**
+ * API для логгера (Main Process)
+ */
+export interface ILogger {
+  debug(area: LogArea, message: string, metadata?: LogMetadata): void;
+  info(area: LogArea, message: string, metadata?: LogMetadata): void;
+  warn(area: LogArea, message: string, metadata?: LogMetadata, error?: unknown): void;
+  error(area: LogArea, message: string, metadata?: LogMetadata, error?: unknown): void;
+  logError(error: Error, additionalMetadata?: LogMetadata): void;
+  withLogging<T>(
+    area: LogArea,
+    operation: string,
+    fn: () => Promise<T>,
+    metadata?: LogMetadata,
+  ): Promise<T>;
+  withLoggingSync<T>(area: LogArea, operation: string, fn: () => T, metadata?: LogMetadata): T;
+  setDatabaseWriter(writer: (logs: LogEntry[]) => Promise<void>): void;
+  shutdown(): Promise<void>;
+}
+
+/**
+ * API для логгера (Renderer Process)
+ */
+export interface LoggerAPI {
+  debug(area: LogArea, message: string, metadata?: LogMetadata): void;
+  info(area: LogArea, message: string, metadata?: LogMetadata): void;
+  warn(area: LogArea, message: string, metadata?: LogMetadata, error?: unknown): void;
+  error(area: LogArea, message: string, metadata?: LogMetadata, error?: unknown): void;
+  logError(error: Error, additionalMetadata?: LogMetadata): void;
 }

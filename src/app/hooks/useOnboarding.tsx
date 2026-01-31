@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 
 import { addDangerToaster } from '../../shared/ui';
+import { appDataApi } from '../../shared/api/app-data.api';
 
 export async function getAppData() {
-  if (!window.appData) throw new Error('appData IPC not available');
-  return await window.appData.getAll();
+  if (!appDataApi) throw new Error('appData IPC not available');
+  return await appDataApi.getAll();
 }
 
 export async function patchAppData(patch: Record<string, unknown>) {
-  if (!window.appData) throw new Error('appData IPC not available');
-  return await window.appData.patch(patch);
+  if (!appDataApi) throw new Error('appData IPC not available');
+  return await appDataApi.patch(patch);
 }
 
 export function useOnboarding() {

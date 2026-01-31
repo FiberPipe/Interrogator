@@ -2,11 +2,12 @@ import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, Code, Switch, Chip, Spinner } from '@heroui/react';
 
-import type { TemperatureCoefficients } from '../../../../entities/temperature/model/types';
+import type { TemperatureCoefficients } from '../../../entities/temperature/model/types';
 import { useTemperatureCalculations } from '../model/useTemperatureCalculations';
-import type { ChartSeries } from '../../../ui/shared/ui';
-import { LineChartWithConfidence } from '../../../ui/shared/ui';
-import type { RowData } from '../../../ui/shared/types/microcontroller-data';
+import type { ChartSeries } from '../../../shared/ui';
+import { LineChartWithConfidence } from '../../../shared/ui';
+import type { RowData } from '../../../shared/types/microcontroller-data';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 interface TemperatureChartProps {
   data: RowData[];
@@ -38,7 +39,7 @@ export const TemperatureChart = ({ data, selectedChannels, colors }: Temperature
             await Promise.all(
               keys.map(async (key) => {
                 const storageKey = `Temp_${key}_${sensorIndex}`;
-                const value = await window.appData.get(storageKey);
+                const value = await appDataApi.get(storageKey);
                 coeffs[key] = value !== undefined && value !== null ? Number(value) : 0;
               }),
             );

@@ -104,38 +104,6 @@ export interface DatabaseExportResult {
   error?: string;
 }
 
-/**
- * API для работы с базой данных (Renderer Process)
- */
-export interface DatabaseAPI {
-  getPath: () => Promise<DatabasePathInfo>;
-  changeLocation: (
-    location: DatabaseLocation,
-    customPath?: string,
-  ) => Promise<DatabaseChangeLocationResult>;
-  selectCustomPath: () => Promise<string | null>;
-  openFolder: () => Promise<string>;
-  getStats: () => Promise<DatabaseStats>;
-  getChannelStats: (
-    port: string,
-    channel: number,
-    startTime: number,
-    endTime: number,
-  ) => Promise<ChannelStats>;
-  getDataByTimeRange: (
-    port: string,
-    startTime: number,
-    endTime: number,
-    limit?: number,
-  ) => Promise<SensorDataRecord[]>;
-  getLastRecords: (port: string, limit?: number) => Promise<SensorDataRecord[]>;
-  createBackup: () => Promise<DatabaseBackupResult>;
-  restoreBackup: () => Promise<DatabaseBackupResult>;
-  exportData: (options: DatabaseExportOptions) => Promise<DatabaseExportResult>;
-  vacuum: () => Promise<{ success: boolean; error?: string }>;
-  clear: () => Promise<{ success: boolean; error?: string }>;
-}
-
 export enum DatabaseIPC {
   // Path & Config
   GetPath = 'db:getPath',

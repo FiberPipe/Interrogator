@@ -14,6 +14,7 @@ import { motion } from 'framer-motion';
 import { FolderOpen, HardDrive, FileText, Home, Save } from 'lucide-react';
 
 import { addSuccessToaster, addDangerToaster } from '../../../shared/ui';
+import { databaseApi } from '../../../shared/api/database.api';
 
 export const DatabaseLocationSelector = () => {
   const { t } = useTranslation();
@@ -24,7 +25,7 @@ export const DatabaseLocationSelector = () => {
 
   useEffect(() => {
     // Загружаем текущую конфигурацию
-    window.database.getPath().then((info) => {
+    databaseApi.getPath().then((info) => {
       setLocation(info.config.location);
       setCurrentLocation(info.config.location);
       if (info.config.customPath) {
@@ -34,7 +35,7 @@ export const DatabaseLocationSelector = () => {
   }, []);
 
   const handleSelectCustomPath = async () => {
-    const path = await window.database.selectCustomPath();
+    const path = await databaseApi.selectCustomPath();
     if (path) {
       setCustomPath(path);
     }
@@ -43,7 +44,7 @@ export const DatabaseLocationSelector = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const result = await window.database.changeLocation(
+      const result = await databaseApi.changeLocation(
         location as any,
         location === 'custom' ? customPath : undefined,
       );

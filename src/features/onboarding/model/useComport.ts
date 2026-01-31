@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 
-import { addSuccessToaster, addDangerToaster } from '../../../ui/shared/ui';
+import { addSuccessToaster, addDangerToaster } from '../../../shared/ui';
+import { serialApi } from '../../../shared/api/serial.api';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 interface SerialOpenResult {
   ok?: boolean;
@@ -56,7 +58,7 @@ export const useComPort = (): UseComPortReturn => {
     setError(null);
 
     try {
-      const list = await window.serial.getPorts();
+      const list = await serialApi.getPorts();
       addSuccessToaster('[useComPort] ✅ Ports loaded:', list, false);
 
       if (!isMountedRef.current) return;
@@ -101,7 +103,7 @@ export const useComPort = (): UseComPortReturn => {
 
     const initialize = async () => {
       try {
-        const savedData = await window.appData.getAll();
+        const savedData = await appDataApi.getAll();
         addSuccessToaster('[useComPort] Saved data:', savedData);
 
         if (!isMountedRef.current) return;
@@ -130,7 +132,7 @@ export const useComPort = (): UseComPortReturn => {
     addSuccessToaster('[useComPort] 🔄 Changing selected port to:', port);
     setSelectedPort(port);
 
-    window.appData.set('selectedPort', port).catch((err) => {
+    appDataApi.set('selectedPort', port).catch((err) => {
       addDangerToaster('[useComPort] ❌ Error saving port:', err);
     });
   }, []);
@@ -141,7 +143,7 @@ export const useComPort = (): UseComPortReturn => {
     setAutoConnectState(value);
 
     try {
-      await window.appData.set('autoConnect', value);
+      await appDataApi.set('autoConnect', value);
       addSuccessToaster('[useComPort] ✅ Auto-connect saved');
     } catch (err) {
       addDangerToaster('[useComPort] ❌ Error saving auto-connect:', err);
@@ -157,7 +159,7 @@ export const useComPort = (): UseComPortReturn => {
       setError(null);
 
       try {
-        const result: SerialOpenResult = await window.serial.open(port, baudRate);
+        const result: SerialOpenResult = await serialApi.open(port, baudRate);
         addSuccessToaster('[useComPort] Connection result:', result);
 
         if (!isMountedRef.current) return false;
@@ -215,7 +217,7 @@ export const useComPort = (): UseComPortReturn => {
     setError(null);
 
     try {
-      const result: SerialOpenResult = await window.serial.close(connectedPort);
+      const result: SerialOpenResult = await serialApi.close(connectedPort);
       addSuccessToaster('[useComPort] Disconnect result:', result);
 
       if (!isMountedRef.current) return;
@@ -270,8 +272,8 @@ export const useComPort = (): UseComPortReturn => {
       }
     };
 
-    unsubscribeClosedRef.current = window.serial.onClosed(handleClosed);
-    unsubscribeErrorRef.current = window.serial.onError(handleError);
+    unsubscribeClosedRef.current = serialApi.onClosed(handleClosed);
+    unsubscribeErrorRef.current = serialApi.onError(handleError);
 
     return () => {
       addSuccessToaster('[useComPort] 🧹 Cleaning up event listeners');

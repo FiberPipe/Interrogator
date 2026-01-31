@@ -5,7 +5,8 @@ import { Sun, Moon, Monitor, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { patchAppData } from '../../../app/hooks/useOnboarding';
-import { addSuccessToaster } from '../../../ui/shared/ui';
+import { addSuccessToaster } from '../../../shared/ui';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 const themes = [
   { value: 'light', icon: Sun, label: 'settings.theme.light' },
@@ -19,7 +20,7 @@ export const ThemeSelector = () => {
 
   useEffect(() => {
     // Загружаем текущую тему
-    window.appData.getAll().then((data) => {
+    appDataApi.getAll().then((data) => {
       if (data?.theme) {
         setCurrentTheme(data.theme as string);
       }

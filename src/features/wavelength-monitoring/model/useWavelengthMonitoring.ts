@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-import type { RowData } from '../../../ui/shared/types/microcontroller-data';
+import { appDataApi } from '../../../shared/api/app-data.api';
+import type { RowData } from '../../../shared/types/microcontroller-data';
 
 export interface WavelengthTableRow {
   id: number;
@@ -33,8 +34,8 @@ export const useWavelengthMonitoring = (data: RowData[]) => {
           const maxKey = `wavelength${sensorId}_max`;
 
           const [minVal, maxVal] = await Promise.all([
-            window.appData.get(minKey),
-            window.appData.get(maxKey),
+            appDataApi.get(minKey),
+            appDataApi.get(maxKey),
           ]);
 
           loaded[sensorId] = {

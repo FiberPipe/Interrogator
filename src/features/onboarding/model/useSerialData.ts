@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { addDangerToaster, addSuccessToaster } from '../../../ui/shared/ui';
+import { addDangerToaster, addSuccessToaster } from '../../../shared/ui';
+import { serialApi } from '../../../shared/api/serial.api';
 
 interface SensorRecord {
   id_record: number;
@@ -53,7 +54,7 @@ export const useSerialData = (port: string | null) => {
       }
     };
 
-    unsubscribeRef.current = window.serial.onData(handleData);
+    unsubscribeRef.current = serialApi.onData(handleData);
 
     return () => {
       addSuccessToaster('[useSerialData] Cleaning up listener');

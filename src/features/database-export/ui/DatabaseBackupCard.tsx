@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Download, Upload, Clock } from 'lucide-react';
 
-import { addSuccessToaster, addDangerToaster } from '../../../ui/shared/ui';
+import { addSuccessToaster, addDangerToaster } from '../../../shared/ui';
+import { databaseApi } from '../../../shared/api/database.api';
 
 export const DatabaseBackupCard = () => {
   const { t } = useTranslation();
@@ -15,7 +16,7 @@ export const DatabaseBackupCard = () => {
   const handleCreateBackup = async () => {
     setCreating(true);
     try {
-      const result = await window.database.createBackup();
+      const result = await databaseApi.createBackup();
 
       if (result.success) {
         addSuccessToaster(
@@ -35,7 +36,7 @@ export const DatabaseBackupCard = () => {
   const handleRestoreBackup = async () => {
     setRestoring(true);
     try {
-      const result = await window.database.restoreBackup();
+      const result = await databaseApi.restoreBackup();
 
       if (result.success) {
         addSuccessToaster(

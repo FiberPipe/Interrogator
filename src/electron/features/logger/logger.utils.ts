@@ -1,7 +1,7 @@
 // src/electron/features/logger/logger.utils.ts
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 import { LOG_DIR, LOG_RETENTION_DAYS, MAX_LOG_SIZE } from './logger.constants';
 
@@ -78,4 +78,20 @@ export function safeStringify(obj: unknown): string {
   } catch {
     return String(obj);
   }
+}
+
+/**
+ * Маппинг строкового уровня к enum
+ */
+export function stringToLogLevel(level: string): 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' {
+  const normalized = level.toUpperCase();
+  if (
+    normalized === 'DEBUG' ||
+    normalized === 'INFO' ||
+    normalized === 'WARN' ||
+    normalized === 'ERROR'
+  ) {
+    return normalized;
+  }
+  return 'INFO';
 }

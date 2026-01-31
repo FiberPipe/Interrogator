@@ -168,19 +168,3 @@ export interface ISerialPortManager {
   switchPort(fromPath: string | null, toPath: string, newPort: ISerialPort): Promise<void>;
   getActivePorts(): string[];
 }
-
-/**
- * API для работы с Serial (Renderer Process)
- */
-export interface SerialAPI {
-  getPorts: () => Promise<SerialPortInfo[]>;
-  open: (path: string, baudRate?: number) => Promise<SerialOpenResult>;
-  close: (path: string) => Promise<SerialOpenResult>;
-  onData: (callback: (event: SerialDataEvent) => void) => () => void;
-  onClosed: (callback: (port: string) => void) => () => void;
-  onError: (callback: (event: SerialErrorEvent) => void) => () => void;
-  onAutoConnectNone: (callback: () => void) => () => void;
-  onAutoConnectFailed: (callback: (port: string) => void) => () => void;
-  onAutoConnected: (callback: (port: string) => void) => () => void;
-  onAutoConnectError: (callback: (event: SerialAutoConnectErrorEvent) => void) => () => void;
-}

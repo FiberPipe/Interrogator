@@ -15,7 +15,8 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { RotateCcw, AlertTriangle } from 'lucide-react';
 
-import { addSuccessToaster } from '../../../ui/shared/ui';
+import { addSuccessToaster } from '../../../shared/ui';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 interface ResetToFactoryCardProps {
   onReset?: () => void;
@@ -29,7 +30,7 @@ export const ResetToFactoryCard = ({ onReset }: ResetToFactoryCardProps) => {
   const handleReset = async () => {
     setLoading(true);
     try {
-      await window.appData.patch({
+      await appDataApi.patch({
         isFirstLaunch: true,
         language: 'ru',
         theme: 'system',

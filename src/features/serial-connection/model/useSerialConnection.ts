@@ -7,6 +7,8 @@ import type {
   SerialDataPacket,
 } from '../../../entities/serial-port/model/types';
 import { addSuccessToaster, addDangerToaster } from '../../../shared/ui';
+import { serialApi } from '../../../shared/api/serial.api';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 const MAX_BUFFER_SIZE = 100;
 
@@ -36,7 +38,7 @@ export const useSerialConnection = () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
-      const list = await window.serial.getPorts();
+      const list = await serialApi.getPorts();
       addSuccessToaster('[useSerialConnection] Ports loaded:', String(list));
 
       setState((prev) => {
@@ -73,7 +75,7 @@ export const useSerialConnection = () => {
         isDisconnectingRef.current = true;
 
         try {
-          await window.serial.close(state.connectedPort);
+          await serialApi.close(state.connectedPort);
           addSuccessToaster(
             '[useSerialConnection] Successfully disconnected from:',
             state.connectedPort,
@@ -98,7 +100,7 @@ export const useSerialConnection = () => {
       }
 
       try {
-        await window.appData.set('selectedPort', port);
+        await appDataApi.set('selectedPort', port);
         addSuccessToaster('[useSerialConnection] Port saved', '');
       } catch (err) {
         addDangerToaster('[useSerialConnection] Error saving port:', String(err));
@@ -132,7 +134,7 @@ export const useSerialConnection = () => {
         if (state.connectedPort && state.connectedPort !== port) {
           addSuccessToaster('[useSerialConnection] Closing current port:', state.connectedPort);
           isDisconnectingRef.current = true;
-          await window.serial.close(state.connectedPort);
+          await serialApi.close(state.connectedPort);
           isDisconnectingRef.current = false;
 
           // Небольшая задержка для стабилизации
@@ -140,7 +142,7 @@ export const useSerialConnection = () => {
         }
 
         addSuccessToaster('[useSerialConnection] Opening port:', port);
-        const result = await window.serial.open(port, baudRate);
+        const result = await serialApi.open(port, baudRate);
         addSuccessToaster('[useSerialConnection] Connection result:', String(result));
 
         if (result.error) {
@@ -210,7 +212,7 @@ export const useSerialConnection = () => {
     const portToClose = state.connectedPort;
 
     try {
-      const result = await window.serial.close(portToClose);
+      const result = await serialApi.close(portToClose);
 
       if (result.error) {
         addDangerToaster('[useSerialConnection] Disconnect error:', result.error);
@@ -250,7 +252,7 @@ export const useSerialConnection = () => {
     setState((prev) => ({ ...prev, autoConnect: value }));
 
     try {
-      await window.appData.set('autoConnect', value);
+      await appDataApi.set('autoConnect', value);
       addSuccessToaster('[useSerialConnection] Auto-connect saved', '');
     } catch (err) {
       addDangerToaster('[useSerialConnection] Error saving auto-connect:', String(err));
@@ -266,7 +268,7 @@ export const useSerialConnection = () => {
 
     const initialize = async () => {
       try {
-        const savedData = await window.appData.getAll();
+        const savedData = await appDataApi.getAll();
         addSuccessToaster('[useSerialConnection] Saved data:', String(savedData));
 
         setState((prev) => ({
@@ -378,9 +380,9 @@ export const useSerialConnection = () => {
       }
     };
 
-    unsubscribeDataRef.current = window.serial.onData(handleData);
-    unsubscribeClosedRef.current = window.serial.onClosed(handleClosed);
-    unsubscribeErrorRef.current = window.serial.onError(handleError);
+    unsubscribeDataRef.current = serialApi.onData(handleData);
+    unsubscribeClosedRef.current = serialApi.onClosed(handleClosed);
+    unsubscribeErrorRef.current = serialApi.onError(handleError);
 
     return () => {
       if (unsubscribeDataRef.current) unsubscribeDataRef.current();
@@ -398,7 +400,7 @@ export const useSerialConnection = () => {
           state.connectedPort,
         );
         isDisconnectingRef.current = true;
-        window.serial.close(state.connectedPort);
+        serialApi.close(state.connectedPort);
       }
     };
   }, [state.connectedPort]);

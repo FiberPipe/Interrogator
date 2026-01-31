@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { format } from 'date-fns';
 
-import type { LogEntry as LogEntryType } from '../../types/logs';
+import type { LogEntry as LogEntryType } from '../../types/logs.types';
 import { LogLevelBadge } from '../log-level-badge';
 
 interface LogEntryProps {

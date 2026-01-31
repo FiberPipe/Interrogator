@@ -291,10 +291,7 @@ export class DataProcessorService implements IDataProcessor {
 
       // Обновляем счетчик в сессии
       const now = Date.now();
-      if (
-        now - this.lastSaveTime > DATA_PROCESSING.SAVE_INTERVAL &&
-        this.sessionId !== null
-      ) {
+      if (now - this.lastSaveTime > DATA_PROCESSING.SAVE_INTERVAL && this.sessionId !== null) {
         await sensorDataService.incrementSessionRecords(this.sessionId);
         this.lastSaveTime = now;
       }

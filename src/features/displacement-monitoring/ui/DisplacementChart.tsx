@@ -2,12 +2,13 @@ import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, Switch, Chip, Spinner, Divider } from '@heroui/react';
 
-import type { RowData } from '../../../ui/shared/types/microcontroller-data';
-import type { DisplacementCoefficients } from '../../../../entities/displacement';
-import { DisplacementFormulaDisplay } from '../../../../entities/displacement';
+import type { RowData } from '../../../shared/types/microcontroller-data';
+import type { DisplacementCoefficients } from '../../../entities/displacement';
+import { DisplacementFormulaDisplay } from '../../../entities/displacement';
 import { useDisplacementCalculations } from '../model/useDisplacementCalculations';
-import type { ChartSeries } from '../../../ui/shared/ui';
-import { LineChartWithConfidence } from '../../../ui/shared/ui';
+import type { ChartSeries } from '../../../shared/ui';
+import { LineChartWithConfidence } from '../../../shared/ui';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 interface DisplacementChartProps {
   data: RowData[];
@@ -47,7 +48,7 @@ export const DisplacementChart = ({ data, selectedChannels, colors }: Displaceme
             await Promise.all(
               keys.map(async (key) => {
                 const storageKey = `Displacement_${key}_${sensorIndex}`;
-                const value = await window.appData.get(storageKey);
+                const value = await appDataApi.get(storageKey);
 
                 if ((key === 'T' || key === 'T0') && (value === undefined || value === null)) {
                   coeffs[key] = 20;

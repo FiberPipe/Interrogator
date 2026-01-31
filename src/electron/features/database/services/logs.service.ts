@@ -1,5 +1,7 @@
 // src/electron/features/database/services/logs.service.ts
 
+import type { Database as SqlJsDatabase } from 'sql.js';
+
 import type {
   LogEntry,
   LogsStats,
@@ -8,7 +10,6 @@ import type {
 } from '../../../../shared/types/logs.types';
 import { TABLE_NAMES } from '../database.constants';
 import { executeQuery, getSingleValue } from '../database.utils';
-import { database } from '../database';
 import { logger } from '../../logger';
 import { createError } from '../../../../shared/errors';
 import { ErrorCodes } from '../../../../shared/errors/error-codes';
@@ -18,24 +19,23 @@ const LOG_RETENTION_DAYS = 3;
 export class LogsService {
   /**
    * Инициализация таблицы логов
+   * @param db - Экземпляр базы данных (передается извне)
    */
-  initializeTable(): void {
+  initializeTable(db: SqlJsDatabase): void {
     return logger.withLoggingSync('Database', 'Initialize logs table', () => {
-      const db = database.getDatabase();
-
       try {
         db.run(`
-          CREATE TABLE IF NOT EXISTS ${TABLE_NAMES.LOGS} (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp INTEGER NOT NULL,
-            level TEXT NOT NULL,
-            area TEXT NOT NULL,
-            message TEXT NOT NULL,
-            metadata TEXT,
-            stack TEXT,
-            created_at INTEGER NOT NULL
-          )
-        `);
+        CREATE TABLE IF NOT EXISTS ${TABLE_NAMES.LOGS} (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          timestamp INTEGER NOT NULL,
+          level TEXT NOT NULL,
+          area TEXT NOT NULL,
+          message TEXT NOT NULL,
+          metadata TEXT,
+          stack TEXT,
+          created_at INTEGER NOT NULL
+        )
+      `);
 
         db.run(`CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON ${TABLE_NAMES.LOGS}(timestamp)`);
         db.run(`CREATE INDEX IF NOT EXISTS idx_logs_level ON ${TABLE_NAMES.LOGS}(level)`);
@@ -47,24 +47,27 @@ export class LogsService {
 
         logger.info('Database', 'Logs table initialized');
       } catch (err) {
+        // ✅ Логируем оригинальную ошибку
+        console.error('[LogsService] Original error:', err);
+
         throw createError({
           code: ErrorCodes.DB_INIT_FAILED,
           title: 'Logs Table Init Failed',
-          description: 'Failed to initialize logs table',
+          description: `Failed to initialize logs table: ${err instanceof Error ? err.message : String(err)}`,
           cause: err,
-          area: 'Logger',
+          area: 'Database',
         });
       }
     });
   }
-
   /**
    * Пакетная вставка логов
+   * @param db - Экземпляр базы данных
    */
-  async insertBatch(logs: LogEntry[]): Promise<void> {
+
+  async insertBatch(db: SqlJsDatabase, logs: LogEntry[]): Promise<void> {
     if (logs.length === 0) return;
 
-    const db = database.getDatabase();
     const createdAt = Date.now();
 
     try {
@@ -79,8 +82,8 @@ export class LogsService {
           log.level,
           log.area,
           log.message,
-          log.metadata || null,
-          log.stack || null,
+          log.metadata ?? null,
+          log.stack ?? null,
           createdAt,
         ]);
       });
@@ -95,13 +98,12 @@ export class LogsService {
   /**
    * Получение логов с фильтрацией
    */
-  async getLogs(options: LogsFilter): Promise<LogEntry[]> {
-    const db = database.getDatabase();
+  async getLogs(db: SqlJsDatabase, options: LogsFilter): Promise<LogEntry[]> {
     const { level, area, startTime, endTime, limit = 1000, search, errorCode } = options;
 
     try {
       let sql = `SELECT * FROM ${TABLE_NAMES.LOGS} WHERE 1=1`;
-      const params: any[] = [];
+      const params: unknown[] = [];
 
       if (level !== undefined) {
         sql += ' AND level = ?';
@@ -146,9 +148,7 @@ export class LogsService {
   /**
    * Получение статистики логов
    */
-  async getStats(): Promise<LogsStats> {
-    const db = database.getDatabase();
-
+  async getStats(db: SqlJsDatabase): Promise<LogsStats> {
     try {
       // Общее количество
       const totalResult = db.exec(`SELECT COUNT(*) as count FROM ${TABLE_NAMES.LOGS}`);
@@ -195,8 +195,7 @@ export class LogsService {
   /**
    * Очистка старых логов
    */
-  async cleanupOldLogs(): Promise<number> {
-    const db = database.getDatabase();
+  async cleanupOldLogs(db: SqlJsDatabase): Promise<number> {
     const cutoffTime = Date.now() - LOG_RETENTION_DAYS * 24 * 60 * 60 * 1000;
 
     try {
@@ -222,9 +221,7 @@ export class LogsService {
   /**
    * Удаление всех логов
    */
-  async clearAllLogs(): Promise<void> {
-    const db = database.getDatabase();
-
+  async clearAllLogs(db: SqlJsDatabase): Promise<void> {
     try {
       db.run(`DELETE FROM ${TABLE_NAMES.LOGS}`);
       db.run(`DELETE FROM sqlite_sequence WHERE name = '${TABLE_NAMES.LOGS}'`);
@@ -241,19 +238,20 @@ export class LogsService {
    * Экспорт логов в JSON
    */
   async exportToJson(
+    db: SqlJsDatabase,
     filePath: string,
     options?: { level?: string; area?: string; startTime?: number; endTime?: number },
   ): Promise<boolean> {
     try {
-      const logs = await this.getLogs({
-        level: options?.level as any,
-        area: options?.area as any,
+      const logs = await this.getLogs(db, {
+        level: options?.level as LogEntry['level'],
+        area: options?.area as LogEntry['area'],
         startTime: options?.startTime,
         endTime: options?.endTime,
         limit: 100000,
       });
 
-      const fs = await import('fs');
+      const fs = await import('node:fs');
       fs.writeFileSync(filePath, JSON.stringify(logs, null, 2), 'utf-8');
 
       logger.info('Database', 'Logs exported', {

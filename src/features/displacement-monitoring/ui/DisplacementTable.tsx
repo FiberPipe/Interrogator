@@ -15,10 +15,11 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Save, Move, AlertCircle } from 'lucide-react';
 
-import type { RowData } from '../../../ui/shared/types/microcontroller-data';
-import { DisplacementFormulaDisplay } from '../../../../entities/displacement';
-import { safeToFixed } from '../../../ui/shared/lib';
+import type { RowData } from '../../../shared/types/microcontroller-data';
+import { DisplacementFormulaDisplay } from '../../../entities/displacement';
+import { safeToFixed } from '../../../shared/lib';
 import { useDisplacementMonitoring } from '../model/useDisplacementMonitoring';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 interface DisplacementTableProps {
   data: RowData[];
@@ -158,7 +159,7 @@ const DisplacementCellCoefficient = ({
   useEffect(() => {
     const load = async () => {
       const storageKey = `Displacement_${coeffKey}_${sensorId}`;
-      const stored = await window.appData.get(storageKey);
+      const stored = await appDataApi.get(storageKey);
       if (stored !== undefined && stored !== null) {
         setValue(String(stored));
       } else if (coeffKey === 'T' || coeffKey === 'T0') {
@@ -170,7 +171,7 @@ const DisplacementCellCoefficient = ({
 
   const handleSave = async () => {
     const storageKey = `Displacement_${coeffKey}_${sensorId}`;
-    await window.appData.set(storageKey, value);
+    await appDataApi.set(storageKey, value);
     setIsDirty(false);
   };
 

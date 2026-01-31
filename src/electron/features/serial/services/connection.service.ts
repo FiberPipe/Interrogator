@@ -208,9 +208,7 @@ export class ConnectionService {
 
       port.open((err) => {
         if (err !== null && err !== undefined) {
-          reject(
-            createPortError('Failed to Open Port', `Unable to open port ${path}`, path, err),
-          );
+          reject(createPortError('Failed to Open Port', `Unable to open port ${path}`, path, err));
         } else {
           resolve(port as unknown as ISerialPort);
         }

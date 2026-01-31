@@ -5,8 +5,9 @@ import {
   createEmptySensor,
   type SensorConfig,
   type SensorType,
-} from '../../../../entities/sensor/model/types';
-import { addDangerToaster, addSuccessToaster } from '../../../ui/shared/ui';
+} from '../../../entities/sensor/model/types';
+import { addDangerToaster, addSuccessToaster } from '../../../shared/ui';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 export const useSensorConfig = () => {
   const { t } = useTranslation();
@@ -19,7 +20,7 @@ export const useSensorConfig = () => {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const data = await window.appData.getAll();
+        const data = await appDataApi.getAll();
 
         if (data?.sensorCount) {
           setSensorCount(data.sensorCount as number);
@@ -55,7 +56,7 @@ export const useSensorConfig = () => {
 
   const updateSensorCount = useCallback(async (count: number) => {
     setSensorCount(count);
-    await window.appData.set('sensorCount', count);
+    await appDataApi.set('sensorCount', count);
   }, []);
 
   const updateSensorType = useCallback((sensorIndex: number, type: SensorType) => {
@@ -129,7 +130,7 @@ export const useSensorConfig = () => {
   const saveConfiguration = useCallback(async () => {
     setIsSaving(true);
     try {
-      await window.appData.patch({
+      await appDataApi.patch({
         sensorCount,
         sensorConfig: sensors,
       });

@@ -1,9 +1,9 @@
 // src/electron/features/logger/logger.ts
 
-import fs from 'fs';
+import fs from 'node:fs';
 
 import { BATCH_INTERVAL, BATCH_SIZE, COLORS, DEFAULT_LOGGER_CONFIG } from './logger.constants';
-import type { ILogger, LoggerConfig } from './logger.types';
+import type { LoggerConfig } from './logger.types';
 import { LogLevelEnum } from './logger.types';
 import {
   ensureLogDirectory,
@@ -12,13 +12,36 @@ import {
   generateOperationId,
   safeStringify,
 } from './logger.utils';
-import type { LogEntry, LogArea, LogMetadata, LogLevel } from '../../../shared/types/logs.types';
+import type {
+  LogEntry,
+  LogArea,
+  LogMetadata,
+  ILogger,
+  LogLevel,
+} from '../../../shared/types/logs.types';
 import { getAreaFromErrorCode } from '../../../shared/errors';
 import { AppError } from '../../../shared/errors/error.types';
 
 // Инициализация при импорте
 ensureLogDirectory();
 cleanupOldLogs();
+
+// Маппинг LogLevel (string) -> LogLevelEnum (number)
+const LOG_LEVEL_MAP: Record<LogLevel, LogLevelEnum> = {
+  DEBUG: LogLevelEnum.DEBUG,
+  INFO: LogLevelEnum.INFO,
+  WARN: LogLevelEnum.WARN,
+  ERROR: LogLevelEnum.ERROR,
+};
+
+// Маппинг LogLevel -> Console Color
+const LEVEL_COLOR_MAP: Record<LogLevel, string> = {
+  //@ts-ignore
+  DEBUG: COLORS.DEBUG,
+  INFO: COLORS.INFO,
+  WARN: COLORS.WARN,
+  ERROR: COLORS.ERROR,
+};
 
 export class Logger implements ILogger {
   private static instance: Logger;
@@ -35,7 +58,7 @@ export class Logger implements ILogger {
   }
 
   static getInstance(config?: Partial<LoggerConfig>): Logger {
-    if (!Logger.instance) {
+    if (Logger.instance === undefined) {
       Logger.instance = new Logger(config);
     }
     return Logger.instance;
@@ -138,7 +161,7 @@ export class Logger implements ILogger {
     metadata?: LogMetadata,
   ): string {
     const timestamp = new Date().toISOString();
-    const levelColor = COLORS[level] ?? COLORS.RESET;
+    const levelColor = LEVEL_COLOR_MAP[level];
 
     let formatted =
       `${levelColor}[${level}]${COLORS.RESET} ` +
@@ -191,12 +214,13 @@ export class Logger implements ILogger {
    */
   private log(
     level: LogLevel,
-    logLevelEnum: LogLevelEnum,
     area: LogArea,
     message: string,
     metadata?: LogMetadata,
     error?: unknown,
   ): void {
+    const logLevelEnum = LOG_LEVEL_MAP[level];
+
     if (this.config.minLevel > logLevelEnum) return;
 
     const timestamp = Date.now();
@@ -235,7 +259,7 @@ export class Logger implements ILogger {
 
     // Выводим в консоль
     if (this.config.enableConsole) {
-      const consoleMethod = level.toLowerCase() as 'debug' | 'info' | 'warn' | 'error';
+      const consoleMethod = level.toString().toLowerCase() as 'debug' | 'info' | 'warn' | 'error';
       console[consoleMethod](consoleMessage);
 
       if (stack !== undefined) {
@@ -263,41 +287,45 @@ export class Logger implements ILogger {
    * Public API - Debug
    */
   debug(area: LogArea, message: string, metadata?: LogMetadata): void {
-    this.log('DEBUG', LogLevelEnum.DEBUG, area, message, metadata);
+    this.log('DEBUG', area, message, metadata);
   }
 
   /**
    * Public API - Info
    */
   info(area: LogArea, message: string, metadata?: LogMetadata): void {
-    this.log('INFO', LogLevelEnum.INFO, area, message, metadata);
+    this.log('INFO', area, message, metadata);
   }
 
   /**
    * Public API - Warn
    */
   warn(area: LogArea, message: string, metadata?: LogMetadata, error?: unknown): void {
-    this.log('WARN', LogLevelEnum.WARN, area, message, metadata, error);
+    this.log('WARN', area, message, metadata, error);
   }
 
   /**
    * Public API - Error
    */
   error(area: LogArea, message: string, metadata?: LogMetadata, error?: unknown): void {
-    this.log('ERROR', LogLevelEnum.ERROR, area, message, metadata, error);
+    this.log('ERROR', area, message, metadata, error);
   }
 
   /**
    * Специальный метод для логирования AppError
    */
-  logError(error: AppError, additionalMetadata?: LogMetadata): void {
-    const area = (error.area ?? getAreaFromErrorCode(error.code)) as LogArea;
-    const metadata = {
-      ...error.toLogMetadata(),
-      ...additionalMetadata,
-    };
+  logError(error: Error, additionalMetadata?: LogMetadata): void {
+    if (error instanceof AppError) {
+      const area = (error.area ?? getAreaFromErrorCode(error.code)) as LogArea;
+      const metadata = {
+        ...error.toLogMetadata(),
+        ...additionalMetadata,
+      };
 
-    this.error(area, error.description, metadata, error);
+      this.error(area, error.description, metadata, error);
+    } else {
+      this.error('Unknown', error.message, additionalMetadata, error);
+    }
   }
 
   /**

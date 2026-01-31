@@ -23,7 +23,7 @@ export enum LogsIPC {
   SendError = 'logs:send:error',
 }
 
-export interface ILogger {
+export interface LoggerAPI {
   debug(area: LogArea, message: string, metadata?: LogMetadata): void;
   info(area: LogArea, message: string, metadata?: LogMetadata): void;
   warn(area: LogArea, message: string, metadata?: LogMetadata, error?: unknown): void;

@@ -12,8 +12,8 @@ import { database } from './database';
 import { logger } from '../logger';
 import { createError } from '../../../shared/errors';
 import { ErrorCodes } from '../../../shared/errors/error-codes';
+import { sensorDataService } from './services/sensor-data.service';
 import type { LogMetadata } from '../../../shared/types/logs.types';
-import { sensorDataService } from './sensor-data.service';
 
 export function registerDatabaseIpc(): void {
   logger.info('IPC', 'Registering database IPC handlers');

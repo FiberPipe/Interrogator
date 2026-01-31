@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import type { TemperatureCoefficients } from '../../../entities/temperature';
 import { addDangerToaster, addSuccessToaster } from '../../../shared/ui';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 const DEFAULT_COEFFICIENTS: TemperatureCoefficients = {
   lambda0: 0,
@@ -32,7 +33,7 @@ export const useTemperatureCoefficients = (sensorId: number) => {
         await Promise.all(
           keys.map(async (key) => {
             const storageKey = `Temp_${key}_${sensorId}`;
-            const value = await window.appData.get(storageKey);
+            const value = await appDataApi.get(storageKey);
             if (value !== undefined && value !== null) {
               loaded[key] = Number(value);
             }
@@ -64,7 +65,7 @@ export const useTemperatureCoefficients = (sensorId: number) => {
       await Promise.all(
         keys.map((key) => {
           const storageKey = `Temp_${key}_${sensorId}`;
-          return window.appData.set(storageKey, coefficients[key]);
+          return appDataApi.set(storageKey, coefficients[key]);
         }),
       );
 

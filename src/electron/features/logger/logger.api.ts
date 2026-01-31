@@ -6,12 +6,12 @@ import { LogsIPC } from './logger.types';
 import type {
   LogArea,
   LogEntry,
-  LogLevel,
   LogMetadata,
   LogsAPI,
   LogsFilter,
   LogsStats,
 } from '../../../shared/types/logs.types';
+import type { LogLevel } from '../../../shared/types/logs.types';
 
 export const logsAPI: LogsAPI = {
   get(filter: LogsFilter): Promise<LogEntry[]> {
@@ -38,16 +38,25 @@ export const logsAPI: LogsAPI = {
   }): Promise<{ success: boolean; path?: string; cancelled?: boolean; error?: string }> {
     return ipcRenderer.invoke(LogsIPC.Export, options);
   },
-
-  send(level: LogLevel, area: LogArea, message: string, metadata?: LogMetadata): void {
-    const channelMap: Record<LogLevel, LogsIPC> = {
-      DEBUG: LogsIPC.SendDebug,
-      INFO: LogsIPC.SendInfo,
-      WARN: LogsIPC.SendWarn,
-      ERROR: LogsIPC.SendError,
-    };
-
-    const channel = channelMap[level];
-    ipcRenderer.send(channel, area, message, metadata);
-  },
 };
+
+/**
+ * Helper для отправки логов из renderer в main
+ */
+export function sendLog(
+  level: LogLevel,
+  area: LogArea,
+  message: string,
+  metadata?: LogMetadata,
+): void {
+  const channelMap: Record<LogLevel, LogsIPC> = {
+    //@ts-ignore
+    DEBUG: LogsIPC.SendDebug,
+    INFO: LogsIPC.SendInfo,
+    WARN: LogsIPC.SendWarn,
+    ERROR: LogsIPC.SendError,
+  };
+
+  const channel = channelMap[level];
+  ipcRenderer.send(channel, area, message, metadata);
+}

@@ -4,13 +4,13 @@ import { useEffect, useState, useCallback } from 'react';
 import { Card, CardHeader, Button, Spinner } from '@heroui/react';
 import { FileText, RefreshCw } from 'lucide-react';
 
-import type { LogsFilter, LogEntry, LogsStats } from '../electron/types';
 import { LogsExport } from '../features/logs/ui/LogsExport';
-import { logsApi } from '../ui/shared/api/logs.api';
-import { addDangerToaster, addSuccessToaster } from '../ui/shared/ui';
+import { addDangerToaster, addSuccessToaster } from '../shared/ui';
 import { LogsList } from '../widgets/logs';
 import { LogsFilter as LogsFilterComponent } from '../features/logs/ui/LogsFilter';
 import { LogsStats as LogsStatsComponent } from '../features/logs/ui/LogsStats';
+import type { LogEntry, LogsFilter, LogsStats } from '../shared/types/logs.types';
+import { loggerApi } from '../shared/api/logger.api';
 
 const DEFAULT_FILTER: LogsFilter = {
   limit: 1000,
@@ -29,7 +29,7 @@ export const LogsPage = () => {
     setIsLoading(true);
     setError(undefined);
     try {
-      const data = await logsApi.getLogs(filter);
+      const data = await loggerApi.getLogs(filter);
       setLogs(data);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

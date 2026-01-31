@@ -2,9 +2,10 @@ import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, Switch } from '@heroui/react';
 
-import type { RowData } from '../../../ui/shared/types/microcontroller-data';
-import type { ChartSeries } from '../../../ui/shared/ui';
-import { LineChartWithConfidence } from '../../../ui/shared/ui';
+import type { RowData } from '../../../shared/types/microcontroller-data';
+import type { ChartSeries } from '../../../shared/ui';
+import { LineChartWithConfidence } from '../../../shared/ui';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 interface PowerChartProps {
   data: RowData[];
@@ -30,8 +31,8 @@ export const PowerChart = ({ data, selectedChannels, colors }: PowerChartProps) 
           const maxKey = `power${channelId}_max`;
 
           const [minVal, maxVal] = await Promise.all([
-            window.appData.get(minKey),
-            window.appData.get(maxKey),
+            appDataApi.get(minKey),
+            appDataApi.get(maxKey),
           ]);
 
           loaded[channelId] = {

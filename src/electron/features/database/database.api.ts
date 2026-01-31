@@ -3,7 +3,6 @@
 import { ipcRenderer } from 'electron';
 
 import type {
-  DatabaseAPI,
   DatabasePathInfo,
   DatabaseLocation,
   DatabaseChangeLocationResult,
@@ -16,6 +15,7 @@ import type {
   DatabaseClearResult,
 } from './database.types';
 import { DatabaseIPC } from './database.types';
+import type { DatabaseAPI } from '../../../shared/types/database.types';
 
 export const databaseAPI: DatabaseAPI = {
   /**

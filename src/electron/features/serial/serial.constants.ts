@@ -9,7 +9,7 @@ export const FEATURE_NAME = 'SERIAL';
  */
 export const DEFAULT_SERIAL_CONFIG: SerialConfig = {
   defaultBaudRate: 115200,
-  autoConnect: true,
+  autoConnect: false,
   useMockPorts: false,
 };
 

@@ -70,9 +70,13 @@ export class Database implements IDatabase {
         this.setupAutoSave();
         this.setupLogCleanup();
 
-        // Регистрируем writer для логгера
+        // ✅ Регистрируем writer для логгера ПОСЛЕ создания таблиц
         logger.setDatabaseWriter(async (logs) => {
-          await logsService.insertBatch(logs);
+          if (this.db === null) {
+            console.warn('[Database] Cannot write logs: DB not initialized');
+            return;
+          }
+          await logsService.insertBatch(this.db, logs);
         });
 
         logger.info('Database', 'Database initialized successfully');
@@ -80,7 +84,6 @@ export class Database implements IDatabase {
       config,
     );
   }
-
   /**
    * Получить путь к WASM файлу
    */
@@ -114,16 +117,16 @@ export class Database implements IDatabase {
     throw new Error('WASM file not found in any expected location');
   }
 
-  /**
-   * Создание таблиц и индексов
-   */
   private createTables(): void {
-    if (this.db === null) throw new Error('Database not initialized');
+    if (this.db === null) {
+      throw new Error('Database not initialized');
+    }
 
     logger.debug('Database', 'Creating tables and indexes');
 
-    // Таблица sensor_data
-    this.db.run(`
+    try {
+      // Таблица sensor_data
+      this.db.run(`
       CREATE TABLE IF NOT EXISTS ${TABLE_NAMES.SENSOR_DATA} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         record_id TEXT NOT NULL,
@@ -135,8 +138,8 @@ export class Database implements IDatabase {
       )
     `);
 
-    // Таблица channel_data
-    this.db.run(`
+      // Таблица channel_data
+      this.db.run(`
       CREATE TABLE IF NOT EXISTS ${TABLE_NAMES.CHANNEL_DATA} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         sensor_data_id INTEGER NOT NULL,
@@ -148,8 +151,8 @@ export class Database implements IDatabase {
       )
     `);
 
-    // Таблица sessions
-    this.db.run(`
+      // Таблица sessions
+      this.db.run(`
       CREATE TABLE IF NOT EXISTS ${TABLE_NAMES.SESSIONS} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         port TEXT NOT NULL,
@@ -160,24 +163,30 @@ export class Database implements IDatabase {
       )
     `);
 
-    // Индексы
-    const indexes = [
-      `CREATE INDEX IF NOT EXISTS idx_sensor_data_timestamp ON ${TABLE_NAMES.SENSOR_DATA}(timestamp)`,
-      `CREATE INDEX IF NOT EXISTS idx_sensor_data_port ON ${TABLE_NAMES.SENSOR_DATA}(port)`,
-      `CREATE INDEX IF NOT EXISTS idx_sensor_data_record_id ON ${TABLE_NAMES.SENSOR_DATA}(record_id)`,
-      `CREATE INDEX IF NOT EXISTS idx_channel_data_sensor_id ON ${TABLE_NAMES.CHANNEL_DATA}(sensor_data_id)`,
-      `CREATE INDEX IF NOT EXISTS idx_channel_data_channel ON ${TABLE_NAMES.CHANNEL_DATA}(channel)`,
-      `CREATE INDEX IF NOT EXISTS idx_channel_data_timestamp ON ${TABLE_NAMES.CHANNEL_DATA}(timestamp)`,
-    ];
+      // Индексы
+      const indexes = [
+        `CREATE INDEX IF NOT EXISTS idx_sensor_data_timestamp ON ${TABLE_NAMES.SENSOR_DATA}(timestamp)`,
+        `CREATE INDEX IF NOT EXISTS idx_sensor_data_port ON ${TABLE_NAMES.SENSOR_DATA}(port)`,
+        `CREATE INDEX IF NOT EXISTS idx_sensor_data_record_id ON ${TABLE_NAMES.SENSOR_DATA}(record_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_channel_data_sensor_id ON ${TABLE_NAMES.CHANNEL_DATA}(sensor_data_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_channel_data_channel ON ${TABLE_NAMES.CHANNEL_DATA}(channel)`,
+        `CREATE INDEX IF NOT EXISTS idx_channel_data_timestamp ON ${TABLE_NAMES.CHANNEL_DATA}(timestamp)`,
+      ];
 
-    indexes.forEach((sql) => this.db!.run(sql));
+      indexes.forEach((sql) => this.db!.run(sql));
 
-    // Инициализация таблицы логов
-    logsService.initializeTable();
+      if (this.db === null) {
+        throw new Error('Database became null during table creation');
+      }
 
-    logger.info('Database', 'Tables and indexes created');
+      logsService.initializeTable(this.db);
+
+      logger.info('Database', 'Tables and indexes created');
+    } catch (err) {
+      console.error('[Database] Error during createTables:', err);
+      throw err;
+    }
   }
-
   /**
    * Настройка автосохранения
    */
@@ -196,28 +205,6 @@ export class Database implements IDatabase {
       this.saveDatabase();
       setTimeout(() => app.exit(0), 1000);
     });
-  }
-
-  /**
-   * Настройка автоматической очистки логов
-   */
-  private setupLogCleanup(): void {
-    // Очистка каждые 6 часов
-    setInterval(
-      () => {
-        void logger.withLogging('Database', 'Cleanup old logs', async () => {
-          await logsService.cleanupOldLogs();
-        });
-      },
-      6 * 60 * 60 * 1000,
-    );
-
-    // Первая очистка через 1 минуту после запуска
-    setTimeout(() => {
-      void logger.withLogging('Database', 'Initial log cleanup', async () => {
-        await logsService.cleanupOldLogs();
-      });
-    }, 60 * 1000);
   }
 
   /**
@@ -366,6 +353,33 @@ export class Database implements IDatabase {
 
       logger.info('Database', 'Database shutdown complete');
     });
+  }
+
+  private setupLogCleanup(): void {
+    // Очистка каждые 6 часов
+    setInterval(
+      () => {
+        void logger.withLogging('Database', 'Cleanup old logs', async () => {
+          if (this.db === null) {
+            logger.warn('Database', 'Cannot cleanup logs: DB not initialized');
+            return;
+          }
+          await logsService.cleanupOldLogs(this.db);
+        });
+      },
+      6 * 60 * 60 * 1000,
+    );
+
+    // Первая очистка через 1 минуту после запуска
+    setTimeout(() => {
+      void logger.withLogging('Database', 'Initial log cleanup', async () => {
+        if (this.db === null) {
+          logger.warn('Database', 'Cannot cleanup logs: DB not initialized');
+          return;
+        }
+        await logsService.cleanupOldLogs(this.db);
+      });
+    }, 60 * 1000);
   }
 }
 

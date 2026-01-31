@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { addSuccessToaster, addDangerToaster } from '../../../shared/ui';
 import type { CalibrationData, CalibrationMethod } from './types';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 export const useSensorCalibration = () => {
   const { t } = useTranslation();
@@ -19,7 +20,7 @@ export const useSensorCalibration = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const saved = await window.appData.getAll();
+        const saved = await appDataApi.getAll();
 
         if (saved?.calibrationData) {
           setData(saved.calibrationData as CalibrationData);
@@ -147,7 +148,7 @@ export const useSensorCalibration = () => {
     setIsSaving(true);
 
     try {
-      await window.appData.patch({
+      await appDataApi.patch({
         calibrationData: data,
         calibrationMethod: method,
         sensorDataFilePath: filePath,

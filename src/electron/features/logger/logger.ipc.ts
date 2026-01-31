@@ -4,18 +4,21 @@ import { ipcMain, dialog } from 'electron';
 
 import { logger } from './logger';
 import { LogsIPC } from './logger.types';
-import type { LogsFilter, LogArea, LogMetadata } from '../../../shared/types/logs.types';
 import { logsService } from '../database';
+import { database } from '../database';
+import type { LogArea, LogMetadata, LogsFilter } from '../../../shared/types/logs.types';
 
 export function registerLoggerIpc(): void {
   logger.info('IPC', 'Registering logger IPC handlers');
 
+  // Получение логов
   ipcMain.handle(LogsIPC.Get, async (_, filter: LogsFilter) => {
     return logger.withLogging(
       'IPC',
       'Get logs',
       async () => {
-        return await logsService.getLogs(filter);
+        const db = database.getDatabase();
+        return await logsService.getLogs(db, filter);
       },
       { filter },
     );
@@ -24,7 +27,8 @@ export function registerLoggerIpc(): void {
   // Получение статистики
   ipcMain.handle(LogsIPC.GetStats, async () => {
     return logger.withLogging('IPC', 'Get logs statistics', async () => {
-      return await logsService.getStats();
+      const db = database.getDatabase();
+      return await logsService.getStats(db);
     });
   });
 
@@ -32,7 +36,8 @@ export function registerLoggerIpc(): void {
   ipcMain.handle(LogsIPC.Cleanup, async () => {
     return logger.withLogging('IPC', 'Cleanup old logs', async () => {
       try {
-        const deletedCount = await logsService.cleanupOldLogs();
+        const db = database.getDatabase();
+        const deletedCount = await logsService.cleanupOldLogs(db);
         return { success: true, deletedCount };
       } catch (err) {
         return {
@@ -48,7 +53,8 @@ export function registerLoggerIpc(): void {
   ipcMain.handle(LogsIPC.Clear, async () => {
     return logger.withLogging('IPC', 'Clear all logs', async () => {
       try {
-        await logsService.clearAllLogs();
+        const db = database.getDatabase();
+        await logsService.clearAllLogs(db);
         return { success: true };
       } catch (err) {
         return {
@@ -69,11 +75,12 @@ export function registerLoggerIpc(): void {
           filters: [{ name: 'JSON', extensions: ['json'] }],
         });
 
-        if (result.canceled || !result.filePath) {
+        if (result.canceled || result.filePath === undefined) {
           return { success: false, cancelled: true };
         }
 
-        const success = await logsService.exportToJson(result.filePath, options);
+        const db = database.getDatabase();
+        const success = await logsService.exportToJson(db, result.filePath, options);
         return { success, path: result.filePath };
       } catch (err) {
         return {

@@ -10,7 +10,7 @@ export default defineConfig({
 
   source: {
     entry: {
-      index: './src/ui/app/index.tsx',
+      index: './src/app/index.tsx',
     },
   },
 

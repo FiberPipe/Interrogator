@@ -4,7 +4,7 @@
   "version": "1.1.0-beta.1",
   "description": "Interrogator Desktop Application",
   "author": "Petr Krotov",
-  "main": "build/electron/core/main.js",
+  "main": "build/electron/main.js",
   "scripts": {
     "dev:react": "rsbuild dev --port 3000",
     "dev:web": "npm run dev:react -- --open",
@@ -42,7 +42,7 @@
     "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
     "format:check": "prettier --check 'src/**/*.{ts,tsx,js,jsx,json,css,md}'",
     "format:fix": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json,css,md}'",
-    "prepare": "husky"
+    "prepare": "husky install"
   },
   "dependencies": {
     "@heroui/react": "2.8.4",
