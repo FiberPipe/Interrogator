@@ -1,4 +1,4 @@
-// src/shared/types/logs.types.ts
+// src/entities/log/model/types.ts
 
 /**
  * Уровни логирования
@@ -83,8 +83,8 @@ export interface LogsFilter {
  */
 export interface LogsStats {
   total: number;
-  byLevel: Record<string, number>;
-  byArea: Record<string, number>;
+  byLevel: Record<LogLevel, number>;
+  byArea: Record<LogArea, number>;
   oldestLog: number | null;
   newestLog: number | null;
 }
@@ -110,8 +110,8 @@ export interface LogsClearResult {
  * Опции экспорта логов
  */
 export interface LogsExportOptions {
-  level?: string;
-  area?: string;
+  level?: LogLevel;
+  area?: LogArea;
   startTime?: number;
   endTime?: number;
 }

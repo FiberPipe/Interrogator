@@ -1,25 +1,27 @@
 // src/features/logs/stats/ui/LogsStats.tsx
 
-import { Card, CardBody, Progress } from '@heroui/react';
-import { TrendingUp, Database, Clock, AlertTriangle } from 'lucide-react';
+import { Card, CardBody, Chip, Progress } from '@heroui/react';
+import { TrendingUp, Database, Clock, AlertTriangle, Bug, AlertCircle, Info } from 'lucide-react';
 import { format } from 'date-fns';
+import { LogLevelBadge } from '../../../../shared/ui/log-level-badge/LogLevelBadge';
+import { LogsStats as ILogsStats} from '../../../../shared/types/logs.types';
 
-import type { LogsStats as ILogsStats } from '../../../shared/types/logs';
-import { LogLevelBadge } from '../../../shared/ui';
 
 interface LogsStatsProps {
   stats: ILogsStats | null;
   isLoading?: boolean;
+  compact?: boolean;
 }
 
-export const LogsStats = ({ stats, isLoading }: LogsStatsProps) => {
+export const LogsStats = ({ stats, isLoading, compact = false }: LogsStatsProps) => {
   if (isLoading) {
     return (
       <Card>
-        <CardBody className="p-4">
-          <div className="animate-pulse space-y-3">
-            <div className="h-6 bg-default-200 rounded w-1/3"></div>
-            <div className="h-20 bg-default-200 rounded"></div>
+        <CardBody className="p-3">
+          <div className="animate-pulse flex gap-4">
+            <div className="h-6 bg-default-200 rounded w-20"></div>
+            <div className="h-6 bg-default-200 rounded w-20"></div>
+            <div className="h-6 bg-default-200 rounded w-20"></div>
           </div>
         </CardBody>
       </Card>
@@ -28,11 +30,61 @@ export const LogsStats = ({ stats, isLoading }: LogsStatsProps) => {
 
   if (!stats) return null;
 
-  const totalLogs = stats.total;
   const errorCount = stats.byLevel.ERROR || 0;
   const warnCount = stats.byLevel.WARN || 0;
   const infoCount = stats.byLevel.INFO || 0;
   const debugCount = stats.byLevel.DEBUG || 0;
+  const total = stats.total;
+
+  if (compact) {
+    return (
+      <Card>
+        <CardBody className="p-3">
+          <div className="flex items-center gap-6 flex-wrap">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-default-500">Total:</span>
+              <Chip size="sm" variant="flat">{total}</Chip>
+            </div>
+            {errorCount > 0 && (
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={16} className="text-danger" />
+                <Chip size="sm" color="danger" variant="flat">
+                  {errorCount}
+                </Chip>
+              </div>
+            )}
+            {warnCount > 0 && (
+              <div className="flex items-center gap-2">
+                <AlertCircle size={16} className="text-warning" />
+                <Chip size="sm" color="warning" variant="flat">
+                  {warnCount}
+                </Chip>
+              </div>
+            )}
+            {infoCount > 0 && (
+              <div className="flex items-center gap-2">
+                <Info size={16} className="text-primary" />
+                <Chip size="sm" color="primary" variant="flat">
+                  {infoCount}
+                </Chip>
+              </div>
+            )}
+            {debugCount > 0 && (
+              <div className="flex items-center gap-2">
+                <Bug size={16} className="text-default-500" />
+                <Chip size="sm" color="default" variant="flat">
+                  {debugCount}
+                </Chip>
+              </div>
+            )}
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
+
+
+  const totalLogs = stats.total;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">

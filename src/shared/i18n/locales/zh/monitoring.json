@@ -30,12 +30,16 @@
         "columns": {
             "id": "编号",
             "result": "结果 (°C)"
-        }
+        },
+        "sensor": "传感器 {{index}}",
+        "formula": "T = E(λ - λ₀)⁴ + D(λ - λ₀)³ + C(λ - λ₀)² + B(λ - λ₀) + A"
     },
     "displacement": {
         "columns": {
             "id": "编号",
             "result": "结果 (µm/m)"
-        }
+        },
+        "formula": "T = E(λ - λ₀)⁴ + D(λ - λ₀)³ + C(λ - λ₀)² + B(λ - λ₀) + A",
+        "sensor": "传感器 {{index}}"
     }
 }

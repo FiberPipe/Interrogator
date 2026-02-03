@@ -59,7 +59,7 @@ export const addDangerToaster = (...args: unknown[]) => {
     // });
   }
 
-  sendToBackend(title, description, 'danger');
+  // sendToBackend(title, description, 'danger');
 };
 
 export const addSuccessToaster = (...args: unknown[]) => {
@@ -85,5 +85,5 @@ export const addSuccessToaster = (...args: unknown[]) => {
     // });
   }
 
-  sendToBackend(title, description, 'success');
+  // sendToBackend(title, description, 'success');
 };

@@ -14,7 +14,9 @@
     "channels": "通道",
     "selectType": "选择类型",
     "noChannels": "未选择通道",
-    "channelsSelected": "已选择通道：{{count}}"
+    "channelsSelected": "已选择通道：{{count}}",
+    "alias": "传感器名称",
+    "aliasPlaceholder": "例如：传感器-发射器 {{index}}"
   },
   "types": {
     "displacement": "位移",
@@ -30,7 +32,14 @@
     "channel": "通道 P{{index}}",
     "selectAll": "全选",
     "deselectAll": "取消全选",
-    "inUse": "使用中"
+    "inUse": "使用中",
+    "selectedCount": "已选择：{{count}}/{{max}}",
+    "limitReached": "已达到上限",
+    "legend": {
+      "selected": "已选中",
+      "inUse": "使用中",
+      "available": "可用"
+    }
   },
   "actions": {
     "save": "保存配置",

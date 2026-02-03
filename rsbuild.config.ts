@@ -5,6 +5,8 @@ import tailwindcss from '@tailwindcss/postcss';
 import { pluginNodePolyfill } from '@rsbuild/plugin-node-polyfill';
 import path from 'node:path';
 
+const isDev = process.env.NODE_ENV === 'development';
+
 export default defineConfig({
   plugins: [pluginReact(), pluginNodePolyfill()],
 
@@ -47,8 +49,20 @@ export default defineConfig({
       root: './build/renderer',
     },
     sourceMap: {
-      js: 'source-map',
+      js: isDev ? 'source-map' : false,
+      css: false,
     },
+    minify: {
+      js: !isDev,
+      css: !isDev,
+    },
+  },
+
+  performance: {
+    chunkSplit: {
+      strategy: 'split-by-experience',
+    },
+    removeConsole: !isDev ? ['log', 'warn'] : false,
   },
 
   tools: {
@@ -60,7 +74,38 @@ export default defineConfig({
         ignored: [
           path.resolve(__dirname, 'logs'),
           '**/logs/**',
+          '**/node_modules/**',
         ],
+      },
+      optimization: {
+        minimize: !isDev,
+        usedExports: true,
+        sideEffects: true,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              priority: 10,
+            },
+            monaco: {
+              test: /[\\/]node_modules[\\/](@monaco-editor|monaco-editor)[\\/]/,
+              name: 'monaco',
+              priority: 20,
+            },
+            recharts: {
+              test: /[\\/]node_modules[\\/](recharts)[\\/]/,
+              name: 'recharts',
+              priority: 20,
+            },
+          },
+        },
+      },
+      externals: {
+        electron: 'commonjs2 electron',
+        serialport: 'commonjs2 serialport',
+        'better-sqlite3': 'commonjs2 better-sqlite3',
       },
     },
     postcss: {

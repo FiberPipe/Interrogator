@@ -2,6 +2,7 @@
   "settings": "Settings",
   "charts": "Charts",
   "dashboard": "Dashboard",
+  "logs": "Logs",
   "collapse": "Collapse",
   "expand": "Expand"
 }

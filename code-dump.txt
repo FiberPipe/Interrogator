@@ -1,83 +1,987 @@
 ============================================================
-FILE: src/shared/types/app-data.types.ts
+FILE: src/electron/features/database/database.api.ts
 ============================================================
 
-// src/shared/types/app-data.types.ts
+// src/electron/features/database/database.api.ts
 
-/**
- * Настройки приложения
- */
-export interface AppSettings {
-  lastPort?: string;
-  baudRate?: number;
-  autoConnect?: boolean;
-  theme?: 'light' | 'dark' | 'system';
-  language?: string;
-  logsRetentionDays?: number;
-  chartRefreshInterval?: number;
-  [key: string]: unknown;
+import { ipcRenderer } from 'electron';
+
+import type {
+  DatabasePathInfo,
+  DatabaseLocation,
+  DatabaseChangeLocationResult,
+  DatabaseStats,
+  ChannelStats,
+  SensorDataRecord,
+  DatabaseBackupResult,
+  DatabaseExportOptions,
+  DatabaseExportResult,
+  DatabaseClearResult,
+} from './database.types';
+import { DatabaseIPC } from './database.types';
+import type { DatabaseAPI } from '../../../shared/types/database.types';
+
+export const databaseAPI: DatabaseAPI = {
+  /**
+   * Получить путь к БД
+   */
+  getPath(): Promise<DatabasePathInfo> {
+    return ipcRenderer.invoke(DatabaseIPC.GetPath);
+  },
+
+  /**
+   * Изменить местоположение БД
+   */
+  changeLocation(
+    location: DatabaseLocation,
+    customPath?: string,
+  ): Promise<DatabaseChangeLocationResult> {
+    return ipcRenderer.invoke(DatabaseIPC.ChangeLocation, location, customPath);
+  },
+
+  /**
+   * Выбрать кастомный путь
+   */
+  selectCustomPath(): Promise<string | null> {
+    return ipcRenderer.invoke(DatabaseIPC.SelectCustomPath);
+  },
+
+  /**
+   * Открыть папку с БД
+   */
+  openFolder(): Promise<string> {
+    return ipcRenderer.invoke(DatabaseIPC.OpenFolder);
+  },
+
+  /**
+   * Получить статистику БД
+   */
+  getStats(): Promise<DatabaseStats> {
+    return ipcRenderer.invoke(DatabaseIPC.GetStats);
+  },
+
+  /**
+   * Получить статистику канала
+   */
+  getChannelStats(
+    port: string,
+    channel: number,
+    startTime: number,
+    endTime: number,
+  ): Promise<ChannelStats> {
+    return ipcRenderer.invoke(DatabaseIPC.GetChannelStats, port, channel, startTime, endTime);
+  },
+
+  /**
+   * Получить данные за период времени
+   */
+  getDataByTimeRange(
+    port: string,
+    startTime: number,
+    endTime: number,
+    limit?: number,
+  ): Promise<SensorDataRecord[]> {
+    return ipcRenderer.invoke(DatabaseIPC.GetDataByTimeRange, port, startTime, endTime, limit);
+  },
+
+  /**
+   * Получить последние N записей
+   */
+  getLastRecords(port: string, limit?: number): Promise<SensorDataRecord[]> {
+    return ipcRenderer.invoke(DatabaseIPC.GetLastRecords, port, limit);
+  },
+
+  /**
+   * Создать резервную копию
+   */
+  createBackup(): Promise<DatabaseBackupResult> {
+    return ipcRenderer.invoke(DatabaseIPC.CreateBackup);
+  },
+
+  /**
+   * Восстановить из резервной копии
+   */
+  restoreBackup(): Promise<DatabaseBackupResult> {
+    return ipcRenderer.invoke(DatabaseIPC.RestoreBackup);
+  },
+
+  /**
+   * Экспортировать данные
+   */
+  exportData(options: DatabaseExportOptions): Promise<DatabaseExportResult> {
+    return ipcRenderer.invoke(DatabaseIPC.ExportData, options);
+  },
+
+  /**
+   * Выполнить VACUUM
+   */
+  vacuum(): Promise<DatabaseClearResult> {
+    return ipcRenderer.invoke(DatabaseIPC.Vacuum);
+  },
+
+  /**
+   * Очистить все данные
+   */
+  clear(): Promise<DatabaseClearResult> {
+    return ipcRenderer.invoke(DatabaseIPC.Clear);
+  },
+};
+
+
+============================================================
+FILE: src/electron/features/database/database.config.ts
+============================================================
+
+// src/electron/features/database/database.config.ts
+
+import { app } from 'electron';
+import { join, dirname } from 'node:path';
+import { existsSync, mkdirSync } from 'node:fs';
+
+import type { DatabaseConfig, DatabaseLocation } from './database.types';
+import { DEFAULT_DATABASE_CONFIG } from './database.constants';
+import { logger } from '../logger';
+
+export class DatabasePathManager {
+  private config: DatabaseConfig;
+
+  constructor(config?: Partial<DatabaseConfig>) {
+    this.config = { ...DEFAULT_DATABASE_CONFIG, ...config };
+  }
+
+  /**
+   * Получить путь к БД в зависимости от настроек
+   */
+  getPath(): string {
+    const { location, customPath, filename } = this.config;
+
+    let basePath: string;
+
+    switch (location) {
+      case 'userData':
+        basePath = app.getPath('userData');
+        break;
+
+      case 'appPath':
+        basePath = app.isPackaged
+          ? join(dirname(app.getPath('exe')), 'database')
+          : join(process.cwd(), 'database');
+        break;
+
+      case 'documents':
+        basePath = join(app.getPath('documents'), 'Interrogator', 'database');
+        break;
+
+      case 'custom':
+        if (customPath === undefined) {
+          throw new Error('Custom path is required when location is "custom"');
+        }
+        basePath = customPath;
+        break;
+
+      default:
+        basePath = app.getPath('userData');
+    }
+
+    this.ensureDirectoryExists(basePath);
+
+    return join(basePath, filename);
+  }
+
+  /**
+   * Создать директорию если не существует
+   */
+  private ensureDirectoryExists(dirPath: string): void {
+    if (!existsSync(dirPath)) {
+      mkdirSync(dirPath, { recursive: true });
+      logger.info('Database', 'Created directory', { path: dirPath });
+    }
+  }
+
+  /**
+   * Получить информацию о всех возможных путях
+   */
+  getAllPossiblePaths(): Record<DatabaseLocation, string> {
+    const { filename } = this.config;
+
+    return {
+      userData: join(app.getPath('userData'), filename),
+      appPath: app.isPackaged
+        ? join(dirname(app.getPath('exe')), 'database', filename)
+        : join(process.cwd(), 'database', filename),
+      documents: join(app.getPath('documents'), 'Interrogator', 'database', filename),
+      custom: this.config.customPath ? join(this.config.customPath, filename) : 'Not configured',
+    };
+  }
+
+  /**
+   * Обновить конфигурацию
+   */
+  updateConfig(config: Partial<DatabaseConfig>): void {
+    this.config = { ...this.config, ...config };
+  }
+
+  /**
+   * Получить текущую конфигурацию
+   */
+  getConfig(): DatabaseConfig {
+    return { ...this.config };
+  }
 }
 
-/**
- * API для работы с app-data (Renderer Process)
- */
-export interface AppDataAPI {
-  /**
-   * Получить все настройки
-   */
-  getAll: () => Promise<AppSettings>;
+// Singleton instance
+let pathManager: DatabasePathManager | null = null;
 
-  /**
-   * Получить значение по ключу
-   */
-  get: <T = unknown>(key: string) => Promise<T | undefined>;
+export function getDatabasePathManager(): DatabasePathManager {
+  if (pathManager === null) {
+    pathManager = new DatabasePathManager();
+  }
+  return pathManager;
+}
 
-  /**
-   * Установить значение
-   */
-  set: (key: string, value: unknown) => Promise<void>;
+export function initializeDatabasePath(config?: Partial<DatabaseConfig>): void {
+  pathManager = new DatabasePathManager(config);
 
-  /**
-   * Удалить значение
-   */
-  delete: (key: string) => Promise<void>;
-
-  /**
-   * Обновить несколько значений
-   */
-  patch: (patch: Record<string, unknown>) => Promise<AppSettings>;
-
-  /**
-   * Очистить все настройки
-   */
-  clear: () => Promise<void>;
-
-  /**
-   * Проверить существование ключа
-   */
-  has: (key: string) => Promise<boolean>;
+  logger.info('Database', 'Path manager initialized', {
+    config: pathManager.getConfig(),
+    path: pathManager.getPath(),
+  });
 }
 
 
 ============================================================
-FILE: src/shared/types/database.types.ts
+FILE: src/electron/features/database/database.constants.ts
+============================================================
+
+// src/electron/features/database/database.constants.ts
+
+import type { DatabaseConfig } from './database.types';
+
+export const FEATURE_NAME = 'DATABASE';
+
+/**
+ * Настройки базы данных
+ */
+export const DATABASE_SETTINGS = {
+  DEFAULT_FILENAME: 'sensor-data.db',
+  MAX_SIZE: 100 * 1024 * 1024, // 100 MB
+  AUTO_SAVE_INTERVAL_WINDOWS: 15000, // 15 сек для Windows
+  AUTO_SAVE_INTERVAL_OTHER: 10000, // 10 сек для других ОС
+} as const;
+
+/**
+ * Настройки оптимизации SQLite
+ */
+export const SQLITE_PRAGMAS = {
+  JOURNAL_MODE: 'MEMORY',
+  SYNCHRONOUS: 'OFF',
+  CACHE_SIZE: 10000,
+  TEMP_STORE: 'MEMORY',
+} as const;
+
+/**
+ * Названия таблиц
+ */
+export const TABLE_NAMES = {
+  SENSOR_DATA: 'sensor_data',
+  CHANNEL_DATA: 'channel_data',
+  SESSIONS: 'sessions',
+  LOGS: 'logs',
+} as const;
+
+/**
+ * Дефолтная конфигурация
+ */
+export const DEFAULT_DATABASE_CONFIG: DatabaseConfig = {
+  location: 'userData',
+  filename: DATABASE_SETTINGS.DEFAULT_FILENAME,
+};
+
+
+============================================================
+FILE: src/electron/features/database/database.ipc.ts
+============================================================
+
+// src/electron/features/database/database.ipc.ts
+
+import { ipcMain, shell, dialog, app } from 'electron';
+import { existsSync, statSync, copyFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+
+import type { DatabaseLocation, DatabaseExportOptions } from './database.types';
+import { DatabaseIPC } from './database.types';
+import { formatBytes } from './database.utils';
+import { getDatabasePathManager, initializeDatabasePath } from './database.config';
+import { database } from './database';
+import { logger } from '../logger';
+import { createError } from '../../../shared/errors';
+import { ErrorCodes } from '../../../shared/errors/error-codes';
+import { sensorDataService } from './services/sensor-data.service';
+import type { LogMetadata } from '../../../shared/types/logs.types';
+
+export function registerDatabaseIpc(): void {
+  logger.info('IPC', 'Registering database IPC handlers');
+
+  // ==================== PATH & CONFIG ====================
+
+  ipcMain.handle(DatabaseIPC.GetPath, () => {
+    return logger.withLoggingSync('IPC', 'Get database path', () => {
+      const pathManager = getDatabasePathManager();
+      const dbPath = pathManager.getPath();
+      const config = pathManager.getConfig();
+      const exists = existsSync(dbPath);
+
+      let size = 0;
+      if (exists) {
+        size = statSync(dbPath).size;
+      }
+
+      return {
+        path: dbPath,
+        exists,
+        size,
+        sizeFormatted: formatBytes(size),
+        userDataPath: app.getPath('userData'),
+        config,
+        allPossiblePaths: pathManager.getAllPossiblePaths(),
+      };
+    });
+  });
+
+  ipcMain.handle(
+    DatabaseIPC.ChangeLocation,
+    async (_, location: DatabaseLocation, customPath?: string) => {
+      return logger.withLogging(
+        'IPC',
+        'Change database location',
+        async () => {
+          database.saveDatabase();
+          initializeDatabasePath({ location, customPath });
+          await database.initialize({ location, customPath });
+
+          return {
+            success: true,
+            path: getDatabasePathManager().getPath(),
+          };
+        },
+        { location, customPath },
+      );
+    },
+  );
+
+  ipcMain.handle(DatabaseIPC.SelectCustomPath, async () => {
+    return logger.withLogging('IPC', 'Select custom database path', async () => {
+      const result = await dialog.showOpenDialog({
+        properties: ['openDirectory', 'createDirectory'],
+        title: 'Select Database Folder',
+        buttonLabel: 'Select Folder',
+      });
+
+      if (result.canceled || result.filePaths.length === 0) {
+        return null;
+      }
+
+      return result.filePaths[0];
+    });
+  });
+
+  ipcMain.handle(DatabaseIPC.OpenFolder, () => {
+    return logger.withLoggingSync('IPC', 'Open database folder', () => {
+      const pathManager = getDatabasePathManager();
+      const folderPath = dirname(pathManager.getPath());
+      void shell.openPath(folderPath);
+      return folderPath;
+    });
+  });
+
+  // ==================== STATISTICS ====================
+
+  ipcMain.handle(DatabaseIPC.GetStats, async () => {
+    return logger.withLogging('IPC', 'Get database stats', async () => {
+      const sessions = await sensorDataService.getAllSessions();
+      const dbPath = getDatabasePathManager().getPath();
+
+      let totalSize = 0;
+      if (existsSync(dbPath)) {
+        totalSize = statSync(dbPath).size;
+      }
+
+      const activeSessions = sessions.filter((s) => s.status === 'active').length;
+
+      return {
+        totalSessions: sessions.length,
+        totalRecords: 0,
+        totalSize,
+        totalSizeFormatted: formatBytes(totalSize),
+        activeSessions,
+        sessions: sessions.slice(0, 10),
+      };
+    });
+  });
+
+  ipcMain.handle(
+    DatabaseIPC.GetChannelStats,
+    async (_, port: string, channel: number, startTime: number, endTime: number) => {
+      return logger.withLogging(
+        'IPC',
+        'Get channel stats',
+        async () => {
+          return await sensorDataService.getChannelStats(port, channel, startTime, endTime);
+        },
+        { port, channel, startTime, endTime },
+      );
+    },
+  );
+
+  // ==================== DATA QUERIES ====================
+
+  ipcMain.handle(
+    DatabaseIPC.GetDataByTimeRange,
+    async (_, port: string, startTime: number, endTime: number, limit?: number) => {
+      return logger.withLogging(
+        'IPC',
+        'Get data by time range',
+        async () => {
+          return await sensorDataService.getDataByTimeRange(port, startTime, endTime, limit);
+        },
+        { port, startTime, endTime, limit },
+      );
+    },
+  );
+
+  ipcMain.handle(DatabaseIPC.GetLastRecords, async (_, port: string, limit?: number) => {
+    return logger.withLogging(
+      'IPC',
+      'Get last records',
+      async () => {
+        return await sensorDataService.getLastRecords(port, limit);
+      },
+      { port, limit },
+    );
+  });
+
+  // ==================== BACKUP & RESTORE ====================
+
+  ipcMain.handle(DatabaseIPC.CreateBackup, async () => {
+    return logger.withLogging('IPC', 'Create database backup', async () => {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const backupName = `sensor-data-backup-${timestamp}.db`;
+
+      const result = await dialog.showSaveDialog({
+        title: 'Save Backup',
+        defaultPath: backupName,
+        filters: [
+          { name: 'Database', extensions: ['db'] },
+          { name: 'All Files', extensions: ['*'] },
+        ],
+      });
+
+      if (result.canceled || !result.filePath) {
+        return { success: false, cancelled: true };
+      }
+
+      database.saveDatabase();
+      copyFileSync(getDatabasePathManager().getPath(), result.filePath);
+
+      return { success: true, path: result.filePath };
+    });
+  });
+
+  ipcMain.handle(DatabaseIPC.RestoreBackup, async () => {
+    return logger.withLogging('IPC', 'Restore database backup', async () => {
+      const result = await dialog.showOpenDialog({
+        title: 'Select Backup',
+        filters: [
+          { name: 'Database', extensions: ['db'] },
+          { name: 'All Files', extensions: ['*'] },
+        ],
+        properties: ['openFile'],
+      });
+
+      if (result.canceled || result.filePaths.length === 0) {
+        return { success: false, cancelled: true };
+      }
+
+      await database.importDatabase(result.filePaths[0]);
+
+      return { success: true };
+    });
+  });
+
+  // ==================== EXPORT ====================
+
+  ipcMain.handle(DatabaseIPC.ExportData, async (_, options: DatabaseExportOptions) => {
+    return logger.withLogging(
+      'IPC',
+      'Export database data',
+      async () => {
+        const extensions = { csv: ['csv'], json: ['json'], sql: ['sql'] }[options.format];
+
+        const result = await dialog.showSaveDialog({
+          title: 'Export Data',
+          defaultPath: `export-${Date.now()}.${extensions[0]}`,
+          filters: [{ name: options.format.toUpperCase(), extensions }],
+        });
+
+        if (result.canceled || !result.filePath) {
+          return { success: false, cancelled: true };
+        }
+
+        // TODO: Реализовать экспорт в разных форматах
+
+        return { success: true, path: result.filePath };
+      },
+      options as unknown as LogMetadata,
+    );
+  });
+
+  // ==================== MAINTENANCE ====================
+
+  ipcMain.handle(DatabaseIPC.Vacuum, async () => {
+    return logger.withLogging('IPC', 'Vacuum database', async () => {
+      try {
+        database.vacuum();
+        return { success: true };
+      } catch (err) {
+        throw createError({
+          code: ErrorCodes.DB_QUERY_FAILED,
+          title: 'Vacuum Failed',
+          description: 'Failed to vacuum database',
+          cause: err,
+          area: 'Database',
+        });
+      }
+    });
+  });
+
+  ipcMain.handle(DatabaseIPC.Clear, async () => {
+    return logger.withLogging('IPC', 'Clear database', async () => {
+      try {
+        database.clear();
+        return { success: true };
+      } catch (err) {
+        throw createError({
+          code: ErrorCodes.DB_WRITE_FAILED,
+          title: 'Clear Failed',
+          description: 'Failed to clear database',
+          cause: err,
+          area: 'Database',
+        });
+      }
+    });
+  });
+
+  logger.info('IPC', 'Database IPC handlers registered successfully');
+}
+
+
+============================================================
+FILE: src/electron/features/database/database.ts
+============================================================
+
+// src/electron/features/database/database.ts
+
+import type { Database as SqlJsDatabase } from 'sql.js';
+import initSqlJs from 'sql.js';
+import { app } from 'electron';
+import { join } from 'node:path';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+
+import type { DatabaseConfig, IDatabase } from './database.types';
+import { DATABASE_SETTINGS, TABLE_NAMES } from './database.constants';
+import { configureDatabaseOptimizations } from './database.utils';
+import { getDatabasePathManager, initializeDatabasePath } from './database.config';
+import { logger } from '../logger';
+import { logsService } from './services/logs.service';
+
+const isWindows = process.platform === 'win32';
+
+export class Database implements IDatabase {
+  private static instance: Database;
+  private db: SqlJsDatabase | null = null;
+  private saveQueue: Promise<void> = Promise.resolve();
+
+  private constructor() {}
+
+  static getInstance(): Database {
+    if (!Database.instance) {
+      Database.instance = new Database();
+    }
+    return Database.instance;
+  }
+
+  /**
+   * Инициализация базы данных
+   */
+  async initialize(config?: Partial<DatabaseConfig>): Promise<void> {
+    return logger.withLogging(
+      'Database',
+      'Initialize database',
+      async () => {
+        if (config !== undefined) {
+          initializeDatabasePath(config);
+        }
+
+        const pathManager = getDatabasePathManager();
+        const dbPath = pathManager.getPath();
+
+        logger.info('Database', 'Initializing database', {
+          path: dbPath,
+          config: pathManager.getConfig(),
+        });
+
+        const wasmPath = this.getWasmPath();
+        const SQL = await initSqlJs({
+          locateFile: (file) =>
+            file.includes('sql-wasm.wasm') ? wasmPath : join(process.resourcesPath, file),
+        });
+
+        let buffer: Uint8Array | undefined;
+        if (existsSync(dbPath)) {
+          logger.info('Database', 'Loading existing database');
+          buffer = readFileSync(dbPath);
+        } else {
+          logger.info('Database', 'Creating new database');
+        }
+
+        this.db = new SQL.Database(buffer);
+
+        configureDatabaseOptimizations(this.db);
+        this.createTables();
+        this.setupAutoSave();
+        this.setupLogCleanup();
+
+        // ✅ Регистрируем writer для логгера ПОСЛЕ создания таблиц
+        logger.setDatabaseWriter(async (logs) => {
+          if (this.db === null) {
+            console.warn('[Database] Cannot write logs: DB not initialized');
+            return;
+          }
+          await logsService.insertBatch(this.db, logs);
+        });
+
+        logger.info('Database', 'Database initialized successfully');
+      },
+      config,
+    );
+  }
+  /**
+   * Получить путь к WASM файлу
+   */
+  private getWasmPath(): string {
+    const possiblePaths = app.isPackaged
+      ? [
+          join(process.resourcesPath, 'sql-wasm.wasm'),
+          join(
+            process.resourcesPath,
+            'app.asar.unpacked',
+            'node_modules',
+            'sql.js',
+            'dist',
+            'sql-wasm.wasm',
+          ),
+          join(__dirname, 'sql-wasm.wasm'),
+          join(__dirname, '../sql-wasm.wasm'),
+        ]
+      : [
+          join(__dirname, '../../../node_modules/sql.js/dist/sql-wasm.wasm'),
+          join(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm'),
+        ];
+
+    for (const wasmPath of possiblePaths) {
+      if (existsSync(wasmPath)) {
+        logger.debug('Database', 'WASM file found', { path: wasmPath });
+        return wasmPath;
+      }
+    }
+
+    throw new Error('WASM file not found in any expected location');
+  }
+
+  private createTables(): void {
+    if (this.db === null) {
+      throw new Error('Database not initialized');
+    }
+
+    logger.debug('Database', 'Creating tables and indexes');
+
+    try {
+      // Таблица sensor_data
+      this.db.run(`
+      CREATE TABLE IF NOT EXISTS ${TABLE_NAMES.SENSOR_DATA} (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        record_id TEXT NOT NULL,
+        timestamp INTEGER NOT NULL,
+        time TEXT NOT NULL,
+        port TEXT NOT NULL,
+        raw_data TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+      )
+    `);
+
+      // Таблица channel_data
+      this.db.run(`
+      CREATE TABLE IF NOT EXISTS ${TABLE_NAMES.CHANNEL_DATA} (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sensor_data_id INTEGER NOT NULL,
+        channel INTEGER NOT NULL,
+        value REAL NOT NULL,
+        std_dev REAL,
+        timestamp INTEGER NOT NULL,
+        FOREIGN KEY (sensor_data_id) REFERENCES ${TABLE_NAMES.SENSOR_DATA}(id)
+      )
+    `);
+
+      // Таблица sessions
+      this.db.run(`
+      CREATE TABLE IF NOT EXISTS ${TABLE_NAMES.SESSIONS} (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        port TEXT NOT NULL,
+        start_time INTEGER NOT NULL,
+        end_time INTEGER,
+        record_count INTEGER NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'active'
+      )
+    `);
+
+      // Индексы
+      const indexes = [
+        `CREATE INDEX IF NOT EXISTS idx_sensor_data_timestamp ON ${TABLE_NAMES.SENSOR_DATA}(timestamp)`,
+        `CREATE INDEX IF NOT EXISTS idx_sensor_data_port ON ${TABLE_NAMES.SENSOR_DATA}(port)`,
+        `CREATE INDEX IF NOT EXISTS idx_sensor_data_record_id ON ${TABLE_NAMES.SENSOR_DATA}(record_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_channel_data_sensor_id ON ${TABLE_NAMES.CHANNEL_DATA}(sensor_data_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_channel_data_channel ON ${TABLE_NAMES.CHANNEL_DATA}(channel)`,
+        `CREATE INDEX IF NOT EXISTS idx_channel_data_timestamp ON ${TABLE_NAMES.CHANNEL_DATA}(timestamp)`,
+      ];
+
+      indexes.forEach((sql) => this.db!.run(sql));
+
+      if (this.db === null) {
+        throw new Error('Database became null during table creation');
+      }
+
+      logsService.initializeTable(this.db);
+
+      logger.info('Database', 'Tables and indexes created');
+    } catch (err) {
+      console.error('[Database] Error during createTables:', err);
+      throw err;
+    }
+  }
+  /**
+   * Настройка автосохранения
+   */
+  private setupAutoSave(): void {
+    const saveInterval = isWindows
+      ? DATABASE_SETTINGS.AUTO_SAVE_INTERVAL_WINDOWS
+      : DATABASE_SETTINGS.AUTO_SAVE_INTERVAL_OTHER;
+
+    setInterval(() => {
+      this.saveDatabaseAsync();
+    }, saveInterval);
+
+    app.on('before-quit', (event) => {
+      event.preventDefault();
+      logger.info('Database', 'Saving before quit');
+      this.saveDatabase();
+      setTimeout(() => app.exit(0), 1000);
+    });
+  }
+
+  /**
+   * Асинхронное сохранение базы данных
+   */
+  private saveDatabaseAsync(): void {
+    this.saveQueue = this.saveQueue.then(() => this.saveDatabase());
+  }
+
+  /**
+   * Получить экземпляр базы данных
+   */
+  getDatabase(): SqlJsDatabase {
+    if (this.db === null) {
+      throw new Error('Database not initialized. Call initialize() first.');
+    }
+    return this.db;
+  }
+
+  /**
+   * Сохранить базу данных
+   */
+  saveDatabase(): void {
+    return logger.withLoggingSync('Database', 'Save database', () => {
+      if (this.db === null) {
+        logger.warn('Database', 'Cannot save: not initialized');
+        return;
+      }
+
+      const pathManager = getDatabasePathManager();
+      const dbPath = pathManager.getPath();
+
+      const startTime = Date.now();
+      const data = this.db.export();
+      writeFileSync(dbPath, Buffer.from(data), { flag: 'w' });
+
+      const duration = Date.now() - startTime;
+
+      logger.info('Database', 'Database saved successfully', {
+        duration,
+        size: data.length,
+      });
+    });
+  }
+
+  /**
+   * Экспортировать базу данных
+   */
+  exportDatabase(exportPath: string): boolean {
+    return logger.withLoggingSync(
+      'Database',
+      'Export database',
+      () => {
+        if (this.db === null) return false;
+
+        const data = this.db.export();
+        writeFileSync(exportPath, Buffer.from(data));
+
+        logger.info('Database', 'Database exported successfully', {
+          path: exportPath,
+          size: data.length,
+        });
+
+        return true;
+      },
+      { exportPath },
+    );
+  }
+
+  /**
+   * Импортировать базу данных
+   */
+  async importDatabase(importPath: string): Promise<boolean> {
+    return logger.withLogging(
+      'Database',
+      'Import database',
+      async () => {
+        if (!existsSync(importPath)) {
+          throw new Error(`Import file does not exist: ${importPath}`);
+        }
+
+        const buffer = readFileSync(importPath);
+        const wasmPath = this.getWasmPath();
+        const SQL = await initSqlJs({ locateFile: () => wasmPath });
+
+        this.db = new SQL.Database(buffer);
+        configureDatabaseOptimizations(this.db);
+
+        logger.info('Database', 'Database imported successfully', {
+          path: importPath,
+          size: buffer.length,
+        });
+
+        return true;
+      },
+      { importPath },
+    );
+  }
+
+  /**
+   * Выполнить VACUUM для оптимизации БД
+   */
+  vacuum(): void {
+    return logger.withLoggingSync('Database', 'Vacuum database', () => {
+      if (this.db === null) {
+        throw new Error('Database not initialized');
+      }
+
+      this.db.run('VACUUM');
+      this.saveDatabase();
+
+      logger.info('Database', 'Vacuum completed successfully');
+    });
+  }
+
+  /**
+   * Очистить все данные из БД
+   */
+  clear(): void {
+    return logger.withLoggingSync('Database', 'Clear database', () => {
+      if (this.db === null) {
+        throw new Error('Database not initialized');
+      }
+
+      this.db.run(`DELETE FROM ${TABLE_NAMES.CHANNEL_DATA}`);
+      this.db.run(`DELETE FROM ${TABLE_NAMES.SENSOR_DATA}`);
+      this.db.run(`DELETE FROM ${TABLE_NAMES.SESSIONS}`);
+      this.db.run(
+        `DELETE FROM sqlite_sequence WHERE name IN ('${TABLE_NAMES.CHANNEL_DATA}', '${TABLE_NAMES.SENSOR_DATA}', '${TABLE_NAMES.SESSIONS}')`,
+      );
+      this.db.run('VACUUM');
+
+      this.saveDatabase();
+
+      logger.info('Database', 'Database cleared successfully');
+    });
+  }
+
+  /**
+   * Корректное завершение работы с БД
+   */
+  async shutdown(): Promise<void> {
+    return logger.withLogging('Database', 'Shutdown database', async () => {
+      await this.saveQueue;
+      this.saveDatabase();
+
+      logger.info('Database', 'Database shutdown complete');
+    });
+  }
+
+  private setupLogCleanup(): void {
+    // Очистка каждые 6 часов
+    setInterval(
+      () => {
+        void logger.withLogging('Database', 'Cleanup old logs', async () => {
+          if (this.db === null) {
+            logger.warn('Database', 'Cannot cleanup logs: DB not initialized');
+            return;
+          }
+          await logsService.cleanupOldLogs(this.db);
+        });
+      },
+      6 * 60 * 60 * 1000,
+    );
+
+    // Первая очистка через 1 минуту после запуска
+    setTimeout(() => {
+      void logger.withLogging('Database', 'Initial log cleanup', async () => {
+        if (this.db === null) {
+          logger.warn('Database', 'Cannot cleanup logs: DB not initialized');
+          return;
+        }
+        await logsService.cleanupOldLogs(this.db);
+      });
+    }, 60 * 1000);
+  }
+}
+
+export const database = Database.getInstance();
+
+// Экспортируем для обратной совместимости
+export const getDatabase = (): SqlJsDatabase => database.getDatabase();
+export const saveDatabase = (): void => database.saveDatabase();
+export const exportDatabase = (exportPath: string): boolean => database.exportDatabase(exportPath);
+export const importDatabase = (importPath: string): Promise<boolean> =>
+  database.importDatabase(importPath);
+export const initDatabase = (config?: Partial<DatabaseConfig>): Promise<void> =>
+  database.initialize(config);
+
+
+============================================================
+FILE: src/electron/features/database/database.types.ts
 ============================================================
 
 // src/shared/types/database.types.ts
-
-/**
- * Типы расположения базы данных
- */
-export type DatabaseLocation = 'userData' | 'appPath' | 'documents' | 'custom';
-
-/**
- * Конфигурация базы данных
- */
-export interface DatabaseConfig {
-  location: DatabaseLocation;
-  customPath?: string;
-  filename: string;
-}
+import type { Database as SqlJsDatabase } from 'sql.js';
 
 /**
  * Информация о пути к базе данных
@@ -88,7 +992,11 @@ export interface DatabasePathInfo {
   size: number;
   sizeFormatted: string;
   userDataPath: string;
-  config: DatabaseConfig;
+  config: {
+    location: DatabaseLocation;
+    customPath?: string;
+    filename: string;
+  };
   allPossiblePaths: Record<DatabaseLocation, string>;
 }
 
@@ -99,18 +1007,6 @@ export interface DatabaseChangeLocationResult {
   success: boolean;
   path?: string;
   error?: string;
-}
-
-/**
- * Запись сессии
- */
-export interface SessionRecord {
-  id: number;
-  port: string;
-  start_time: number;
-  end_time?: number;
-  record_count: number;
-  status: 'active' | 'stopped' | 'error';
 }
 
 /**
@@ -149,6 +1045,168 @@ export interface SensorDataRecord {
 }
 
 /**
+ * Запись сессии
+ */
+export interface SessionRecord {
+  id: number;
+  port: string;
+  start_time: number;
+  end_time?: number;
+  record_count: number;
+  status: 'active' | 'stopped' | 'error';
+}
+
+/**
+ * Результат операции с бэкапом
+ */
+export interface DatabaseBackupResult {
+  success: boolean;
+  path?: string;
+  cancelled?: boolean;
+  error?: string;
+}
+
+/**
+ * Опции экспорта данных
+ */
+export interface DatabaseExportOptions {
+  format: 'csv' | 'json' | 'sql';
+  timeRange?: string;
+  startTime?: number;
+  endTime?: number;
+}
+
+/**
+ * Результат экспорта данных
+ */
+export interface DatabaseExportResult {
+  success: boolean;
+  path?: string;
+  cancelled?: boolean;
+  error?: string;
+}
+
+export enum DatabaseIPC {
+  // Path & Config
+  GetPath = 'db:getPath',
+  ChangeLocation = 'db:changeLocation',
+  SelectCustomPath = 'db:selectCustomPath',
+  OpenFolder = 'db:openFolder',
+
+  // Statistics
+  GetStats = 'db:getStats',
+  GetChannelStats = 'db:getChannelStats',
+
+  // Data Queries
+  GetDataByTimeRange = 'db:getDataByTimeRange',
+  GetLastRecords = 'db:getLastRecords',
+
+  // Backup & Restore
+  CreateBackup = 'db:createBackup',
+  RestoreBackup = 'db:restoreBackup',
+
+  // Export
+  ExportData = 'db:exportData',
+
+  // Maintenance
+  Vacuum = 'db:vacuum',
+  Clear = 'db:clear',
+}
+
+/**
+ * Типы расположения базы данных
+ */
+export type DatabaseLocation = 'userData' | 'appPath' | 'documents' | 'custom';
+
+/**
+ * Конфигурация базы данных
+ */
+export interface DatabaseConfig {
+  location: DatabaseLocation;
+  customPath?: string;
+  filename: string;
+}
+
+/**
+ * Информация о пути к базе данных
+ */
+export interface DatabasePathInfo {
+  path: string;
+  exists: boolean;
+  size: number;
+  sizeFormatted: string;
+  userDataPath: string;
+  config: DatabaseConfig;
+  allPossiblePaths: Record<DatabaseLocation, string>;
+}
+
+/**
+ * Результат изменения местоположения БД
+ */
+export interface DatabaseChangeLocationResult {
+  success: boolean;
+  path?: string;
+  error?: string;
+}
+
+/**
+ * Статистика базы данных
+ */
+export interface DatabaseStats {
+  totalSessions: number;
+  totalRecords: number;
+  totalSize: number;
+  totalSizeFormatted: string;
+  activeSessions: number;
+  sessions: SessionRecord[];
+}
+
+/**
+ * Статистика канала
+ */
+export interface ChannelStats {
+  count: number;
+  min: number;
+  max: number;
+  avg: number;
+}
+
+/**
+ * Запись данных сенсора
+ */
+export interface SensorDataRecord {
+  id: number;
+  record_id: string;
+  timestamp: number;
+  time: string;
+  port: string;
+  raw_data: string;
+  created_at: number;
+}
+
+/**
+ * Запись канала
+ */
+export interface ChannelRecord {
+  channel: number;
+  value: number;
+  //@ts-ignore
+  stdDev?: number;
+}
+
+/**
+ * Запись сессии
+ */
+export interface SessionRecord {
+  id: number;
+  port: string;
+  start_time: number;
+  end_time?: number;
+  record_count: number;
+  status: 'active' | 'stopped' | 'error';
+}
+
+/**
  * Результат операции с бэкапом
  */
 export interface DatabaseBackupResult {
@@ -179,362 +1237,964 @@ export interface DatabaseExportResult {
 }
 
 /**
- * API для работы с базой данных (Renderer Process)
+ * Результат операции очистки
  */
-export interface DatabaseAPI {
-  getPath: () => Promise<DatabasePathInfo>;
-  changeLocation: (
-    location: DatabaseLocation,
-    customPath?: string,
-  ) => Promise<DatabaseChangeLocationResult>;
-  selectCustomPath: () => Promise<string | null>;
-  openFolder: () => Promise<string>;
-  getStats: () => Promise<DatabaseStats>;
-  getChannelStats: (
+export interface DatabaseClearResult {
+  success: boolean;
+  error?: string;
+}
+
+/**
+ * Интерфейс для работы с базой данных (Main Process)
+ */
+export interface IDatabase {
+  getDatabase(): SqlJsDatabase;
+  saveDatabase(): void;
+  exportDatabase(exportPath: string): boolean;
+  importDatabase(importPath: string): Promise<boolean>;
+  shutdown(): Promise<void>;
+}
+
+export interface ChannelStats {
+  count: number;
+  min: number;
+  max: number;
+  avg: number;
+}
+
+/**
+ * Запись канала с нормализацией
+ */
+export interface ChannelRecord {
+  channel: number;
+  value: number;
+  normalized: number;
+  //@ts-ignore
+  stdDev: number;
+}
+
+/**
+ * Запись сессии
+ */
+export interface SessionRecord {
+  id: number;
+  port: string;
+  start_time: number;
+  end_time?: number;
+  record_count: number;
+  status: 'active' | 'stopped' | 'error';
+}
+
+
+============================================================
+FILE: src/electron/features/database/database.utils.ts
+============================================================
+
+// src/electron/features/database/database.utils.ts
+
+import type { Database as SqlJsDatabase } from 'sql.js';
+
+import { SQLITE_PRAGMAS } from './database.constants';
+import { logger } from '../logger';
+
+/**
+ * Форматирование размера в байтах
+ */
+export function formatBytes(bytes: number, decimals = 2): string {
+  if (bytes === 0) return '0 Bytes';
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+/**
+ * Применение оптимизаций SQLite
+ */
+export function configureDatabaseOptimizations(db: SqlJsDatabase): void {
+  try {
+    db.run(`PRAGMA journal_mode = ${SQLITE_PRAGMAS.JOURNAL_MODE}`);
+    db.run(`PRAGMA synchronous = ${SQLITE_PRAGMAS.SYNCHRONOUS}`);
+    db.run(`PRAGMA cache_size = ${SQLITE_PRAGMAS.CACHE_SIZE}`);
+    db.run(`PRAGMA temp_store = ${SQLITE_PRAGMAS.TEMP_STORE}`);
+
+    logger.debug('Database', 'SQLite optimizations applied', SQLITE_PRAGMAS);
+  } catch (err) {
+    logger.error('Database', 'Failed to apply optimizations', {}, err);
+  }
+}
+
+/**
+ * Преобразование результата SQL.js в массив объектов
+ */
+export function sqlResultToArray<T>(result: any[]): T[] {
+  if (result.length === 0) return [];
+
+  const columns = result[0].columns;
+  const values = result[0].values;
+
+  return values.map((row: any) => {
+    const obj: Record<string, unknown> = {};
+    columns.forEach((col: string, idx: number) => {
+      obj[col] = row[idx];
+    });
+    return obj as T;
+  });
+}
+
+/**
+ * Получить значение из первой строки результата
+ */
+export function getSingleValue<T>(result: any[], defaultValue: T): T {
+  if (result.length === 0 || result[0].values.length === 0) {
+    return defaultValue;
+  }
+  return (result[0].values[0][0] as T) ?? defaultValue;
+}
+
+/**
+ * Выполнить запрос и получить массив объектов
+ */
+export function executeQuery<T>(db: SqlJsDatabase, sql: string, params: any[] = []): T[] {
+  try {
+    const result = db.exec(sql, params);
+    return sqlResultToArray<T>(result);
+  } catch (err) {
+    logger.error('Database', 'Query execution failed', { sql, params }, err);
+    throw err;
+  }
+}
+
+/**
+ * Создать индексы для таблицы
+ */
+export function createIndexes(db: SqlJsDatabase, indexes: string[]): void {
+  indexes.forEach((sql) => {
+    try {
+      db.run(sql);
+    } catch (err) {
+      logger.warn('Database', 'Failed to create index', { sql }, err);
+    }
+  });
+}
+
+
+============================================================
+FILE: src/electron/features/database/index.ts
+============================================================
+
+// src/electron/features/database/index.ts
+
+export * from './database';
+export * from './database.types';
+export * from './database.constants';
+export * from './database.utils';
+export * from './database.config';
+export * from './database.api';
+export * from './database.ipc';
+
+// Экспорт сервисов
+export * from './services/sensor-data.service';
+export * from './services/logs.service';
+
+// Экспорт основных функций
+export { database } from './database';
+export { registerDatabaseIpc } from './database.ipc';
+export { databaseAPI } from './database.api';
+export { sensorDataService } from './services/sensor-data.service';
+export { logsService } from './services/logs.service';
+
+
+============================================================
+FILE: src/electron/features/database/migrations/logs.sql
+============================================================
+
+--electron/features/database/migrations/logs.sql
+CREATE TABLE IF NOT EXISTS logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  timestamp INTEGER NOT NULL,
+  level TEXT NOT NULL,
+  area TEXT NOT NULL,
+  message TEXT NOT NULL,
+  metadata TEXT,
+  stack TEXT,
+  created_at INTEGER NOT NULL
+);
+
+-- Индексы для быстрого поиска
+CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON logs(timestamp);
+CREATE INDEX IF NOT EXISTS idx_logs_level ON logs(level);
+CREATE INDEX IF NOT EXISTS idx_logs_area ON logs(area);
+CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_logs_error_code ON logs(json_extract(metadata, '$.errorCode')) WHERE metadata IS NOT NULL;
+
+============================================================
+FILE: src/electron/features/database/migrations/schema.sql
+============================================================
+
+-- features/database/schema.sql
+-- Добавляем normalized значения в channels
+CREATE TABLE IF NOT EXISTS sensor_channels (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  data_id INTEGER NOT NULL,
+  channel INTEGER NOT NULL,
+  value REAL NOT NULL,
+  normalized REAL, -- 👈 Нормализованное значение
+  std_dev REAL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (data_id) REFERENCES sensor_data (id) ON DELETE CASCADE
+);
+
+-- Индексы для быстрого поиска
+CREATE INDEX IF NOT EXISTS idx_channels_data_channel ON sensor_channels(data_id, channel);
+CREATE INDEX IF NOT EXISTS idx_channels_normalized ON sensor_channels(normalized);
+
+
+============================================================
+FILE: src/electron/features/database/services/logs.service.ts
+============================================================
+
+// src/electron/features/database/services/logs.service.ts
+
+import type { Database as SqlJsDatabase } from 'sql.js';
+
+import type {
+  LogEntry,
+  LogsStats,
+  LogsFilter,
+  LogMetadata,
+} from '../../../../shared/types/logs.types';
+import { TABLE_NAMES } from '../database.constants';
+import { executeQuery, getSingleValue } from '../database.utils';
+import { logger } from '../../logger';
+import { createError } from '../../../../shared/errors';
+import { ErrorCodes } from '../../../../shared/errors/error-codes';
+
+const LOG_RETENTION_DAYS = 3;
+
+export class LogsService {
+  /**
+   * Инициализация таблицы логов
+   * @param db - Экземпляр базы данных (передается извне)
+   */
+  initializeTable(db: SqlJsDatabase): void {
+    return logger.withLoggingSync('Database', 'Initialize logs table', () => {
+      try {
+        db.run(`
+        CREATE TABLE IF NOT EXISTS ${TABLE_NAMES.LOGS} (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          timestamp INTEGER NOT NULL,
+          level TEXT NOT NULL,
+          area TEXT NOT NULL,
+          message TEXT NOT NULL,
+          metadata TEXT,
+          stack TEXT,
+          created_at INTEGER NOT NULL
+        )
+      `);
+
+        db.run(`CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON ${TABLE_NAMES.LOGS}(timestamp)`);
+        db.run(`CREATE INDEX IF NOT EXISTS idx_logs_level ON ${TABLE_NAMES.LOGS}(level)`);
+        db.run(`CREATE INDEX IF NOT EXISTS idx_logs_area ON ${TABLE_NAMES.LOGS}(area)`);
+        db.run(`CREATE INDEX IF NOT EXISTS idx_logs_created_at ON ${TABLE_NAMES.LOGS}(created_at)`);
+        db.run(
+          `CREATE INDEX IF NOT EXISTS idx_logs_error_code ON ${TABLE_NAMES.LOGS}(json_extract(metadata, '$.errorCode')) WHERE metadata IS NOT NULL`,
+        );
+
+        logger.info('Database', 'Logs table initialized');
+      } catch (err) {
+        // ✅ Логируем оригинальную ошибку
+        console.error('[LogsService] Original error:', err);
+
+        throw createError({
+          code: ErrorCodes.DB_INIT_FAILED,
+          title: 'Logs Table Init Failed',
+          description: `Failed to initialize logs table: ${err instanceof Error ? err.message : String(err)}`,
+          cause: err,
+          area: 'Database',
+        });
+      }
+    });
+  }
+  /**
+   * Пакетная вставка логов
+   * @param db - Экземпляр базы данных
+   */
+
+  async insertBatch(db: SqlJsDatabase, logs: LogEntry[]): Promise<void> {
+    if (logs.length === 0) return;
+
+    const createdAt = Date.now();
+
+    try {
+      const stmt = db.prepare(`
+        INSERT INTO ${TABLE_NAMES.LOGS} (timestamp, level, area, message, metadata, stack, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      logs.forEach((log) => {
+        stmt.run([
+          log.timestamp,
+          log.level,
+          log.area,
+          log.message,
+          log.metadata ?? null,
+          log.stack ?? null,
+          createdAt,
+        ]);
+      });
+
+      stmt.free();
+    } catch (err) {
+      // Не выбрасываем ошибку, чтобы не прервать работу приложения
+      console.error('[LogsService] Failed to insert batch:', err);
+    }
+  }
+
+  /**
+   * Получение логов с фильтрацией
+   */
+  async getLogs(db: SqlJsDatabase, options: LogsFilter): Promise<LogEntry[]> {
+    const { level, area, startTime, endTime, limit = 1000, search, errorCode } = options;
+
+    try {
+      let sql = `SELECT * FROM ${TABLE_NAMES.LOGS} WHERE 1=1`;
+      const params: unknown[] = [];
+
+      if (level !== undefined) {
+        sql += ' AND level = ?';
+        params.push(level);
+      }
+
+      if (area !== undefined) {
+        sql += ' AND area = ?';
+        params.push(area);
+      }
+
+      if (startTime !== undefined) {
+        sql += ' AND timestamp >= ?';
+        params.push(startTime);
+      }
+
+      if (endTime !== undefined) {
+        sql += ' AND timestamp <= ?';
+        params.push(endTime);
+      }
+
+      if (search !== undefined) {
+        sql += ' AND message LIKE ?';
+        params.push(`%${search}%`);
+      }
+
+      if (errorCode !== undefined) {
+        sql += " AND json_extract(metadata, '$.errorCode') = ?";
+        params.push(errorCode);
+      }
+
+      sql += ' ORDER BY timestamp DESC LIMIT ?';
+      params.push(limit);
+
+      return executeQuery<LogEntry>(db, sql, params);
+    } catch (err) {
+      logger.error('Database', 'Failed to get logs', options as LogMetadata, err);
+      throw err;
+    }
+  }
+
+  /**
+   * Получение статистики логов
+   */
+  async getStats(db: SqlJsDatabase): Promise<LogsStats> {
+    try {
+      // Общее количество
+      const totalResult = db.exec(`SELECT COUNT(*) as count FROM ${TABLE_NAMES.LOGS}`);
+      const total = getSingleValue<number>(totalResult, 0);
+
+      // По уровням
+      const levelResult = db.exec(
+        `SELECT level, COUNT(*) as count FROM ${TABLE_NAMES.LOGS} GROUP BY level`,
+      );
+      const byLevel: Record<string, number> = {};
+
+      if (levelResult.length > 0) {
+        levelResult[0].values.forEach((row) => {
+          byLevel[row[0] as string] = row[1] as number;
+        });
+      }
+
+      // По областям
+      const areaResult = db.exec(
+        `SELECT area, COUNT(*) as count FROM ${TABLE_NAMES.LOGS} GROUP BY area`,
+      );
+      const byArea: Record<string, number> = {};
+
+      if (areaResult.length > 0) {
+        areaResult[0].values.forEach((row) => {
+          byArea[row[0] as string] = row[1] as number;
+        });
+      }
+
+      // Временные рамки
+      const oldestResult = db.exec(`SELECT MIN(timestamp) as oldest FROM ${TABLE_NAMES.LOGS}`);
+      const oldestLog = getSingleValue<number | null>(oldestResult, null);
+
+      const newestResult = db.exec(`SELECT MAX(timestamp) as newest FROM ${TABLE_NAMES.LOGS}`);
+      const newestLog = getSingleValue<number | null>(newestResult, null);
+
+      return { total, byLevel, byArea, oldestLog, newestLog };
+    } catch (err) {
+      logger.error('Database', 'Failed to get logs stats', {}, err);
+      throw err;
+    }
+  }
+
+  /**
+   * Очистка старых логов
+   */
+  async cleanupOldLogs(db: SqlJsDatabase): Promise<number> {
+    const cutoffTime = Date.now() - LOG_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+
+    try {
+      db.run(`DELETE FROM ${TABLE_NAMES.LOGS} WHERE timestamp < ?`, [cutoffTime]);
+
+      const result = db.exec('SELECT changes() as count');
+      const deletedCount = getSingleValue<number>(result, 0);
+
+      if (deletedCount > 0) {
+        logger.info('Database', 'Old logs cleaned up', {
+          deletedCount,
+          cutoffTime,
+        });
+      }
+
+      return deletedCount;
+    } catch (err) {
+      logger.error('Database', 'Failed to cleanup old logs', {}, err);
+      throw err;
+    }
+  }
+
+  /**
+   * Удаление всех логов
+   */
+  async clearAllLogs(db: SqlJsDatabase): Promise<void> {
+    try {
+      db.run(`DELETE FROM ${TABLE_NAMES.LOGS}`);
+      db.run(`DELETE FROM sqlite_sequence WHERE name = '${TABLE_NAMES.LOGS}'`);
+      db.run('VACUUM');
+
+      logger.warn('Database', 'All logs cleared');
+    } catch (err) {
+      logger.error('Database', 'Failed to clear logs', {}, err);
+      throw err;
+    }
+  }
+
+  /**
+   * Экспорт логов в JSON
+   */
+  async exportToJson(
+    db: SqlJsDatabase,
+    filePath: string,
+    options?: { level?: string; area?: string; startTime?: number; endTime?: number },
+  ): Promise<boolean> {
+    try {
+      const logs = await this.getLogs(db, {
+        level: options?.level as LogEntry['level'],
+        area: options?.area as LogEntry['area'],
+        startTime: options?.startTime,
+        endTime: options?.endTime,
+        limit: 100000,
+      });
+
+      const fs = await import('node:fs');
+      fs.writeFileSync(filePath, JSON.stringify(logs, null, 2), 'utf-8');
+
+      logger.info('Database', 'Logs exported', {
+        path: filePath,
+        count: logs.length,
+      });
+
+      return true;
+    } catch (err) {
+      logger.error('Database', 'Failed to export logs', { filePath }, err);
+      return false;
+    }
+  }
+}
+
+export const logsService = new LogsService();
+
+
+============================================================
+FILE: src/electron/features/database/services/sensor-data.service.ts
+============================================================
+
+// src/electron/database/service/sensor-data.service.ts
+
+import { AppError } from '../../../../shared/errors/error.types';
+import { ErrorCodes } from '../../../../shared/errors/error-codes';
+import { logger } from '../../logger/logger';
+import { getDatabase } from '../database';
+import type {
+  ChannelRecord,
+  ChannelStats,
+  SensorDataRecord,
+  SessionRecord,
+} from '../database.types';
+import type { LogMetadata } from '../../../../shared/types/logs.types';
+
+export class SensorDataService {
+  /**
+   * Сохранение данных с датчиков
+   */
+  async saveSensorData(
+    port: string,
+    recordId: string,
+    time: string,
+    rawData: unknown,
+    channels: ChannelRecord[],
+  ): Promise<number> {
+    return logger.withLogging(
+      'Database',
+      'Save sensor data',
+      async () => {
+        const db = getDatabase();
+        const timestamp = Date.now();
+
+        const metadata: LogMetadata = {
+          port,
+          recordId,
+          channelCount: channels.length,
+        };
+
+        try {
+          // Вставляем основную запись
+          db.run(
+            `INSERT INTO sensor_data (record_id, timestamp, time, port, raw_data, created_at) 
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [recordId, timestamp, time, port, JSON.stringify(rawData), timestamp],
+          );
+
+          // Получаем ID вставленной записи
+          const result = db.exec('SELECT last_insert_rowid() as id');
+          const sensorDataId = result[0].values[0][0] as number;
+
+          // Вставляем данные по каналам
+          if (channels.length > 0) {
+            const stmt = db.prepare(
+              `INSERT INTO channel_data (sensor_data_id, channel, value, std_dev, timestamp) 
+               VALUES (?, ?, ?, ?, ?)`,
+            );
+
+            channels.forEach((ch) => {
+              stmt.run([sensorDataId, ch.channel, ch.value, ch.stdDev ?? null, timestamp]);
+            });
+
+            stmt.free();
+          }
+
+          logger.debug('Database', 'Sensor data saved successfully', {
+            ...metadata,
+            sensorDataId,
+          });
+
+          return sensorDataId;
+        } catch (err) {
+          throw new AppError({
+            code: ErrorCodes.DB_WRITE_FAILED,
+            title: 'Database Write Failed',
+            description: 'Failed to save sensor data to database',
+            meta: metadata,
+            cause: err,
+            area: 'Database',
+          });
+        }
+      },
+      { port, recordId },
+    );
+  }
+
+  /**
+   * Получение данных за период
+   */
+  async getDataByTimeRange(
+    port: string,
+    startTime: number,
+    endTime: number,
+    limit = 1000,
+  ): Promise<SensorDataRecord[]> {
+    return logger.withLogging(
+      'Database',
+      'Get data by time range',
+      async () => {
+        const db = getDatabase();
+
+        try {
+          const result = db.exec(
+            `SELECT * FROM sensor_data 
+             WHERE port = ? AND timestamp >= ? AND timestamp <= ?
+             ORDER BY timestamp DESC
+             LIMIT ?`,
+            [port, startTime, endTime, limit],
+          );
+
+          if (result.length === 0) {
+            logger.debug('Database', 'No data found in time range', {
+              port,
+              startTime,
+              endTime,
+            });
+            return [];
+          }
+
+          const columns = result[0].columns;
+          const values = result[0].values;
+
+          const records = values.map((row) => {
+            const obj: Record<string, unknown> = {};
+            columns.forEach((col, idx) => {
+              obj[col] = row[idx];
+            });
+            return obj as unknown as SensorDataRecord;
+          });
+
+          logger.debug('Database', 'Data retrieved successfully', {
+            port,
+            recordCount: records.length,
+            startTime,
+            endTime,
+          });
+
+          return records;
+        } catch (err) {
+          throw new AppError({
+            code: ErrorCodes.DB_READ_FAILED,
+            title: 'Database Read Failed',
+            description: 'Failed to retrieve sensor data from database',
+            meta: { port, startTime, endTime, limit },
+            cause: err,
+            area: 'Database',
+          });
+        }
+      },
+      { port, startTime, endTime, limit },
+    );
+  }
+
+  /**
+   * Создание сессии
+   */
+  async createSession(port: string): Promise<number> {
+    return logger.withLogging(
+      'Session',
+      'Create session',
+      async () => {
+        const db = getDatabase();
+
+        try {
+          db.run(
+            `INSERT INTO sessions (port, start_time, record_count, status) 
+             VALUES (?, ?, 0, 'active')`,
+            [port, Date.now()],
+          );
+
+          const result = db.exec('SELECT last_insert_rowid() as id');
+          const sessionId = result[0].values[0][0] as number;
+
+          logger.info('Session', 'Session created successfully', {
+            sessionId,
+            port,
+          });
+
+          return sessionId;
+        } catch (err) {
+          throw new AppError({
+            code: ErrorCodes.DB_WRITE_FAILED,
+            title: 'Session Creation Failed',
+            description: 'Failed to create new session',
+            meta: { port },
+            cause: err,
+            area: 'Session',
+          });
+        }
+      },
+      { port },
+    );
+  }
+
+  /**
+   * Завершение сессии
+   */
+  async endSession(sessionId: number): Promise<void> {
+    return logger.withLogging(
+      'Session',
+      'End session',
+      async () => {
+        const db = getDatabase();
+
+        try {
+          db.run(
+            `UPDATE sessions 
+             SET end_time = ?, status = 'stopped'
+             WHERE id = ?`,
+            [Date.now(), sessionId],
+          );
+
+          logger.info('Session', 'Session ended successfully', {
+            sessionId,
+          });
+        } catch (err) {
+          throw new AppError({
+            code: ErrorCodes.DB_WRITE_FAILED,
+            title: 'Session End Failed',
+            description: 'Failed to end session',
+            meta: { sessionId },
+            cause: err,
+            area: 'Session',
+          });
+        }
+      },
+      { sessionId },
+    );
+  }
+
+  /**
+   * Получение статистики базы данных
+   */
+  async getDatabaseStats(): Promise<{
+    totalSensorRecords: number;
+    totalChannelRecords: number;
+    totalSessions: number;
+    activeSessions: number;
+    oldestRecord: number | null;
+    newestRecord: number | null;
+  }> {
+    return logger.withLogging('Database', 'Get database stats', async () => {
+      const db = getDatabase();
+
+      try {
+        // Количество записей датчиков
+        const sensorResult = db.exec('SELECT COUNT(*) as count FROM sensor_data');
+        const totalSensorRecords = (sensorResult[0]?.values[0]?.[0] as number) || 0;
+
+        // Количество записей каналов
+        const channelResult = db.exec('SELECT COUNT(*) as count FROM channel_data');
+        const totalChannelRecords = (channelResult[0]?.values[0]?.[0] as number) || 0;
+
+        // Количество сессий
+        const sessionsResult = db.exec('SELECT COUNT(*) as count FROM sessions');
+        const totalSessions = (sessionsResult[0]?.values[0]?.[0] as number) || 0;
+
+        // Активные сессии
+        const activeResult = db.exec(
+          `SELECT COUNT(*) as count FROM sessions WHERE status = 'active'`,
+        );
+        const activeSessions = (activeResult[0]?.values[0]?.[0] as number) || 0;
+
+        // Самая старая и новая запись
+        const oldestResult = db.exec('SELECT MIN(timestamp) as oldest FROM sensor_data');
+        const oldestRecord = (oldestResult[0]?.values[0]?.[0] as number) || null;
+
+        const newestResult = db.exec('SELECT MAX(timestamp) as newest FROM sensor_data');
+        const newestRecord = (newestResult[0]?.values[0]?.[0] as number) || null;
+
+        return {
+          totalSensorRecords,
+          totalChannelRecords,
+          totalSessions,
+          activeSessions,
+          oldestRecord,
+          newestRecord,
+        };
+      } catch (err) {
+        throw new AppError({
+          code: ErrorCodes.DB_QUERY_FAILED,
+          title: 'Stats Query Failed',
+          description: 'Failed to retrieve database statistics',
+          cause: err,
+          area: 'Database',
+        });
+      }
+    });
+  }
+
+  async incrementSessionRecords(sessionId: number): Promise<void> {
+    return logger.withLogging(
+      'Session',
+      'Increment session records',
+      async () => {
+        const db = getDatabase();
+
+        try {
+          db.run(
+            `UPDATE sessions 
+             SET record_count = record_count + 1
+             WHERE id = ?`,
+            [sessionId],
+          );
+
+          logger.debug('Session', 'Record count incremented', { sessionId });
+        } catch (err) {
+          throw new AppError({
+            code: ErrorCodes.DB_WRITE_FAILED,
+            title: 'Session Update Failed',
+            description: 'Failed to increment session record count',
+            meta: { sessionId },
+            cause: err,
+            area: 'Session',
+          });
+        }
+      },
+      { sessionId },
+    );
+  }
+
+  /**
+   * Получить все сессии
+   */
+  async getAllSessions(): Promise<SessionRecord[]> {
+    return logger.withLogging('Session', 'Get all sessions', async () => {
+      const db = getDatabase();
+
+      try {
+        const result = db.exec(`SELECT * FROM sessions ORDER BY start_time DESC LIMIT 100`);
+
+        if (result.length === 0) {
+          return [];
+        }
+
+        const columns = result[0].columns;
+        const values = result[0].values;
+
+        return values.map((row) => {
+          const obj: Record<string, unknown> = {};
+          columns.forEach((col, idx) => {
+            obj[col] = row[idx];
+          });
+          return obj as unknown as SessionRecord;
+        });
+      } catch (err) {
+        throw new AppError({
+          code: ErrorCodes.DB_READ_FAILED,
+          title: 'Sessions Read Failed',
+          description: 'Failed to retrieve sessions from database',
+          cause: err,
+          area: 'Session',
+        });
+      }
+    });
+  }
+
+  /**
+   * Получить последние N записей
+   */
+  async getLastRecords(port: string, limit = 100): Promise<SensorDataRecord[]> {
+    return logger.withLogging(
+      'Database',
+      'Get last records',
+      async () => {
+        const db = getDatabase();
+
+        try {
+          const result = db.exec(
+            `SELECT * FROM sensor_data 
+             WHERE port = ?
+             ORDER BY timestamp DESC
+             LIMIT ?`,
+            [port, limit],
+          );
+
+          if (result.length === 0) {
+            return [];
+          }
+
+          const columns = result[0].columns;
+          const values = result[0].values;
+
+          return values.map((row) => {
+            const obj: Record<string, unknown> = {};
+            columns.forEach((col, idx) => {
+              obj[col] = row[idx];
+            });
+            return obj as unknown as SensorDataRecord;
+          });
+        } catch (err) {
+          throw new AppError({
+            code: ErrorCodes.DB_READ_FAILED,
+            title: 'Last Records Read Failed',
+            description: 'Failed to retrieve last records from database',
+            meta: { port, limit },
+            cause: err,
+            area: 'Database',
+          });
+        }
+      },
+      { port, limit },
+    );
+  }
+
+  /**
+   * Получить статистику канала
+   */
+  async getChannelStats(
     port: string,
     channel: number,
     startTime: number,
     endTime: number,
-  ) => Promise<ChannelStats>;
-  getDataByTimeRange: (
-    port: string,
-    startTime: number,
-    endTime: number,
-    limit?: number,
-  ) => Promise<SensorDataRecord[]>;
-  getLastRecords: (port: string, limit?: number) => Promise<SensorDataRecord[]>;
-  createBackup: () => Promise<DatabaseBackupResult>;
-  restoreBackup: () => Promise<DatabaseBackupResult>;
-  exportData: (options: DatabaseExportOptions) => Promise<DatabaseExportResult>;
-  vacuum: () => Promise<{ success: boolean; error?: string }>;
-  clear: () => Promise<{ success: boolean; error?: string }>;
-}
+  ): Promise<ChannelStats> {
+    return logger.withLogging(
+      'Database',
+      'Get channel stats',
+      async () => {
+        const db = getDatabase();
 
+        try {
+          const result = db.exec(
+            `SELECT 
+               COUNT(*) as count,
+               MIN(value) as min,
+               MAX(value) as max,
+               AVG(value) as avg
+             FROM channel_data cd
+             INNER JOIN sensor_data sd ON cd.sensor_data_id = sd.id
+             WHERE sd.port = ? 
+               AND cd.channel = ?
+               AND sd.timestamp >= ?
+               AND sd.timestamp <= ?`,
+            [port, channel, startTime, endTime],
+          );
 
-============================================================
-FILE: src/shared/types/global.d.ts
-============================================================
+          if (result.length === 0 || result[0].values.length === 0) {
+            return { count: 0, min: 0, max: 0, avg: 0 };
+          }
 
-// src/shared/types/global.d.ts
-
-import type { AppDataAPI } from './app-data.types';
-import type { DatabaseAPI } from './database.types';
-import type { LoggerAPI, LogsAPI } from './logs.types';
-import type { SerialAPI } from './serial.types';
-
-declare global {
-  interface Window {
-      appData: AppDataAPI;
-      logger: LoggerAPI;
-      database: DatabaseAPI;
-      serial: SerialAPI;
+          const row = result[0].values[0];
+          return {
+            count: (row[0] as number) ?? 0,
+            min: (row[1] as number) ?? 0,
+            max: (row[2] as number) ?? 0,
+            avg: (row[3] as number) ?? 0,
+          };
+        } catch (err) {
+          throw new AppError({
+            code: ErrorCodes.DB_QUERY_FAILED,
+            title: 'Channel Stats Failed',
+            description: 'Failed to retrieve channel statistics',
+            meta: { port, channel, startTime, endTime },
+            cause: err,
+            area: 'Database',
+          });
+        }
+      },
+      { port, channel, startTime, endTime },
+    );
   }
 }
 
-export {};
-
-
-============================================================
-FILE: src/shared/types/logs.types.ts
-============================================================
-
-// src/shared/types/logs.types.ts
-
-/**
- * Уровни логирования
- */
-export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
-
-/**
- * Области логирования
- */
-export type LogArea =
-  | 'App'
-  | 'Database'
-  | 'Serial'
-  | 'Updater'
-  | 'Logger'
-  | 'IPC'
-  | 'UI'
-  | 'Storage'
-  | 'Settings'
-  | 'Export'
-  | 'Import'
-  | 'Backup'
-  | 'Session'
-  | 'Chart'
-  | 'Filter'
-  | 'Network'
-  | 'FileSystem'
-  | 'Performance'
-  | 'Security'
-  | 'Connection'
-  | 'Preload'
-  | 'DataProcessor'
-  | 'PortManager'
-  | 'Window'
-  | 'Unknown';
-
-/**
- * Метаданные лога
- */
-export interface LogMetadata {
-  [key: string]: unknown;
-  errorCode?: string;
-  errorType?: string;
-  errorStatus?: 'handled' | 'unhandled' | 'recovered';
-  duration?: number;
-  operationId?: string;
-  userId?: string;
-  traceId?: string;
-  spanId?: string;
-  context?: Record<string, unknown>;
-}
-
-/**
- * Запись лога
- */
-export interface LogEntry {
-  id?: number;
-  timestamp: number;
-  level: LogLevel;
-  area: LogArea;
-  message: string;
-  metadata?: string; // JSON строка
-  stack?: string;
-  created_at?: number;
-}
-
-/**
- * Фильтр для логов
- */
-export interface LogsFilter {
-  level?: LogLevel;
-  area?: LogArea;
-  startTime?: number;
-  endTime?: number;
-  limit?: number;
-  search?: string;
-  errorCode?: string;
-}
-
-/**
- * Статистика логов
- */
-export interface LogsStats {
-  total: number;
-  byLevel: Record<string, number>;
-  byArea: Record<string, number>;
-  oldestLog: number | null;
-  newestLog: number | null;
-}
-
-/**
- * Результат очистки логов
- */
-export interface LogsCleanupResult {
-  success: boolean;
-  deletedCount: number;
-  error?: string;
-}
-
-/**
- * Результат полной очистки
- */
-export interface LogsClearResult {
-  success: boolean;
-  error?: string;
-}
-
-/**
- * Опции экспорта логов
- */
-export interface LogsExportOptions {
-  level?: string;
-  area?: string;
-  startTime?: number;
-  endTime?: number;
-}
-
-/**
- * Результат экспорта логов
- */
-export interface LogsExportResult {
-  success: boolean;
-  path?: string;
-  cancelled?: boolean;
-  error?: string;
-}
-
-/**
- * API для работы с логами (Renderer Process)
- */
-export interface LogsAPI {
-  get: (filter: LogsFilter) => Promise<LogEntry[]>;
-  getStats: () => Promise<LogsStats>;
-  cleanup: () => Promise<LogsCleanupResult>;
-  clear: () => Promise<LogsClearResult>;
-  export: (options?: LogsExportOptions) => Promise<LogsExportResult>;
-}
-
-/**
- * API для логгера (Main Process)
- */
-export interface ILogger {
-  debug(area: LogArea, message: string, metadata?: LogMetadata): void;
-  info(area: LogArea, message: string, metadata?: LogMetadata): void;
-  warn(area: LogArea, message: string, metadata?: LogMetadata, error?: unknown): void;
-  error(area: LogArea, message: string, metadata?: LogMetadata, error?: unknown): void;
-  logError(error: Error, additionalMetadata?: LogMetadata): void;
-  withLogging<T>(
-    area: LogArea,
-    operation: string,
-    fn: () => Promise<T>,
-    metadata?: LogMetadata,
-  ): Promise<T>;
-  withLoggingSync<T>(area: LogArea, operation: string, fn: () => T, metadata?: LogMetadata): T;
-  setDatabaseWriter(writer: (logs: LogEntry[]) => Promise<void>): void;
-  shutdown(): Promise<void>;
-}
-
-/**
- * API для логгера (Renderer Process)
- */
-export interface LoggerAPI {
-  debug(area: LogArea, message: string, metadata?: LogMetadata): void;
-  info(area: LogArea, message: string, metadata?: LogMetadata): void;
-  warn(area: LogArea, message: string, metadata?: LogMetadata, error?: unknown): void;
-  error(area: LogArea, message: string, metadata?: LogMetadata, error?: unknown): void;
-  logError(error: Error, additionalMetadata?: LogMetadata): void;
-}
-
-
-============================================================
-FILE: src/shared/types/microcontroller-data.ts
-============================================================
-
-export interface RowData extends Power, Deviation {
-  id: string;
-  time: string;
-  normalized: NormalizedPower;
-  wavelengths: Wavelength;
-}
-
-export interface Power {
-  [key: `P${number}`]: number;
-}
-
-export interface Deviation {
-  [key: `P${number}`]: number;
-}
-
-export interface Wavelength {
-  [key: `wavelength${number}`]: number;
-}
-
-export interface NormalizedPower extends Power {}
-
-
-============================================================
-FILE: src/shared/types/routes.ts
-============================================================
-
-export enum AppRoutes {
-  HOME = '/',
-  SETTINGS = '/settings',
-  CHARTS = '/charts',
-  DASHBOARD = '/dashboards',
-  LOGS = '/logs',
-  MAP = '/maps',
-  ONBOARDING = '/onboarding',
-}
-
-
-============================================================
-FILE: src/shared/types/serial.types.ts
-============================================================
-
-// src/shared/types/serial.types.ts
-
-/**
- * Информация о Serial порте
- */
-export interface SerialPortInfo {
-  path: string;
-  manufacturer?: string;
-  serialNumber?: string;
-  vendorId?: string;
-  productId?: string;
-  busy: boolean;
-}
-
-/**
- * Результат операции открытия порта
- */
-export interface SerialOpenResult {
-  ok?: boolean;
-  error?: string;
-}
-
-/**
- * Событие получения данных
- */
-export interface SerialDataEvent {
-  port: string;
-  data: string;
-}
-
-/**
- * Событие ошибки порта
- */
-export interface SerialErrorEvent {
-  port: string;
-  error: string;
-}
-
-/**
- * Событие ошибки автоподключения
- */
-export interface SerialAutoConnectErrorEvent {
-  port: string;
-  error: string;
-}
-
-/**
- * API для работы с Serial (Renderer Process)
- */
-export interface SerialAPI {
-  getPorts: () => Promise<SerialPortInfo[]>;
-  open: (path: string, baudRate?: number) => Promise<SerialOpenResult>;
-  close: (path: string) => Promise<SerialOpenResult>;
-  onData: (callback: (event: SerialDataEvent) => void) => () => void;
-  onClosed: (callback: (port: string) => void) => () => void;
-  onError: (callback: (event: SerialErrorEvent) => void) => () => void;
-  onAutoConnectNone: (callback: () => void) => () => void;
-  onAutoConnectFailed: (callback: (port: string) => void) => () => void;
-  onAutoConnected: (callback: (port: string) => void) => () => void;
-  onAutoConnectError: (callback: (event: SerialAutoConnectErrorEvent) => void) => () => void;
-}
-
-
-============================================================
-FILE: src/shared/types/version.ts
-============================================================
-
-export interface VersionConfig {
-  alpha: ChannelConfig;
-  beta: ChannelConfig;
-  buildNumber: number;
-  lastBuild: string;
-}
-
-export interface ChannelConfig {
-  version: string;
-  channel: 'production' | 'testing';
-  autoUpdate: boolean;
-  description: string;
-}
-
-export type BuildChannel = 'alpha' | 'beta';
+export const sensorDataService = new SensorDataService();
 
 

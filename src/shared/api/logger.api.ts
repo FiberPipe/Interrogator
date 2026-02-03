@@ -1,67 +1,81 @@
-// src/shared/api/logger.api.ts
+// src/shared/api/logs/logs.api.ts
 
-import type { LogArea, LogMetadata } from '../types/logs.types';
+import { LogsStats, LogsFilter, LogEntry, LogsCleanupResult, LogsClearResult, LogsExportOptions, LogsExportResult } from "../types/logs.types";
 
-/**
- * Проверка доступности logger API
- */
-const isLoggerAvailable = (): boolean => {
-  return typeof window !== 'undefined' && window?.electron.logger !== undefined;
+
+
+const isLogsAvailable = (): boolean => {
+  return typeof window !== 'undefined' && window?.electron?.logs !== undefined;
 };
 
-export const loggerApi = {
+const getDefaultStats = (): LogsStats => ({
+  total: 0,
+  byLevel: {} as Record<string, number>,
+  byArea: {} as Record<string, number>,
+  oldestLog: null,
+  newestLog: null,
+});
+
+export const logsApi = {
   /**
-   * Debug лог
+   * Получить логи с фильтрацией
    */
-  debug(area: LogArea, message: string, metadata?: LogMetadata): void {
-    if (!isLoggerAvailable()) {
-      console.debug(`[${area}]`, message, metadata);
-      return;
+  async get(filter: LogsFilter): Promise<LogEntry[]> {
+    if (!isLogsAvailable()) {
+      console.warn('[LOGS-API] API not available');
+      return [];
     }
-    window.electron.logger.debug(area, message, metadata);
+    try {
+      return await window.electron.logs.get(filter);
+    } catch (error) {
+      console.error('[LOGS-API] Failed to get logs:', error);
+      throw error;
+    }
   },
 
   /**
-   * Info лог
+   * Получить статистику логов
    */
-  info(area: LogArea, message: string, metadata?: LogMetadata): void {
-    if (!isLoggerAvailable()) {
-      console.info(`[${area}]`, message, metadata);
-      return;
+  async getStats(): Promise<LogsStats> {
+    if (!isLogsAvailable()) {
+      console.warn('[LOGS-API] API not available');
+      return getDefaultStats();
     }
-    window.electron.logger.info(area, message, metadata);
+    try {
+      return await window.electron.logs.getStats();
+    } catch (error) {
+      console.error('[LOGS-API] Failed to get stats:', error);
+      return getDefaultStats();
+    }
   },
 
   /**
-   * Warning лог
+   * Очистить старые логи (старше 3 дней)
    */
-  warn(area: LogArea, message: string, metadata?: LogMetadata, error?: unknown): void {
-    if (!isLoggerAvailable()) {
-      console.warn(`[${area}]`, message, metadata, error);
-      return;
+  async cleanup(): Promise<LogsCleanupResult> {
+    if (!isLogsAvailable()) {
+      throw new Error('Logs API not available');
     }
-    window.electron.logger.warn(area, message, metadata, error);
+    return await window.electron.logs.cleanup();
   },
 
   /**
-   * Error лог
+   * Очистить все логи
    */
-  error(area: LogArea, message: string, metadata?: LogMetadata, error?: unknown): void {
-    if (!isLoggerAvailable()) {
-      console.error(`[${area}]`, message, metadata, error);
-      return;
+  async clear(): Promise<LogsClearResult> {
+    if (!isLogsAvailable()) {
+      throw new Error('Logs API not available');
     }
-    window.electron.logger.error(area, message, metadata, error);
+    return await window.electron.logs.clear();
   },
 
   /**
-   * Логирование ошибки
+   * Экспортировать логи в файл
    */
-  logError(error: Error, additionalMetadata?: LogMetadata): void {
-    if (!isLoggerAvailable()) {
-      console.error('Error:', error, additionalMetadata);
-      return;
+  async export(options?: LogsExportOptions): Promise<LogsExportResult> {
+    if (!isLogsAvailable()) {
+      throw new Error('Logs API not available');
     }
-    window.electron.logger.logError(error, additionalMetadata);
+    return await window.electron.logs.export(options);
   },
 };
