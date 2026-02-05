@@ -1,1187 +1,678 @@
 ============================================================
-FILE: src/electron/features/database/database.api.ts
+FILE: src/electron/features/serial/index.ts
 ============================================================
 
-// src/electron/features/database/database.api.ts
+export type {
+  SerialPortInfo,
+  SerialOpenResult,
+  SerialDataEvent,
+  SerialErrorEvent,
+  SerialAutoConnectErrorEvent,
+  ISerialPort,
+  ISerialPortManager,
+  IDataProcessor,
+  PortConnection,
+  SerialConfig,
+  RawSensorData,
+  ProcessedSensorData,
+  CalibrationData,
+  SensorMapping,
+  ChannelRecord,
+} from './serial.types';
+
+export { SerialIPC } from './serial.types';
+
+// ==================== CONSTANTS ====================
+export {
+  DEFAULT_SERIAL_CONFIG,
+  SUPPORTED_BAUD_RATES,
+  TIMEOUTS,
+  DATA_PROCESSING,
+  MOCK_PORTS,
+  STORAGE_KEYS,
+} from './serial.constants';
+
+// ==================== CONFIG ====================
+export {
+  SerialConfigManager,
+  getSerialConfigManager,
+  initializeSerialConfig,
+} from './serial.config';
+
+// ==================== UTILS ====================
+export {
+  cleanJSON,
+  parseSerialData,
+  isValidPortPath,
+  formatPortName,
+  extractPortIndex,
+  createPortError,
+  createTimeoutError,
+  safeParseFloat,
+  isValidNumber,
+} from './serial.utils';
+
+// ==================== API (Renderer) ====================
+export { serialAPI } from './serial.api';
+
+// ==================== IPC (Main) ====================
+export { registerSerialIpc } from './serial.ipc';
+
+// ==================== SERVICES ====================
+export { createPortManager } from './services/port-manager.service';
+export { createDataProcessor } from './services/data-processor.service';
+export { createConnectionService } from './services/connection.service';
+export {
+  createMockSerialPort,
+  getMockSerialPorts,
+  MockSerialPort,
+} from './services/mock-port.service';
+
+
+============================================================
+FILE: src/electron/features/serial/serial.api.ts
+============================================================
+
+// src/electron/features/serial/serial.api.ts
 
 import { ipcRenderer } from 'electron';
 
 import type {
-  DatabasePathInfo,
-  DatabaseLocation,
-  DatabaseChangeLocationResult,
-  DatabaseStats,
-  ChannelStats,
-  SensorDataRecord,
-  DatabaseBackupResult,
-  DatabaseExportOptions,
-  DatabaseExportResult,
-  DatabaseClearResult,
-} from './database.types';
-import { DatabaseIPC } from './database.types';
-import type { DatabaseAPI } from '../../../shared/types/database.types';
+  SerialPortInfo,
+  SerialOpenResult,
+  SerialDataEvent,
+  SerialErrorEvent,
+  SerialAutoConnectErrorEvent,
+} from './serial.types';
+import { SerialIPC } from './serial.types';
+import type { SerialAPI } from '../../../shared/types/serial.types';
 
-export const databaseAPI: DatabaseAPI = {
+export const serialAPI: SerialAPI = {
   /**
-   * Получить путь к БД
+   * Получить список портов
    */
-  getPath(): Promise<DatabasePathInfo> {
-    return ipcRenderer.invoke(DatabaseIPC.GetPath);
+  getPorts(): Promise<SerialPortInfo[]> {
+    return ipcRenderer.invoke(SerialIPC.GetPorts);
   },
 
   /**
-   * Изменить местоположение БД
+   * Открыть порт
    */
-  changeLocation(
-    location: DatabaseLocation,
-    customPath?: string,
-  ): Promise<DatabaseChangeLocationResult> {
-    return ipcRenderer.invoke(DatabaseIPC.ChangeLocation, location, customPath);
+  open(path: string, baudRate?: number): Promise<SerialOpenResult> {
+    return ipcRenderer.invoke(SerialIPC.Open, path, baudRate);
   },
 
   /**
-   * Выбрать кастомный путь
+   * Закрыть порт
    */
-  selectCustomPath(): Promise<string | null> {
-    return ipcRenderer.invoke(DatabaseIPC.SelectCustomPath);
+  close(path: string): Promise<SerialOpenResult> {
+    return ipcRenderer.invoke(SerialIPC.Close, path);
   },
 
   /**
-   * Открыть папку с БД
+   * Подписаться на данные
    */
-  openFolder(): Promise<string> {
-    return ipcRenderer.invoke(DatabaseIPC.OpenFolder);
+  onData(callback: (event: SerialDataEvent) => void): () => void {
+    const listener = (_: unknown, data: SerialDataEvent): void => callback(data);
+    ipcRenderer.on(SerialIPC.Data, listener);
+    return () => ipcRenderer.removeListener(SerialIPC.Data, listener);
   },
 
   /**
-   * Получить статистику БД
+   * Подписаться на закрытие порта
    */
-  getStats(): Promise<DatabaseStats> {
-    return ipcRenderer.invoke(DatabaseIPC.GetStats);
+  onClosed(callback: (port: string) => void): () => void {
+    const listener = (_: unknown, port: string): void => callback(port);
+    ipcRenderer.on(SerialIPC.Closed, listener);
+    return () => ipcRenderer.removeListener(SerialIPC.Closed, listener);
   },
 
   /**
-   * Получить статистику канала
+   * Подписаться на ошибки порта
    */
-  getChannelStats(
-    port: string,
-    channel: number,
-    startTime: number,
-    endTime: number,
-  ): Promise<ChannelStats> {
-    return ipcRenderer.invoke(DatabaseIPC.GetChannelStats, port, channel, startTime, endTime);
+  onError(callback: (event: SerialErrorEvent) => void): () => void {
+    const listener = (_: unknown, event: SerialErrorEvent): void => callback(event);
+    ipcRenderer.on(SerialIPC.Error, listener);
+    return () => ipcRenderer.removeListener(SerialIPC.Error, listener);
   },
 
   /**
-   * Получить данные за период времени
+   * Подписаться на событие "нет сохраненного порта"
    */
-  getDataByTimeRange(
-    port: string,
-    startTime: number,
-    endTime: number,
-    limit?: number,
-  ): Promise<SensorDataRecord[]> {
-    return ipcRenderer.invoke(DatabaseIPC.GetDataByTimeRange, port, startTime, endTime, limit);
+  onAutoConnectNone(callback: () => void): () => void {
+    const listener = (): void => callback();
+    ipcRenderer.on(SerialIPC.AutoConnectNone, listener);
+    return () => ipcRenderer.removeListener(SerialIPC.AutoConnectNone, listener);
   },
 
   /**
-   * Получить последние N записей
+   * Подписаться на событие "порт не найден"
    */
-  getLastRecords(port: string, limit?: number): Promise<SensorDataRecord[]> {
-    return ipcRenderer.invoke(DatabaseIPC.GetLastRecords, port, limit);
+  onAutoConnectFailed(callback: (port: string) => void): () => void {
+    const listener = (_: unknown, port: string): void => callback(port);
+    ipcRenderer.on(SerialIPC.AutoConnectFailed, listener);
+    return () => ipcRenderer.removeListener(SerialIPC.AutoConnectFailed, listener);
   },
 
   /**
-   * Создать резервную копию
+   * Подписаться на успешное автоподключение
    */
-  createBackup(): Promise<DatabaseBackupResult> {
-    return ipcRenderer.invoke(DatabaseIPC.CreateBackup);
+  onAutoConnected(callback: (port: string) => void): () => void {
+    const listener = (_: unknown, port: string): void => callback(port);
+    ipcRenderer.on(SerialIPC.AutoConnected, listener);
+    return () => ipcRenderer.removeListener(SerialIPC.AutoConnected, listener);
   },
 
   /**
-   * Восстановить из резервной копии
+   * Подписаться на ошибку автоподключения
    */
-  restoreBackup(): Promise<DatabaseBackupResult> {
-    return ipcRenderer.invoke(DatabaseIPC.RestoreBackup);
-  },
-
-  /**
-   * Экспортировать данные
-   */
-  exportData(options: DatabaseExportOptions): Promise<DatabaseExportResult> {
-    return ipcRenderer.invoke(DatabaseIPC.ExportData, options);
-  },
-
-  /**
-   * Выполнить VACUUM
-   */
-  vacuum(): Promise<DatabaseClearResult> {
-    return ipcRenderer.invoke(DatabaseIPC.Vacuum);
-  },
-
-  /**
-   * Очистить все данные
-   */
-  clear(): Promise<DatabaseClearResult> {
-    return ipcRenderer.invoke(DatabaseIPC.Clear);
+  onAutoConnectError(callback: (event: SerialAutoConnectErrorEvent) => void): () => void {
+    const listener = (_: unknown, event: SerialAutoConnectErrorEvent): void => callback(event);
+    ipcRenderer.on(SerialIPC.AutoConnectError, listener);
+    return () => ipcRenderer.removeListener(SerialIPC.AutoConnectError, listener);
   },
 };
 
 
 ============================================================
-FILE: src/electron/features/database/database.config.ts
+FILE: src/electron/features/serial/serial.config.ts
 ============================================================
 
-// src/electron/features/database/database.config.ts
+// src/electron/features/serial/serial.config.ts
 
-import { app } from 'electron';
-import { join, dirname } from 'node:path';
-import { existsSync, mkdirSync } from 'node:fs';
-
-import type { DatabaseConfig, DatabaseLocation } from './database.types';
-import { DEFAULT_DATABASE_CONFIG } from './database.constants';
+import type { SerialConfig } from './serial.types';
+import { DEFAULT_SERIAL_CONFIG } from './serial.constants';
+import { ENV } from '../../core/env';
 import { logger } from '../logger';
+import type { LogMetadata } from '../../../shared/types/logs.types';
 
-export class DatabasePathManager {
-  private config: DatabaseConfig;
+export class SerialConfigManager {
+  private config: SerialConfig;
 
-  constructor(config?: Partial<DatabaseConfig>) {
-    this.config = { ...DEFAULT_DATABASE_CONFIG, ...config };
-  }
-
-  /**
-   * Получить путь к БД в зависимости от настроек
-   */
-  getPath(): string {
-    const { location, customPath, filename } = this.config;
-
-    let basePath: string;
-
-    switch (location) {
-      case 'userData':
-        basePath = app.getPath('userData');
-        break;
-
-      case 'appPath':
-        basePath = app.isPackaged
-          ? join(dirname(app.getPath('exe')), 'database')
-          : join(process.cwd(), 'database');
-        break;
-
-      case 'documents':
-        basePath = join(app.getPath('documents'), 'Interrogator', 'database');
-        break;
-
-      case 'custom':
-        if (customPath === undefined) {
-          throw new Error('Custom path is required when location is "custom"');
-        }
-        basePath = customPath;
-        break;
-
-      default:
-        basePath = app.getPath('userData');
-    }
-
-    this.ensureDirectoryExists(basePath);
-
-    return join(basePath, filename);
-  }
-
-  /**
-   * Создать директорию если не существует
-   */
-  private ensureDirectoryExists(dirPath: string): void {
-    if (!existsSync(dirPath)) {
-      mkdirSync(dirPath, { recursive: true });
-      logger.info('Database', 'Created directory', { path: dirPath });
-    }
-  }
-
-  /**
-   * Получить информацию о всех возможных путях
-   */
-  getAllPossiblePaths(): Record<DatabaseLocation, string> {
-    const { filename } = this.config;
-
-    return {
-      userData: join(app.getPath('userData'), filename),
-      appPath: app.isPackaged
-        ? join(dirname(app.getPath('exe')), 'database', filename)
-        : join(process.cwd(), 'database', filename),
-      documents: join(app.getPath('documents'), 'Interrogator', 'database', filename),
-      custom: this.config.customPath ? join(this.config.customPath, filename) : 'Not configured',
+  constructor(config?: Partial<SerialConfig>) {
+    this.config = {
+      ...DEFAULT_SERIAL_CONFIG,
+      ...config,
+      useMockPorts: ENV.WITH_MOCK_PORTS,
     };
-  }
-
-  /**
-   * Обновить конфигурацию
-   */
-  updateConfig(config: Partial<DatabaseConfig>): void {
-    this.config = { ...this.config, ...config };
   }
 
   /**
    * Получить текущую конфигурацию
    */
-  getConfig(): DatabaseConfig {
+  getConfig(): SerialConfig {
     return { ...this.config };
+  }
+
+  /**
+   * Обновить конфигурацию
+   */
+  updateConfig(config: Partial<SerialConfig>): void {
+    this.config = { ...this.config, ...config };
+    logger.info('Serial', 'Configuration updated', this.config as unknown as LogMetadata);
+  }
+
+  /**
+   * Получить baudRate
+   */
+  getBaudRate(): number {
+    return this.config.defaultBaudRate;
+  }
+
+  /**
+   * Проверить нужно ли использовать mock порты
+   */
+  shouldUseMockPorts(): boolean {
+    return this.config.useMockPorts;
+  }
+
+  /**
+   * Проверить включено ли автоподключение
+   */
+  isAutoConnectEnabled(): boolean {
+    return this.config.autoConnect;
   }
 }
 
 // Singleton instance
-let pathManager: DatabasePathManager | null = null;
+let configManager: SerialConfigManager | null = null;
 
-export function getDatabasePathManager(): DatabasePathManager {
-  if (pathManager === null) {
-    pathManager = new DatabasePathManager();
+export function getSerialConfigManager(): SerialConfigManager {
+  if (configManager === null) {
+    configManager = new SerialConfigManager();
   }
-  return pathManager;
+  return configManager;
 }
 
-export function initializeDatabasePath(config?: Partial<DatabaseConfig>): void {
-  pathManager = new DatabasePathManager(config);
+export function initializeSerialConfig(config?: Partial<SerialConfig>): void {
+  configManager = new SerialConfigManager(config);
 
-  logger.info('Database', 'Path manager initialized', {
-    config: pathManager.getConfig(),
-    path: pathManager.getPath(),
+  logger.info('Serial', 'Config manager initialized', {
+    config: configManager.getConfig(),
   });
 }
 
 
 ============================================================
-FILE: src/electron/features/database/database.constants.ts
+FILE: src/electron/features/serial/serial.constants.ts
 ============================================================
 
-// src/electron/features/database/database.constants.ts
+// src/electron/features/serial/serial.constants.ts
 
-import type { DatabaseConfig } from './database.types';
+import type { SerialConfig } from './serial.types';
 
-export const FEATURE_NAME = 'DATABASE';
-
-/**
- * Настройки базы данных
- */
-export const DATABASE_SETTINGS = {
-  DEFAULT_FILENAME: 'sensor-data.db',
-  MAX_SIZE: 100 * 1024 * 1024, // 100 MB
-  AUTO_SAVE_INTERVAL_WINDOWS: 15000, // 15 сек для Windows
-  AUTO_SAVE_INTERVAL_OTHER: 10000, // 10 сек для других ОС
-} as const;
+export const FEATURE_NAME = 'SERIAL';
 
 /**
- * Настройки оптимизации SQLite
+ * Настройки Serial по умолчанию
  */
-export const SQLITE_PRAGMAS = {
-  JOURNAL_MODE: 'MEMORY',
-  SYNCHRONOUS: 'OFF',
-  CACHE_SIZE: 10000,
-  TEMP_STORE: 'MEMORY',
-} as const;
-
-/**
- * Названия таблиц
- */
-export const TABLE_NAMES = {
-  SENSOR_DATA: 'sensor_data',
-  CHANNEL_DATA: 'channel_data',
-  SESSIONS: 'sessions',
-  LOGS: 'logs',
-} as const;
-
-/**
- * Дефолтная конфигурация
- */
-export const DEFAULT_DATABASE_CONFIG: DatabaseConfig = {
-  location: 'userData',
-  filename: DATABASE_SETTINGS.DEFAULT_FILENAME,
+export const DEFAULT_SERIAL_CONFIG: SerialConfig = {
+  defaultBaudRate: 115200,
+  autoConnect: false,
+  useMockPorts: false,
 };
 
+/**
+ * Поддерживаемые скорости передачи
+ */
+export const SUPPORTED_BAUD_RATES = [
+  9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600,
+] as const;
+
+/**
+ * Таймауты
+ */
+export const TIMEOUTS = {
+  CLOSE_PORT: 5000, // 5 секунд на закрытие порта
+  SWITCH_DELAY: 200, // 200мс задержка между переключениями
+  MOCK_DATA_INTERVAL: 1000, // 1 секунда между отправкой mock данных
+  MOCK_INIT_DELAY: 200, // 200мс перед началом отправки mock данных
+} as const;
+
+/**
+ * Настройки обработки данных
+ */
+export const DATA_PROCESSING = {
+  CHANNELS_COUNT: 16, // Количество каналов
+  MIN_CHANNELS_FOR_WAVELENGTH: 2, // Минимум каналов для расчета wavelength
+  SAVE_INTERVAL: 5000, // 5 секунд между сохранениями в БД
+} as const;
+
+/**
+ * Mock порты для разработки
+ */
+export const MOCK_PORTS = [
+  {
+    path: '/dev/ttyUSB0',
+    manufacturer: 'FTDI (Mock)',
+    serialNumber: 'MOCK001',
+    vendorId: '0403',
+    productId: '6001',
+  },
+  {
+    path: '/dev/ttyUSB1',
+    manufacturer: 'FTDI (Mock)',
+    serialNumber: 'MOCK002',
+    vendorId: '0403',
+    productId: '6001',
+  },
+  {
+    path: '/dev/ttyUSB2',
+    manufacturer: 'FTDI (Mock)',
+    serialNumber: 'MOCK003',
+    vendorId: '0403',
+    productId: '6001',
+  },
+] as const;
+
+/**
+ * Ключи для хранения настроек
+ */
+export const STORAGE_KEYS = {
+  LAST_PORT: 'lastPort',
+  BAUD_RATE: 'baudRate',
+  CALIBRATION_DATA: 'calibrationData',
+  SENSOR_CONFIG: 'sensorConfig',
+  SENSOR_COUNT: 'sensorCount',
+} as const;
+
 
 ============================================================
-FILE: src/electron/features/database/database.ipc.ts
+FILE: src/electron/features/serial/serial.ipc.ts
 ============================================================
 
-// src/electron/features/database/database.ipc.ts
+// src/electron/features/serial/serial.ipc.ts
 
-import { ipcMain, shell, dialog, app } from 'electron';
-import { existsSync, statSync, copyFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { ipcMain } from 'electron';
+import type { BrowserWindow } from 'electron';
 
-import type { DatabaseLocation, DatabaseExportOptions } from './database.types';
-import { DatabaseIPC } from './database.types';
-import { formatBytes } from './database.utils';
-import { getDatabasePathManager, initializeDatabasePath } from './database.config';
-import { database } from './database';
+import type { SerialOpenResult, ISerialPortManager } from './serial.types';
+import { SerialIPC } from './serial.types';
+import { createConnectionService } from './services/connection.service';
 import { logger } from '../logger';
 import { createError } from '../../../shared/errors';
 import { ErrorCodes } from '../../../shared/errors/error-codes';
-import { sensorDataService } from './services/sensor-data.service';
-import type { LogMetadata } from '../../../shared/types/logs.types';
 
-export function registerDatabaseIpc(): void {
-  logger.info('IPC', 'Registering database IPC handlers');
+export function registerSerialIpc(win: BrowserWindow, manager: ISerialPortManager): void {
+  logger.info('IPC', 'Registering serial IPC handlers');
 
-  // ==================== PATH & CONFIG ====================
+  const connectionService = createConnectionService(win, manager);
 
-  ipcMain.handle(DatabaseIPC.GetPath, () => {
-    return logger.withLoggingSync('IPC', 'Get database path', () => {
-      const pathManager = getDatabasePathManager();
-      const dbPath = pathManager.getPath();
-      const config = pathManager.getConfig();
-      const exists = existsSync(dbPath);
-
-      let size = 0;
-      if (exists) {
-        size = statSync(dbPath).size;
-      }
-
-      return {
-        path: dbPath,
-        exists,
-        size,
-        sizeFormatted: formatBytes(size),
-        userDataPath: app.getPath('userData'),
-        config,
-        allPossiblePaths: pathManager.getAllPossiblePaths(),
-      };
-    });
-  });
-
-  ipcMain.handle(
-    DatabaseIPC.ChangeLocation,
-    async (_, location: DatabaseLocation, customPath?: string) => {
-      return logger.withLogging(
-        'IPC',
-        'Change database location',
-        async () => {
-          database.saveDatabase();
-          initializeDatabasePath({ location, customPath });
-          await database.initialize({ location, customPath });
-
-          return {
-            success: true,
-            path: getDatabasePathManager().getPath(),
-          };
-        },
-        { location, customPath },
-      );
-    },
-  );
-
-  ipcMain.handle(DatabaseIPC.SelectCustomPath, async () => {
-    return logger.withLogging('IPC', 'Select custom database path', async () => {
-      const result = await dialog.showOpenDialog({
-        properties: ['openDirectory', 'createDirectory'],
-        title: 'Select Database Folder',
-        buttonLabel: 'Select Folder',
-      });
-
-      if (result.canceled || result.filePaths.length === 0) {
-        return null;
-      }
-
-      return result.filePaths[0];
-    });
-  });
-
-  ipcMain.handle(DatabaseIPC.OpenFolder, () => {
-    return logger.withLoggingSync('IPC', 'Open database folder', () => {
-      const pathManager = getDatabasePathManager();
-      const folderPath = dirname(pathManager.getPath());
-      void shell.openPath(folderPath);
-      return folderPath;
-    });
-  });
-
-  // ==================== STATISTICS ====================
-
-  ipcMain.handle(DatabaseIPC.GetStats, async () => {
-    return logger.withLogging('IPC', 'Get database stats', async () => {
-      const sessions = await sensorDataService.getAllSessions();
-      const dbPath = getDatabasePathManager().getPath();
-
-      let totalSize = 0;
-      if (existsSync(dbPath)) {
-        totalSize = statSync(dbPath).size;
-      }
-
-      const activeSessions = sessions.filter((s) => s.status === 'active').length;
-
-      return {
-        totalSessions: sessions.length,
-        totalRecords: 0,
-        totalSize,
-        totalSizeFormatted: formatBytes(totalSize),
-        activeSessions,
-        sessions: sessions.slice(0, 10),
-      };
-    });
-  });
-
-  ipcMain.handle(
-    DatabaseIPC.GetChannelStats,
-    async (_, port: string, channel: number, startTime: number, endTime: number) => {
-      return logger.withLogging(
-        'IPC',
-        'Get channel stats',
-        async () => {
-          return await sensorDataService.getChannelStats(port, channel, startTime, endTime);
-        },
-        { port, channel, startTime, endTime },
-      );
-    },
-  );
-
-  // ==================== DATA QUERIES ====================
-
-  ipcMain.handle(
-    DatabaseIPC.GetDataByTimeRange,
-    async (_, port: string, startTime: number, endTime: number, limit?: number) => {
-      return logger.withLogging(
-        'IPC',
-        'Get data by time range',
-        async () => {
-          return await sensorDataService.getDataByTimeRange(port, startTime, endTime, limit);
-        },
-        { port, startTime, endTime, limit },
-      );
-    },
-  );
-
-  ipcMain.handle(DatabaseIPC.GetLastRecords, async (_, port: string, limit?: number) => {
-    return logger.withLogging(
-      'IPC',
-      'Get last records',
-      async () => {
-        return await sensorDataService.getLastRecords(port, limit);
-      },
-      { port, limit },
-    );
-  });
-
-  // ==================== BACKUP & RESTORE ====================
-
-  ipcMain.handle(DatabaseIPC.CreateBackup, async () => {
-    return logger.withLogging('IPC', 'Create database backup', async () => {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const backupName = `sensor-data-backup-${timestamp}.db`;
-
-      const result = await dialog.showSaveDialog({
-        title: 'Save Backup',
-        defaultPath: backupName,
-        filters: [
-          { name: 'Database', extensions: ['db'] },
-          { name: 'All Files', extensions: ['*'] },
-        ],
-      });
-
-      if (result.canceled || !result.filePath) {
-        return { success: false, cancelled: true };
-      }
-
-      database.saveDatabase();
-      copyFileSync(getDatabasePathManager().getPath(), result.filePath);
-
-      return { success: true, path: result.filePath };
-    });
-  });
-
-  ipcMain.handle(DatabaseIPC.RestoreBackup, async () => {
-    return logger.withLogging('IPC', 'Restore database backup', async () => {
-      const result = await dialog.showOpenDialog({
-        title: 'Select Backup',
-        filters: [
-          { name: 'Database', extensions: ['db'] },
-          { name: 'All Files', extensions: ['*'] },
-        ],
-        properties: ['openFile'],
-      });
-
-      if (result.canceled || result.filePaths.length === 0) {
-        return { success: false, cancelled: true };
-      }
-
-      await database.importDatabase(result.filePaths[0]);
-
-      return { success: true };
-    });
-  });
-
-  // ==================== EXPORT ====================
-
-  ipcMain.handle(DatabaseIPC.ExportData, async (_, options: DatabaseExportOptions) => {
-    return logger.withLogging(
-      'IPC',
-      'Export database data',
-      async () => {
-        const extensions = { csv: ['csv'], json: ['json'], sql: ['sql'] }[options.format];
-
-        const result = await dialog.showSaveDialog({
-          title: 'Export Data',
-          defaultPath: `export-${Date.now()}.${extensions[0]}`,
-          filters: [{ name: options.format.toUpperCase(), extensions }],
+  // ==================== GET PORTS ====================
+  ipcMain.handle(SerialIPC.GetPorts, async () => {
+    return logger.withLogging('IPC', 'Get ports', async () => {
+      try {
+        return await connectionService.getPorts();
+      } catch (err) {
+        throw createError({
+          code: ErrorCodes.SERIAL_PORT_ERROR,
+          title: 'Get Ports Failed',
+          description: 'Failed to retrieve serial ports list',
+          cause: err,
+          area: 'Serial',
         });
+      }
+    });
+  });
 
-        if (result.canceled || !result.filePath) {
-          return { success: false, cancelled: true };
+  // ==================== OPEN PORT ====================
+  ipcMain.handle(
+    SerialIPC.Open,
+    async (_, path: string, baudRate?: number): Promise<SerialOpenResult> => {
+      return logger.withLogging(
+        'IPC',
+        'Open port',
+        async () => {
+          try {
+            await connectionService.openPort(path, baudRate);
+            return { ok: true };
+          } catch (err) {
+            const error = err as Error;
+            logger.error('IPC', 'Failed to open port', { path, baudRate }, err);
+            return { error: error.message ?? 'Failed to open port' };
+          }
+        },
+        { path, baudRate },
+      );
+    },
+  );
+
+  // ==================== CLOSE PORT ====================
+  ipcMain.handle(SerialIPC.Close, async (_, path: string): Promise<SerialOpenResult> => {
+    return logger.withLogging(
+      'IPC',
+      'Close port',
+      async () => {
+        try {
+          await connectionService.closePort(path);
+          return { ok: true };
+        } catch (err) {
+          const error = err as Error;
+          logger.error('IPC', 'Failed to close port', { path }, err);
+          return { error: error.message ?? 'Failed to close port' };
         }
-
-        // TODO: Реализовать экспорт в разных форматах
-
-        return { success: true, path: result.filePath };
       },
-      options as unknown as LogMetadata,
+      { path },
     );
   });
 
-  // ==================== MAINTENANCE ====================
-
-  ipcMain.handle(DatabaseIPC.Vacuum, async () => {
-    return logger.withLogging('IPC', 'Vacuum database', async () => {
-      try {
-        database.vacuum();
-        return { success: true };
-      } catch (err) {
-        throw createError({
-          code: ErrorCodes.DB_QUERY_FAILED,
-          title: 'Vacuum Failed',
-          description: 'Failed to vacuum database',
-          cause: err,
-          area: 'Database',
-        });
-      }
-    });
-  });
-
-  ipcMain.handle(DatabaseIPC.Clear, async () => {
-    return logger.withLogging('IPC', 'Clear database', async () => {
-      try {
-        database.clear();
-        return { success: true };
-      } catch (err) {
-        throw createError({
-          code: ErrorCodes.DB_WRITE_FAILED,
-          title: 'Clear Failed',
-          description: 'Failed to clear database',
-          cause: err,
-          area: 'Database',
-        });
-      }
-    });
-  });
-
-  logger.info('IPC', 'Database IPC handlers registered successfully');
+  logger.info('IPC', 'Serial IPC handlers registered successfully');
 }
 
 
 ============================================================
-FILE: src/electron/features/database/database.ts
+FILE: src/electron/features/serial/serial.ts
 ============================================================
 
-// src/electron/features/database/database.ts
+// src/electron/features/serial/serial.ts
 
-import type { Database as SqlJsDatabase } from 'sql.js';
-import initSqlJs from 'sql.js';
-import { app } from 'electron';
-import { join } from 'node:path';
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import type { BrowserWindow } from 'electron';
 
-import type { DatabaseConfig, IDatabase } from './database.types';
-import { DATABASE_SETTINGS, TABLE_NAMES } from './database.constants';
-import { configureDatabaseOptimizations } from './database.utils';
-import { getDatabasePathManager, initializeDatabasePath } from './database.config';
+import type { ISerialPortManager } from './serial.types';
+import { createPortManager } from './services/port-manager.service';
+import { createConnectionService } from './services/connection.service';
+import { registerSerialIpc } from './serial.ipc';
+import { initializeSerialConfig } from './serial.config';
 import { logger } from '../logger';
-import { logsService } from './services/logs.service';
 
-const isWindows = process.platform === 'win32';
+/**
+ * Главный класс для управления Serial портами
+ */
+export class SerialManager {
+  private portManager: ISerialPortManager;
+  private connectionService: ReturnType<typeof createConnectionService>;
+  private isInitialized = false;
 
-export class Database implements IDatabase {
-  private static instance: Database;
-  private db: SqlJsDatabase | null = null;
-  private saveQueue: Promise<void> = Promise.resolve();
-
-  private constructor() {}
-
-  static getInstance(): Database {
-    if (!Database.instance) {
-      Database.instance = new Database();
-    }
-    return Database.instance;
+  constructor(private readonly win: BrowserWindow) {
+    this.portManager = createPortManager(win);
+    this.connectionService = createConnectionService(win, this.portManager);
   }
 
   /**
-   * Инициализация базы данных
+   * Инициализация Serial модуля
    */
-  async initialize(config?: Partial<DatabaseConfig>): Promise<void> {
-    return logger.withLogging(
-      'Database',
-      'Initialize database',
-      async () => {
-        if (config !== undefined) {
-          initializeDatabasePath(config);
-        }
-
-        const pathManager = getDatabasePathManager();
-        const dbPath = pathManager.getPath();
-
-        logger.info('Database', 'Initializing database', {
-          path: dbPath,
-          config: pathManager.getConfig(),
-        });
-
-        const wasmPath = this.getWasmPath();
-        const SQL = await initSqlJs({
-          locateFile: (file) =>
-            file.includes('sql-wasm.wasm') ? wasmPath : join(process.resourcesPath, file),
-        });
-
-        let buffer: Uint8Array | undefined;
-        if (existsSync(dbPath)) {
-          logger.info('Database', 'Loading existing database');
-          buffer = readFileSync(dbPath);
-        } else {
-          logger.info('Database', 'Creating new database');
-        }
-
-        this.db = new SQL.Database(buffer);
-
-        configureDatabaseOptimizations(this.db);
-        this.createTables();
-        this.setupAutoSave();
-        this.setupLogCleanup();
-
-        // ✅ Регистрируем writer для логгера ПОСЛЕ создания таблиц
-        logger.setDatabaseWriter(async (logs) => {
-          if (this.db === null) {
-            console.warn('[Database] Cannot write logs: DB not initialized');
-            return;
-          }
-          await logsService.insertBatch(this.db, logs);
-        });
-
-        logger.info('Database', 'Database initialized successfully');
-      },
-      config,
-    );
-  }
-  /**
-   * Получить путь к WASM файлу
-   */
-  private getWasmPath(): string {
-    const possiblePaths = app.isPackaged
-      ? [
-          join(process.resourcesPath, 'sql-wasm.wasm'),
-          join(
-            process.resourcesPath,
-            'app.asar.unpacked',
-            'node_modules',
-            'sql.js',
-            'dist',
-            'sql-wasm.wasm',
-          ),
-          join(__dirname, 'sql-wasm.wasm'),
-          join(__dirname, '../sql-wasm.wasm'),
-        ]
-      : [
-          join(__dirname, '../../../node_modules/sql.js/dist/sql-wasm.wasm'),
-          join(process.cwd(), 'node_modules/sql.js/dist/sql-wasm.wasm'),
-        ];
-
-    for (const wasmPath of possiblePaths) {
-      if (existsSync(wasmPath)) {
-        logger.debug('Database', 'WASM file found', { path: wasmPath });
-        return wasmPath;
-      }
+  initialize(): void {
+    if (this.isInitialized) {
+      logger.warn('Serial', 'Already initialized');
+      return;
     }
 
-    throw new Error('WASM file not found in any expected location');
-  }
+    return logger.withLoggingSync('Serial', 'Initialize', () => {
+      // Инициализируем конфигурацию
+      initializeSerialConfig();
 
-  private createTables(): void {
-    if (this.db === null) {
-      throw new Error('Database not initialized');
-    }
+      // Регистрируем IPC handlers
+      registerSerialIpc(this.win, this.portManager);
 
-    logger.debug('Database', 'Creating tables and indexes');
+      // Настраиваем автоподключение после загрузки окна
+      this.setupAutoConnect();
 
-    try {
-      // Таблица sensor_data
-      this.db.run(`
-      CREATE TABLE IF NOT EXISTS ${TABLE_NAMES.SENSOR_DATA} (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        record_id TEXT NOT NULL,
-        timestamp INTEGER NOT NULL,
-        time TEXT NOT NULL,
-        port TEXT NOT NULL,
-        raw_data TEXT NOT NULL,
-        created_at INTEGER NOT NULL
-      )
-    `);
+      // Настраиваем cleanup при закрытии
+      this.setupCleanup();
 
-      // Таблица channel_data
-      this.db.run(`
-      CREATE TABLE IF NOT EXISTS ${TABLE_NAMES.CHANNEL_DATA} (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sensor_data_id INTEGER NOT NULL,
-        channel INTEGER NOT NULL,
-        value REAL NOT NULL,
-        std_dev REAL,
-        timestamp INTEGER NOT NULL,
-        FOREIGN KEY (sensor_data_id) REFERENCES ${TABLE_NAMES.SENSOR_DATA}(id)
-      )
-    `);
+      this.isInitialized = true;
 
-      // Таблица sessions
-      this.db.run(`
-      CREATE TABLE IF NOT EXISTS ${TABLE_NAMES.SESSIONS} (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        port TEXT NOT NULL,
-        start_time INTEGER NOT NULL,
-        end_time INTEGER,
-        record_count INTEGER NOT NULL DEFAULT 0,
-        status TEXT NOT NULL DEFAULT 'active'
-      )
-    `);
-
-      // Индексы
-      const indexes = [
-        `CREATE INDEX IF NOT EXISTS idx_sensor_data_timestamp ON ${TABLE_NAMES.SENSOR_DATA}(timestamp)`,
-        `CREATE INDEX IF NOT EXISTS idx_sensor_data_port ON ${TABLE_NAMES.SENSOR_DATA}(port)`,
-        `CREATE INDEX IF NOT EXISTS idx_sensor_data_record_id ON ${TABLE_NAMES.SENSOR_DATA}(record_id)`,
-        `CREATE INDEX IF NOT EXISTS idx_channel_data_sensor_id ON ${TABLE_NAMES.CHANNEL_DATA}(sensor_data_id)`,
-        `CREATE INDEX IF NOT EXISTS idx_channel_data_channel ON ${TABLE_NAMES.CHANNEL_DATA}(channel)`,
-        `CREATE INDEX IF NOT EXISTS idx_channel_data_timestamp ON ${TABLE_NAMES.CHANNEL_DATA}(timestamp)`,
-      ];
-
-      indexes.forEach((sql) => this.db!.run(sql));
-
-      if (this.db === null) {
-        throw new Error('Database became null during table creation');
-      }
-
-      logsService.initializeTable(this.db);
-
-      logger.info('Database', 'Tables and indexes created');
-    } catch (err) {
-      console.error('[Database] Error during createTables:', err);
-      throw err;
-    }
-  }
-  /**
-   * Настройка автосохранения
-   */
-  private setupAutoSave(): void {
-    const saveInterval = isWindows
-      ? DATABASE_SETTINGS.AUTO_SAVE_INTERVAL_WINDOWS
-      : DATABASE_SETTINGS.AUTO_SAVE_INTERVAL_OTHER;
-
-    setInterval(() => {
-      this.saveDatabaseAsync();
-    }, saveInterval);
-
-    app.on('before-quit', (event) => {
-      event.preventDefault();
-      logger.info('Database', 'Saving before quit');
-      this.saveDatabase();
-      setTimeout(() => app.exit(0), 1000);
+      logger.info('Serial', 'Initialized successfully');
     });
   }
 
   /**
-   * Асинхронное сохранение базы данных
+   * Настроить автоподключение
    */
-  private saveDatabaseAsync(): void {
-    this.saveQueue = this.saveQueue.then(() => this.saveDatabase());
-  }
-
-  /**
-   * Получить экземпляр базы данных
-   */
-  getDatabase(): SqlJsDatabase {
-    if (this.db === null) {
-      throw new Error('Database not initialized. Call initialize() first.');
-    }
-    return this.db;
-  }
-
-  /**
-   * Сохранить базу данных
-   */
-  saveDatabase(): void {
-    return logger.withLoggingSync('Database', 'Save database', () => {
-      if (this.db === null) {
-        logger.warn('Database', 'Cannot save: not initialized');
-        return;
-      }
-
-      const pathManager = getDatabasePathManager();
-      const dbPath = pathManager.getPath();
-
-      const startTime = Date.now();
-      const data = this.db.export();
-      writeFileSync(dbPath, Buffer.from(data), { flag: 'w' });
-
-      const duration = Date.now() - startTime;
-
-      logger.info('Database', 'Database saved successfully', {
-        duration,
-        size: data.length,
-      });
+  private setupAutoConnect(): void {
+    this.win.webContents.on('did-finish-load', () => {
+      logger.info('Serial', 'Window loaded, attempting auto-connect');
+      void this.connectionService.autoConnect();
     });
   }
 
   /**
-   * Экспортировать базу данных
+   * Настроить cleanup при закрытии
    */
-  exportDatabase(exportPath: string): boolean {
-    return logger.withLoggingSync(
-      'Database',
-      'Export database',
-      () => {
-        if (this.db === null) return false;
-
-        const data = this.db.export();
-        writeFileSync(exportPath, Buffer.from(data));
-
-        logger.info('Database', 'Database exported successfully', {
-          path: exportPath,
-          size: data.length,
-        });
-
-        return true;
-      },
-      { exportPath },
-    );
-  }
-
-  /**
-   * Импортировать базу данных
-   */
-  async importDatabase(importPath: string): Promise<boolean> {
-    return logger.withLogging(
-      'Database',
-      'Import database',
-      async () => {
-        if (!existsSync(importPath)) {
-          throw new Error(`Import file does not exist: ${importPath}`);
-        }
-
-        const buffer = readFileSync(importPath);
-        const wasmPath = this.getWasmPath();
-        const SQL = await initSqlJs({ locateFile: () => wasmPath });
-
-        this.db = new SQL.Database(buffer);
-        configureDatabaseOptimizations(this.db);
-
-        logger.info('Database', 'Database imported successfully', {
-          path: importPath,
-          size: buffer.length,
-        });
-
-        return true;
-      },
-      { importPath },
-    );
-  }
-
-  /**
-   * Выполнить VACUUM для оптимизации БД
-   */
-  vacuum(): void {
-    return logger.withLoggingSync('Database', 'Vacuum database', () => {
-      if (this.db === null) {
-        throw new Error('Database not initialized');
-      }
-
-      this.db.run('VACUUM');
-      this.saveDatabase();
-
-      logger.info('Database', 'Vacuum completed successfully');
+  private setupCleanup(): void {
+    this.win.on('close', () => {
+      logger.info('Serial', 'Window closing, cleaning up ports');
+      void this.shutdown();
     });
   }
 
   /**
-   * Очистить все данные из БД
+   * Получить менеджер портов
    */
-  clear(): void {
-    return logger.withLoggingSync('Database', 'Clear database', () => {
-      if (this.db === null) {
-        throw new Error('Database not initialized');
-      }
-
-      this.db.run(`DELETE FROM ${TABLE_NAMES.CHANNEL_DATA}`);
-      this.db.run(`DELETE FROM ${TABLE_NAMES.SENSOR_DATA}`);
-      this.db.run(`DELETE FROM ${TABLE_NAMES.SESSIONS}`);
-      this.db.run(
-        `DELETE FROM sqlite_sequence WHERE name IN ('${TABLE_NAMES.CHANNEL_DATA}', '${TABLE_NAMES.SENSOR_DATA}', '${TABLE_NAMES.SESSIONS}')`,
-      );
-      this.db.run('VACUUM');
-
-      this.saveDatabase();
-
-      logger.info('Database', 'Database cleared successfully');
-    });
+  getPortManager(): ISerialPortManager {
+    return this.portManager;
   }
 
   /**
-   * Корректное завершение работы с БД
+   * Завершение работы
    */
   async shutdown(): Promise<void> {
-    return logger.withLogging('Database', 'Shutdown database', async () => {
-      await this.saveQueue;
-      this.saveDatabase();
-
-      logger.info('Database', 'Database shutdown complete');
+    return logger.withLogging('Serial', 'Shutdown', async () => {
+      await this.portManager.closeAllPorts();
+      this.isInitialized = false;
+      logger.info('Serial', 'Shutdown complete');
     });
   }
-
-  private setupLogCleanup(): void {
-    // Очистка каждые 6 часов
-    setInterval(
-      () => {
-        void logger.withLogging('Database', 'Cleanup old logs', async () => {
-          if (this.db === null) {
-            logger.warn('Database', 'Cannot cleanup logs: DB not initialized');
-            return;
-          }
-          await logsService.cleanupOldLogs(this.db);
-        });
-      },
-      6 * 60 * 60 * 1000,
-    );
-
-    // Первая очистка через 1 минуту после запуска
-    setTimeout(() => {
-      void logger.withLogging('Database', 'Initial log cleanup', async () => {
-        if (this.db === null) {
-          logger.warn('Database', 'Cannot cleanup logs: DB not initialized');
-          return;
-        }
-        await logsService.cleanupOldLogs(this.db);
-      });
-    }, 60 * 1000);
-  }
 }
 
-export const database = Database.getInstance();
-
-// Экспортируем для обратной совместимости
-export const getDatabase = (): SqlJsDatabase => database.getDatabase();
-export const saveDatabase = (): void => database.saveDatabase();
-export const exportDatabase = (exportPath: string): boolean => database.exportDatabase(exportPath);
-export const importDatabase = (importPath: string): Promise<boolean> =>
-  database.importDatabase(importPath);
-export const initDatabase = (config?: Partial<DatabaseConfig>): Promise<void> =>
-  database.initialize(config);
+/**
+ * Создать Serial менеджер
+ */
+export function createSerialManager(win: BrowserWindow): SerialManager {
+  return new SerialManager(win);
+}
 
 
 ============================================================
-FILE: src/electron/features/database/database.types.ts
+FILE: src/electron/features/serial/serial.types.ts
 ============================================================
 
-// src/shared/types/database.types.ts
-import type { Database as SqlJsDatabase } from 'sql.js';
+// src/electron/features/serial/serial.types.ts
+
+import type EventEmitter from 'node:events';
 
 /**
- * Информация о пути к базе данных
+ * IPC каналы для работы с Serial
  */
-export interface DatabasePathInfo {
+export enum SerialIPC {
+  GetPorts = 'serial:getPorts',
+  Open = 'serial:open',
+  Close = 'serial:close',
+  Data = 'serial:data',
+  Closed = 'serial:closed',
+  Error = 'serial:error',
+  AutoConnectNone = 'serial:auto-connect-none',
+  AutoConnectFailed = 'serial:auto-connect-failed',
+  AutoConnected = 'serial:auto-connected',
+  AutoConnectError = 'serial:auto-connect-error',
+}
+
+/**
+ * Информация о Serial порте
+ */
+export interface SerialPortInfo {
   path: string;
-  exists: boolean;
-  size: number;
-  sizeFormatted: string;
-  userDataPath: string;
-  config: {
-    location: DatabaseLocation;
-    customPath?: string;
-    filename: string;
-  };
-  allPossiblePaths: Record<DatabaseLocation, string>;
+  manufacturer?: string;
+  serialNumber?: string;
+  vendorId?: string;
+  productId?: string;
+  busy: boolean;
 }
 
 /**
- * Результат изменения местоположения БД
+ * Результат операции открытия порта
  */
-export interface DatabaseChangeLocationResult {
-  success: boolean;
-  path?: string;
+export interface SerialOpenResult {
+  ok?: boolean;
   error?: string;
 }
 
 /**
- * Статистика базы данных
+ * Событие получения данных
  */
-export interface DatabaseStats {
-  totalSessions: number;
-  totalRecords: number;
-  totalSize: number;
-  totalSizeFormatted: string;
-  activeSessions: number;
-  sessions: SessionRecord[];
-}
-
-/**
- * Статистика канала
- */
-export interface ChannelStats {
-  count: number;
-  min: number;
-  max: number;
-  avg: number;
-}
-
-/**
- * Запись данных сенсора
- */
-export interface SensorDataRecord {
-  id: number;
-  record_id: string;
-  timestamp: number;
-  time: string;
+export interface SerialDataEvent {
   port: string;
-  raw_data: string;
-  created_at: number;
+  data: string;
 }
 
 /**
- * Запись сессии
+ * Событие ошибки порта
  */
-export interface SessionRecord {
-  id: number;
+export interface SerialErrorEvent {
   port: string;
-  start_time: number;
-  end_time?: number;
-  record_count: number;
-  status: 'active' | 'stopped' | 'error';
+  error: string;
 }
 
 /**
- * Результат операции с бэкапом
+ * Событие автоподключения
  */
-export interface DatabaseBackupResult {
-  success: boolean;
-  path?: string;
-  cancelled?: boolean;
-  error?: string;
+export interface SerialAutoConnectErrorEvent {
+  port: string;
+  error: string;
 }
 
 /**
- * Опции экспорта данных
+ * Интерфейс Serial порта
  */
-export interface DatabaseExportOptions {
-  format: 'csv' | 'json' | 'sql';
-  timeRange?: string;
-  startTime?: number;
-  endTime?: number;
-}
-
-/**
- * Результат экспорта данных
- */
-export interface DatabaseExportResult {
-  success: boolean;
-  path?: string;
-  cancelled?: boolean;
-  error?: string;
-}
-
-export enum DatabaseIPC {
-  // Path & Config
-  GetPath = 'db:getPath',
-  ChangeLocation = 'db:changeLocation',
-  SelectCustomPath = 'db:selectCustomPath',
-  OpenFolder = 'db:openFolder',
-
-  // Statistics
-  GetStats = 'db:getStats',
-  GetChannelStats = 'db:getChannelStats',
-
-  // Data Queries
-  GetDataByTimeRange = 'db:getDataByTimeRange',
-  GetLastRecords = 'db:getLastRecords',
-
-  // Backup & Restore
-  CreateBackup = 'db:createBackup',
-  RestoreBackup = 'db:restoreBackup',
-
-  // Export
-  ExportData = 'db:exportData',
-
-  // Maintenance
-  Vacuum = 'db:vacuum',
-  Clear = 'db:clear',
-}
-
-/**
- * Типы расположения базы данных
- */
-export type DatabaseLocation = 'userData' | 'appPath' | 'documents' | 'custom';
-
-/**
- * Конфигурация базы данных
- */
-export interface DatabaseConfig {
-  location: DatabaseLocation;
-  customPath?: string;
-  filename: string;
-}
-
-/**
- * Информация о пути к базе данных
- */
-export interface DatabasePathInfo {
+export interface ISerialPort extends EventEmitter {
   path: string;
-  exists: boolean;
-  size: number;
-  sizeFormatted: string;
-  userDataPath: string;
-  config: DatabaseConfig;
-  allPossiblePaths: Record<DatabaseLocation, string>;
+  baudRate: number;
+  isOpen: boolean;
+  close: (callback?: (error?: Error | null) => void) => void;
+  on(event: 'data', listener: (data: Buffer) => void): this;
+  on(event: 'close', listener: () => void): this;
+  on(event: 'error', listener: (err: Error) => void): this;
+  on(event: string | symbol, listener: (...args: unknown[]) => void): this;
 }
 
 /**
- * Результат изменения местоположения БД
+ * Подключение к порту
  */
-export interface DatabaseChangeLocationResult {
-  success: boolean;
-  path?: string;
-  error?: string;
+export interface PortConnection {
+  port: ISerialPort;
+  processor: IDataProcessor;
 }
 
 /**
- * Статистика базы данных
+ * Интерфейс обработчика данных
  */
-export interface DatabaseStats {
-  totalSessions: number;
-  totalRecords: number;
-  totalSize: number;
-  totalSizeFormatted: string;
-  activeSessions: number;
-  sessions: SessionRecord[];
+export interface IDataProcessor {
+  startSession(): Promise<void>;
+  processData(dataString: string): Promise<void>;
+  endSession(): Promise<void>;
+  getRecordCount(): number;
 }
 
 /**
- * Статистика канала
+ * Конфигурация Serial
  */
-export interface ChannelStats {
-  count: number;
-  min: number;
-  max: number;
-  avg: number;
+export interface SerialConfig {
+  defaultBaudRate: number;
+  autoConnect: boolean;
+  useMockPorts: boolean;
 }
 
 /**
- * Запись данных сенсора
+ * Настройки автосохранения
  */
-export interface SensorDataRecord {
-  id: number;
-  record_id: string;
-  timestamp: number;
+export interface AutoSaveSettings {
+  lastPort: string;
+  baudRate: number;
+}
+
+/**
+ * Сырые данные с датчика
+ */
+export interface RawSensorData {
+  id: string;
   time: string;
-  port: string;
-  raw_data: string;
-  created_at: number;
+  [key: string]: unknown;
+}
+
+/**
+ * Обработанные данные
+ */
+export interface ProcessedSensorData extends RawSensorData {
+  normalized: Record<string, number>;
+  wavelengths: Record<string, number>;
+}
+
+/**
+ * Калибровочные данные
+ */
+export interface CalibrationData {
+  normalization: Record<string, number>; // field0-15
+  wavelengths: Record<string, number>; // lambdas_central0-15
+}
+
+/**
+ * Маппинг датчика
+ */
+export interface SensorMapping {
+  index: number;
+  type: string;
+  channels: string[]; // ['P0', 'P1', 'P2', 'P3']
+  alias?: string;
 }
 
 /**
@@ -1190,1011 +681,1201 @@ export interface SensorDataRecord {
 export interface ChannelRecord {
   channel: number;
   value: number;
-  //@ts-ignore
-  stdDev?: number;
-}
-
-/**
- * Запись сессии
- */
-export interface SessionRecord {
-  id: number;
-  port: string;
-  start_time: number;
-  end_time?: number;
-  record_count: number;
-  status: 'active' | 'stopped' | 'error';
-}
-
-/**
- * Результат операции с бэкапом
- */
-export interface DatabaseBackupResult {
-  success: boolean;
-  path?: string;
-  cancelled?: boolean;
-  error?: string;
-}
-
-/**
- * Опции экспорта данных
- */
-export interface DatabaseExportOptions {
-  format: 'csv' | 'json' | 'sql';
-  timeRange?: string;
-  startTime?: number;
-  endTime?: number;
-}
-
-/**
- * Результат экспорта данных
- */
-export interface DatabaseExportResult {
-  success: boolean;
-  path?: string;
-  cancelled?: boolean;
-  error?: string;
-}
-
-/**
- * Результат операции очистки
- */
-export interface DatabaseClearResult {
-  success: boolean;
-  error?: string;
-}
-
-/**
- * Интерфейс для работы с базой данных (Main Process)
- */
-export interface IDatabase {
-  getDatabase(): SqlJsDatabase;
-  saveDatabase(): void;
-  exportDatabase(exportPath: string): boolean;
-  importDatabase(importPath: string): Promise<boolean>;
-  shutdown(): Promise<void>;
-}
-
-export interface ChannelStats {
-  count: number;
-  min: number;
-  max: number;
-  avg: number;
-}
-
-/**
- * Запись канала с нормализацией
- */
-export interface ChannelRecord {
-  channel: number;
-  value: number;
   normalized: number;
-  //@ts-ignore
   stdDev: number;
 }
 
 /**
- * Запись сессии
+ * Менеджер портов
  */
-export interface SessionRecord {
-  id: number;
-  port: string;
-  start_time: number;
-  end_time?: number;
-  record_count: number;
-  status: 'active' | 'stopped' | 'error';
+export interface ISerialPortManager {
+  isPortOpen(path: string): boolean;
+  getConnection(path: string): PortConnection | undefined;
+  openPort(path: string, port: ISerialPort): Promise<void>;
+  closePort(path: string): Promise<void>;
+  closeAllPorts(): Promise<void>;
+  switchPort(fromPath: string | null, toPath: string, newPort: ISerialPort): Promise<void>;
+  getActivePorts(): string[];
 }
 
 
 ============================================================
-FILE: src/electron/features/database/database.utils.ts
+FILE: src/electron/features/serial/serial.utils.ts
 ============================================================
 
-// src/electron/features/database/database.utils.ts
+// src/electron/features/serial/serial.utils.ts
 
-import type { Database as SqlJsDatabase } from 'sql.js';
-
-import { SQLITE_PRAGMAS } from './database.constants';
 import { logger } from '../logger';
+import { createError } from '../../../shared/errors';
+import { ErrorCodes } from '../../../shared/errors/error-codes';
 
 /**
- * Форматирование размера в байтах
+ * Очистка JSON строки от лишних пробелов
  */
-export function formatBytes(bytes: number, decimals = 2): string {
-  if (bytes === 0) return '0 Bytes';
+export function cleanJSON(str: string): string {
+  let result = str.trim();
 
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  // 1. Удаляем пробелы внутри чисел
+  result = result
+    .replace(/(\d)\s+(\d)/g, '$1$2') // "123 456" → "123456"
+    .replace(/(\d)\s+\./g, '$1.') // "1 .5" → "1.5"
+    .replace(/\.\s+(\d)/g, '.$1'); // ". 5" → ".5"
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  // 2. Удаляем пробелы внутри ключей: "P11 " → "P11"
+  result = result.replace(/"([^"]+)"\s*:/g, (match, key: string) => {
+    const cleanedKey = key.trim();
+    return `"${cleanedKey}":`;
+  });
+
+  // 3. Удаляем длинные последовательности пробелов
+  result = result.replace(/\s{10,}/g, ' ');
+
+  // 4. Убираем пробелы вокруг JSON-разделителей
+  result = result.replace(/\s*([,:{}[\]])\s*/g, '$1');
+
+  return result;
 }
 
 /**
- * Применение оптимизаций SQLite
+ * Парсинг JSON данных от датчика
  */
-export function configureDatabaseOptimizations(db: SqlJsDatabase): void {
+export function parseSerialData<T = unknown>(dataString: string): T | null {
   try {
-    db.run(`PRAGMA journal_mode = ${SQLITE_PRAGMAS.JOURNAL_MODE}`);
-    db.run(`PRAGMA synchronous = ${SQLITE_PRAGMAS.SYNCHRONOUS}`);
-    db.run(`PRAGMA cache_size = ${SQLITE_PRAGMAS.CACHE_SIZE}`);
-    db.run(`PRAGMA temp_store = ${SQLITE_PRAGMAS.TEMP_STORE}`);
+    const cleaned = cleanJSON(dataString);
+    const result = JSON.parse(cleaned) as T;
 
-    logger.debug('Database', 'SQLite optimizations applied', SQLITE_PRAGMAS);
-  } catch (err) {
-    logger.error('Database', 'Failed to apply optimizations', {}, err);
-  }
-}
-
-/**
- * Преобразование результата SQL.js в массив объектов
- */
-export function sqlResultToArray<T>(result: any[]): T[] {
-  if (result.length === 0) return [];
-
-  const columns = result[0].columns;
-  const values = result[0].values;
-
-  return values.map((row: any) => {
-    const obj: Record<string, unknown> = {};
-    columns.forEach((col: string, idx: number) => {
-      obj[col] = row[idx];
+    logger.debug('Serial', 'Data parsed successfully', {
+      originalLength: dataString.length,
+      cleanedLength: cleaned.length,
     });
-    return obj as T;
-  });
-}
 
-/**
- * Получить значение из первой строки результата
- */
-export function getSingleValue<T>(result: any[], defaultValue: T): T {
-  if (result.length === 0 || result[0].values.length === 0) {
-    return defaultValue;
-  }
-  return (result[0].values[0][0] as T) ?? defaultValue;
-}
-
-/**
- * Выполнить запрос и получить массив объектов
- */
-export function executeQuery<T>(db: SqlJsDatabase, sql: string, params: any[] = []): T[] {
-  try {
-    const result = db.exec(sql, params);
-    return sqlResultToArray<T>(result);
+    return result;
   } catch (err) {
-    logger.error('Database', 'Query execution failed', { sql, params }, err);
-    throw err;
+    const error = err as Error;
+
+    logger.error('Serial', 'Parse error', { dataString }, err);
+
+    // Пытаемся показать контекст ошибки
+    const posMatch = error.message.match(/position (\d+)/);
+    if (posMatch !== null) {
+      const pos = parseInt(posMatch[1], 10);
+      const cleaned = cleanJSON(dataString);
+
+      logger.error('Serial', 'Error context', {
+        position: pos,
+        context: cleaned.substring(Math.max(0, pos - 40), pos + 40) as any,
+      });
+    }
+
+    return null;
   }
 }
 
 /**
- * Создать индексы для таблицы
+ * Валидация пути порта
  */
-export function createIndexes(db: SqlJsDatabase, indexes: string[]): void {
-  indexes.forEach((sql) => {
-    try {
-      db.run(sql);
-    } catch (err) {
-      logger.warn('Database', 'Failed to create index', { sql }, err);
-    }
+export function isValidPortPath(path: string): boolean {
+  if (path.length === 0) {
+    return false;
+  }
+
+  // Unix-like системы: /dev/tty*
+  if (path.startsWith('/dev/')) {
+    return true;
+  }
+
+  // Windows: COM*
+  if (/^COM\d+$/i.test(path)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Форматирование имени порта для отображения
+ */
+export function formatPortName(info: {
+  path: string;
+  manufacturer?: string;
+  serialNumber?: string;
+}): string {
+  const parts = [info.path];
+
+  if (info.manufacturer !== undefined && info.manufacturer.length > 0) {
+    parts.push(info.manufacturer);
+  }
+
+  if (info.serialNumber !== undefined && info.serialNumber.length > 0) {
+    parts.push(`SN: ${info.serialNumber}`);
+  }
+
+  return parts.join(' - ');
+}
+
+/**
+ * Извлечение индекса порта из пути
+ */
+export function extractPortIndex(path: string): number {
+  const match = path.match(/\d+$/);
+  return match !== null ? parseInt(match[0], 10) : 0;
+}
+
+/**
+ * Создание ошибки порта
+ */
+export function createPortError(
+  title: string,
+  description: string,
+  port: string,
+  cause?: unknown,
+): Error {
+  return createError({
+    code: ErrorCodes.SERIAL_PORT_ERROR,
+    title,
+    description,
+    meta: { port },
+    cause,
+    area: 'Serial',
   });
+}
+
+/**
+ * Создание ошибки таймаута
+ */
+export function createTimeoutError(operation: string, port: string, timeout: number): Error {
+  return createError({
+    code: ErrorCodes.SERIAL_TIMEOUT,
+    title: 'Serial Timeout',
+    description: `Operation "${operation}" timed out after ${timeout}ms`,
+    meta: { port, operation, timeout },
+    area: 'Serial',
+  });
+}
+
+/**
+ * Безопасное преобразование в число
+ */
+export function safeParseFloat(value: unknown, defaultValue = 0): number {
+  if (typeof value === 'number') {
+    return isNaN(value) ? defaultValue : value;
+  }
+
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? defaultValue : parsed;
+  }
+
+  return defaultValue;
+}
+
+/**
+ * Проверка является ли значение валидным числом
+ */
+export function isValidNumber(value: unknown): value is number {
+  return typeof value === 'number' && !isNaN(value) && isFinite(value);
 }
 
 
 ============================================================
-FILE: src/electron/features/database/index.ts
+FILE: src/electron/features/serial/services/connection.service.ts
 ============================================================
 
-// src/electron/features/database/index.ts
+// src/electron/features/serial/services/connection.service.ts
 
-export * from './database';
-export * from './database.types';
-export * from './database.constants';
-export * from './database.utils';
-export * from './database.config';
-export * from './database.api';
-export * from './database.ipc';
+import type { BrowserWindow } from 'electron';
+import { SerialPort } from 'serialport';
 
-// Экспорт сервисов
-export * from './services/sensor-data.service';
-export * from './services/logs.service';
+import type { ISerialPort, ISerialPortManager } from '../serial.types';
+import { SerialIPC } from '../serial.types';
+import { STORAGE_KEYS } from '../serial.constants';
+import { createMockSerialPort, getMockSerialPorts } from './mock-port.service';
+import { isValidPortPath, createPortError } from '../serial.utils';
+import { appDataStorage } from '../../app-data';
+import { logger } from '../../logger';
+import { getSerialConfigManager } from '../serial.config';
 
-// Экспорт основных функций
-export { database } from './database';
-export { registerDatabaseIpc } from './database.ipc';
-export { databaseAPI } from './database.api';
-export { sensorDataService } from './services/sensor-data.service';
-export { logsService } from './services/logs.service';
+export class ConnectionService {
+  constructor(
+    private readonly win: BrowserWindow,
+    private readonly manager: ISerialPortManager,
+  ) {}
+
+  /**
+   * Автоподключение к последнему порту
+   */
+  async autoConnect(): Promise<void> {
+    return logger.withLogging('Connection', 'Auto-connect attempt', async () => {
+      const configManager = getSerialConfigManager();
+
+      if (!configManager.isAutoConnectEnabled()) {
+        logger.debug('Connection', 'Auto-connect disabled');
+        return;
+      }
+
+      const lastPort = appDataStorage.get<string>(STORAGE_KEYS.LAST_PORT);
+      const lastBaud = appDataStorage.get<number>(STORAGE_KEYS.BAUD_RATE);
+
+      if (lastPort === undefined || lastPort.length === 0) {
+        logger.info('Connection', 'No last port saved');
+        this.win.webContents.send(SerialIPC.AutoConnectNone);
+        return;
+      }
+
+      const baudRate = lastBaud ?? configManager.getBaudRate();
+
+      logger.info('Connection', 'Attempting auto-connect', {
+        port: lastPort,
+        baudRate,
+      });
+
+      try {
+        // Проверяем существует ли порт
+        const exists = await this.checkPortExists(lastPort);
+
+        if (!exists) {
+          logger.info('Connection', 'Last port not found', { port: lastPort });
+          this.win.webContents.send(SerialIPC.AutoConnectFailed, lastPort);
+          return;
+        }
+
+        // Создаём и открываем порт
+        const port = await this.createPort(lastPort, baudRate);
+        await this.manager.openPort(lastPort, port);
+
+        this.win.webContents.send(SerialIPC.AutoConnected, lastPort);
+        logger.info('Connection', 'Auto-connect successful', { port: lastPort });
+      } catch (err) {
+        logger.error('Connection', 'Auto-connect error', { port: lastPort }, err);
+        this.win.webContents.send(SerialIPC.AutoConnectError, {
+          port: lastPort,
+          error: String(err),
+        });
+      }
+    });
+  }
+
+  /**
+   * Открыть порт
+   */
+  async openPort(path: string, baudRate?: number): Promise<void> {
+    return logger.withLogging(
+      'Connection',
+      'Open port',
+      async () => {
+        if (!isValidPortPath(path)) {
+          throw createPortError('Invalid Port Path', `Path "${path}" is not valid`, path);
+        }
+
+        const configManager = getSerialConfigManager();
+        const actualBaudRate = baudRate ?? configManager.getBaudRate();
+
+        // Получаем текущий открытый порт
+        const activePorts = this.manager.getActivePorts();
+        const currentPort = activePorts.length > 0 ? activePorts[0] : null;
+
+        // Если пытаемся открыть уже открытый порт
+        if (currentPort === path) {
+          logger.info('Connection', 'Port already open', { path });
+          return;
+        }
+
+        // Создаём новый порт
+        const port = await this.createPort(path, actualBaudRate);
+
+        // Переключаемся на новый порт
+        await this.manager.switchPort(currentPort, path, port);
+
+        // Сохраняем в настройки
+        appDataStorage.set(STORAGE_KEYS.LAST_PORT, path);
+        appDataStorage.set(STORAGE_KEYS.BAUD_RATE, actualBaudRate);
+
+        logger.info('Connection', 'Port opened successfully', {
+          path,
+          baudRate: actualBaudRate,
+        });
+      },
+      { path, baudRate },
+    );
+  }
+
+  /**
+   * Закрыть порт
+   */
+  async closePort(path: string): Promise<void> {
+    return logger.withLogging(
+      'Connection',
+      'Close port',
+      async () => {
+        if (!this.manager.isPortOpen(path)) {
+          logger.warn('Connection', 'Port is not open', { path });
+          throw createPortError('Port Not Open', `Port ${path} is not open`, path);
+        }
+
+        await this.manager.closePort(path);
+
+        logger.info('Connection', 'Port closed successfully', { path });
+      },
+      { path },
+    );
+  }
+
+  /**
+   * Получить список портов
+   */
+  async getPorts(): Promise<Array<{ path: string; busy: boolean; manufacturer?: string }>> {
+    return logger.withLogging('Connection', 'Get ports list', async () => {
+      const configManager = getSerialConfigManager();
+      const useMock = configManager.shouldUseMockPorts();
+
+      const ports = useMock ? await getMockSerialPorts() : await SerialPort.list();
+
+      const activePorts = this.manager.getActivePorts();
+
+      const result = ports.map((p) => ({
+        path: p.path,
+        manufacturer: p.manufacturer,
+        serialNumber: p.serialNumber,
+        vendorId: p.vendorId,
+        productId: p.productId,
+        busy: activePorts.includes(p.path),
+      }));
+
+      logger.info('Connection', 'Ports retrieved', {
+        count: result.length,
+        mock: useMock,
+      });
+
+      return result;
+    });
+  }
+
+  /**
+   * Проверить существование порта
+   */
+  private async checkPortExists(path: string): Promise<boolean> {
+    const configManager = getSerialConfigManager();
+    const useMock = configManager.shouldUseMockPorts();
+
+    const ports = useMock ? await getMockSerialPorts() : await SerialPort.list();
+
+    return ports.some((p) => p.path === path);
+  }
+
+  /**
+   * Создать порт (mock или реальный)
+   */
+  private async createPort(path: string, baudRate: number): Promise<ISerialPort> {
+    const configManager = getSerialConfigManager();
+    const useMock = configManager.shouldUseMockPorts();
+
+    logger.debug('Connection', 'Creating port', {
+      path,
+      baudRate,
+      type: useMock ? 'MOCK' : 'REAL',
+    });
+
+    if (useMock) {
+      return createMockSerialPort(path, baudRate);
+    }
+
+    return this.createRealPort(path, baudRate);
+  }
+
+  /**
+   * Создать реальный Serial порт
+   */
+  private async createRealPort(path: string, baudRate: number): Promise<ISerialPort> {
+    return new Promise((resolve, reject) => {
+      const port = new SerialPort({ path, baudRate, autoOpen: false });
+
+      port.open((err) => {
+        if (err !== null && err !== undefined) {
+          reject(createPortError('Failed to Open Port', `Unable to open port ${path}`, path, err));
+        } else {
+          resolve(port as unknown as ISerialPort);
+        }
+      });
+    });
+  }
+}
+
+/**
+ * Создать сервис подключений
+ */
+export function createConnectionService(
+  win: BrowserWindow,
+  manager: ISerialPortManager,
+): ConnectionService {
+  return new ConnectionService(win, manager);
+}
 
 
 ============================================================
-FILE: src/electron/features/database/migrations/logs.sql
+FILE: src/electron/features/serial/services/data-processor.service.ts
 ============================================================
 
---electron/features/database/migrations/logs.sql
-CREATE TABLE IF NOT EXISTS logs (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  timestamp INTEGER NOT NULL,
-  level TEXT NOT NULL,
-  area TEXT NOT NULL,
-  message TEXT NOT NULL,
-  metadata TEXT,
-  stack TEXT,
-  created_at INTEGER NOT NULL
-);
+// src/electron/features/serial/services/data-processor.service.ts
 
--- Индексы для быстрого поиска
-CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON logs(timestamp);
-CREATE INDEX IF NOT EXISTS idx_logs_level ON logs(level);
-CREATE INDEX IF NOT EXISTS idx_logs_area ON logs(area);
-CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs(created_at);
-CREATE INDEX IF NOT EXISTS idx_logs_error_code ON logs(json_extract(metadata, '$.errorCode')) WHERE metadata IS NOT NULL;
-
-============================================================
-FILE: src/electron/features/database/migrations/schema.sql
-============================================================
-
--- features/database/schema.sql
--- Добавляем normalized значения в channels
-CREATE TABLE IF NOT EXISTS sensor_channels (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  data_id INTEGER NOT NULL,
-  channel INTEGER NOT NULL,
-  value REAL NOT NULL,
-  normalized REAL, -- 👈 Нормализованное значение
-  std_dev REAL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (data_id) REFERENCES sensor_data (id) ON DELETE CASCADE
-);
-
--- Индексы для быстрого поиска
-CREATE INDEX IF NOT EXISTS idx_channels_data_channel ON sensor_channels(data_id, channel);
-CREATE INDEX IF NOT EXISTS idx_channels_normalized ON sensor_channels(normalized);
-
-
-============================================================
-FILE: src/electron/features/database/services/logs.service.ts
-============================================================
-
-// src/electron/features/database/services/logs.service.ts
-
-import type { Database as SqlJsDatabase } from 'sql.js';
+import type { BrowserWindow } from 'electron';
 
 import type {
-  LogEntry,
-  LogsStats,
-  LogsFilter,
-  LogMetadata,
-} from '../../../../shared/types/logs.types';
-import { TABLE_NAMES } from '../database.constants';
-import { executeQuery, getSingleValue } from '../database.utils';
+  IDataProcessor,
+  RawSensorData,
+  ProcessedSensorData,
+  CalibrationData,
+  SensorMapping,
+  ChannelRecord,
+} from '../serial.types';
+import { DATA_PROCESSING, STORAGE_KEYS } from '../serial.constants';
+import { parseSerialData, safeParseFloat } from '../serial.utils';
+import { sensorDataService } from '../../database';
 import { logger } from '../../logger';
 import { createError } from '../../../../shared/errors';
 import { ErrorCodes } from '../../../../shared/errors/error-codes';
+import { appDataStorage } from '../../app-data';
 
-const LOG_RETENTION_DAYS = 3;
+export class DataProcessorService implements IDataProcessor {
+  private sessionId: number | null = null;
+  private recordCount = 0;
+  private lastSaveTime = Date.now();
 
-export class LogsService {
-  /**
-   * Инициализация таблицы логов
-   * @param db - Экземпляр базы данных (передается извне)
-   */
-  initializeTable(db: SqlJsDatabase): void {
-    return logger.withLoggingSync('Database', 'Initialize logs table', () => {
-      try {
-        db.run(`
-        CREATE TABLE IF NOT EXISTS ${TABLE_NAMES.LOGS} (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          timestamp INTEGER NOT NULL,
-          level TEXT NOT NULL,
-          area TEXT NOT NULL,
-          message TEXT NOT NULL,
-          metadata TEXT,
-          stack TEXT,
-          created_at INTEGER NOT NULL
-        )
-      `);
-
-        db.run(`CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON ${TABLE_NAMES.LOGS}(timestamp)`);
-        db.run(`CREATE INDEX IF NOT EXISTS idx_logs_level ON ${TABLE_NAMES.LOGS}(level)`);
-        db.run(`CREATE INDEX IF NOT EXISTS idx_logs_area ON ${TABLE_NAMES.LOGS}(area)`);
-        db.run(`CREATE INDEX IF NOT EXISTS idx_logs_created_at ON ${TABLE_NAMES.LOGS}(created_at)`);
-        db.run(
-          `CREATE INDEX IF NOT EXISTS idx_logs_error_code ON ${TABLE_NAMES.LOGS}(json_extract(metadata, '$.errorCode')) WHERE metadata IS NOT NULL`,
-        );
-
-        logger.info('Database', 'Logs table initialized');
-      } catch (err) {
-        // ✅ Логируем оригинальную ошибку
-        console.error('[LogsService] Original error:', err);
-
-        throw createError({
-          code: ErrorCodes.DB_INIT_FAILED,
-          title: 'Logs Table Init Failed',
-          description: `Failed to initialize logs table: ${err instanceof Error ? err.message : String(err)}`,
-          cause: err,
-          area: 'Database',
-        });
-      }
-    });
-  }
-  /**
-   * Пакетная вставка логов
-   * @param db - Экземпляр базы данных
-   */
-
-  async insertBatch(db: SqlJsDatabase, logs: LogEntry[]): Promise<void> {
-    if (logs.length === 0) return;
-
-    const createdAt = Date.now();
-
-    try {
-      const stmt = db.prepare(`
-        INSERT INTO ${TABLE_NAMES.LOGS} (timestamp, level, area, message, metadata, stack, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `);
-
-      logs.forEach((log) => {
-        stmt.run([
-          log.timestamp,
-          log.level,
-          log.area,
-          log.message,
-          log.metadata ?? null,
-          log.stack ?? null,
-          createdAt,
-        ]);
-      });
-
-      stmt.free();
-    } catch (err) {
-      // Не выбрасываем ошибку, чтобы не прервать работу приложения
-      console.error('[LogsService] Failed to insert batch:', err);
-    }
-  }
+  constructor(
+    private readonly port: string,
+    private readonly win: BrowserWindow,
+  ) {}
 
   /**
-   * Получение логов с фильтрацией
+   * Начать сессию
    */
-  async getLogs(db: SqlJsDatabase, options: LogsFilter): Promise<LogEntry[]> {
-    const { level, area, startTime, endTime, limit = 1000, search, errorCode } = options;
-
-    try {
-      let sql = `SELECT * FROM ${TABLE_NAMES.LOGS} WHERE 1=1`;
-      const params: unknown[] = [];
-
-      if (level !== undefined) {
-        sql += ' AND level = ?';
-        params.push(level);
-      }
-
-      if (area !== undefined) {
-        sql += ' AND area = ?';
-        params.push(area);
-      }
-
-      if (startTime !== undefined) {
-        sql += ' AND timestamp >= ?';
-        params.push(startTime);
-      }
-
-      if (endTime !== undefined) {
-        sql += ' AND timestamp <= ?';
-        params.push(endTime);
-      }
-
-      if (search !== undefined) {
-        sql += ' AND message LIKE ?';
-        params.push(`%${search}%`);
-      }
-
-      if (errorCode !== undefined) {
-        sql += " AND json_extract(metadata, '$.errorCode') = ?";
-        params.push(errorCode);
-      }
-
-      sql += ' ORDER BY timestamp DESC LIMIT ?';
-      params.push(limit);
-
-      return executeQuery<LogEntry>(db, sql, params);
-    } catch (err) {
-      logger.error('Database', 'Failed to get logs', options as LogMetadata, err);
-      throw err;
-    }
-  }
-
-  /**
-   * Получение статистики логов
-   */
-  async getStats(db: SqlJsDatabase): Promise<LogsStats> {
-    try {
-      // Общее количество
-      const totalResult = db.exec(`SELECT COUNT(*) as count FROM ${TABLE_NAMES.LOGS}`);
-      const total = getSingleValue<number>(totalResult, 0);
-
-      // По уровням
-      const levelResult = db.exec(
-        `SELECT level, COUNT(*) as count FROM ${TABLE_NAMES.LOGS} GROUP BY level`,
-      );
-      const byLevel: Record<string, number> = {};
-
-      if (levelResult.length > 0) {
-        levelResult[0].values.forEach((row) => {
-          byLevel[row[0] as string] = row[1] as number;
-        });
-      }
-
-      // По областям
-      const areaResult = db.exec(
-        `SELECT area, COUNT(*) as count FROM ${TABLE_NAMES.LOGS} GROUP BY area`,
-      );
-      const byArea: Record<string, number> = {};
-
-      if (areaResult.length > 0) {
-        areaResult[0].values.forEach((row) => {
-          byArea[row[0] as string] = row[1] as number;
-        });
-      }
-
-      // Временные рамки
-      const oldestResult = db.exec(`SELECT MIN(timestamp) as oldest FROM ${TABLE_NAMES.LOGS}`);
-      const oldestLog = getSingleValue<number | null>(oldestResult, null);
-
-      const newestResult = db.exec(`SELECT MAX(timestamp) as newest FROM ${TABLE_NAMES.LOGS}`);
-      const newestLog = getSingleValue<number | null>(newestResult, null);
-
-      return { total, byLevel, byArea, oldestLog, newestLog };
-    } catch (err) {
-      logger.error('Database', 'Failed to get logs stats', {}, err);
-      throw err;
-    }
-  }
-
-  /**
-   * Очистка старых логов
-   */
-  async cleanupOldLogs(db: SqlJsDatabase): Promise<number> {
-    const cutoffTime = Date.now() - LOG_RETENTION_DAYS * 24 * 60 * 60 * 1000;
-
-    try {
-      db.run(`DELETE FROM ${TABLE_NAMES.LOGS} WHERE timestamp < ?`, [cutoffTime]);
-
-      const result = db.exec('SELECT changes() as count');
-      const deletedCount = getSingleValue<number>(result, 0);
-
-      if (deletedCount > 0) {
-        logger.info('Database', 'Old logs cleaned up', {
-          deletedCount,
-          cutoffTime,
-        });
-      }
-
-      return deletedCount;
-    } catch (err) {
-      logger.error('Database', 'Failed to cleanup old logs', {}, err);
-      throw err;
-    }
-  }
-
-  /**
-   * Удаление всех логов
-   */
-  async clearAllLogs(db: SqlJsDatabase): Promise<void> {
-    try {
-      db.run(`DELETE FROM ${TABLE_NAMES.LOGS}`);
-      db.run(`DELETE FROM sqlite_sequence WHERE name = '${TABLE_NAMES.LOGS}'`);
-      db.run('VACUUM');
-
-      logger.warn('Database', 'All logs cleared');
-    } catch (err) {
-      logger.error('Database', 'Failed to clear logs', {}, err);
-      throw err;
-    }
-  }
-
-  /**
-   * Экспорт логов в JSON
-   */
-  async exportToJson(
-    db: SqlJsDatabase,
-    filePath: string,
-    options?: { level?: string; area?: string; startTime?: number; endTime?: number },
-  ): Promise<boolean> {
-    try {
-      const logs = await this.getLogs(db, {
-        level: options?.level as LogEntry['level'],
-        area: options?.area as LogEntry['area'],
-        startTime: options?.startTime,
-        endTime: options?.endTime,
-        limit: 100000,
-      });
-
-      const fs = await import('node:fs');
-      fs.writeFileSync(filePath, JSON.stringify(logs, null, 2), 'utf-8');
-
-      logger.info('Database', 'Logs exported', {
-        path: filePath,
-        count: logs.length,
-      });
-
-      return true;
-    } catch (err) {
-      logger.error('Database', 'Failed to export logs', { filePath }, err);
-      return false;
-    }
-  }
-}
-
-export const logsService = new LogsService();
-
-
-============================================================
-FILE: src/electron/features/database/services/sensor-data.service.ts
-============================================================
-
-// src/electron/database/service/sensor-data.service.ts
-
-import { AppError } from '../../../../shared/errors/error.types';
-import { ErrorCodes } from '../../../../shared/errors/error-codes';
-import { logger } from '../../logger/logger';
-import { getDatabase } from '../database';
-import type {
-  ChannelRecord,
-  ChannelStats,
-  SensorDataRecord,
-  SessionRecord,
-} from '../database.types';
-import type { LogMetadata } from '../../../../shared/types/logs.types';
-
-export class SensorDataService {
-  /**
-   * Сохранение данных с датчиков
-   */
-  async saveSensorData(
-    port: string,
-    recordId: string,
-    time: string,
-    rawData: unknown,
-    channels: ChannelRecord[],
-  ): Promise<number> {
+  async startSession(): Promise<void> {
     return logger.withLogging(
-      'Database',
-      'Save sensor data',
+      'DataProcessor',
+      'Start session',
       async () => {
-        const db = getDatabase();
-        const timestamp = Date.now();
-
-        const metadata: LogMetadata = {
-          port,
-          recordId,
-          channelCount: channels.length,
-        };
-
         try {
-          // Вставляем основную запись
-          db.run(
-            `INSERT INTO sensor_data (record_id, timestamp, time, port, raw_data, created_at) 
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [recordId, timestamp, time, port, JSON.stringify(rawData), timestamp],
-          );
+          this.sessionId = await sensorDataService.createSession(this.port);
 
-          // Получаем ID вставленной записи
-          const result = db.exec('SELECT last_insert_rowid() as id');
-          const sensorDataId = result[0].values[0][0] as number;
-
-          // Вставляем данные по каналам
-          if (channels.length > 0) {
-            const stmt = db.prepare(
-              `INSERT INTO channel_data (sensor_data_id, channel, value, std_dev, timestamp) 
-               VALUES (?, ?, ?, ?, ?)`,
-            );
-
-            channels.forEach((ch) => {
-              stmt.run([sensorDataId, ch.channel, ch.value, ch.stdDev ?? null, timestamp]);
-            });
-
-            stmt.free();
-          }
-
-          logger.debug('Database', 'Sensor data saved successfully', {
-            ...metadata,
-            sensorDataId,
+          logger.info('DataProcessor', 'Session started successfully', {
+            port: this.port,
+            sessionId: this.sessionId,
           });
-
-          return sensorDataId;
         } catch (err) {
-          throw new AppError({
+          throw createError({
             code: ErrorCodes.DB_WRITE_FAILED,
-            title: 'Database Write Failed',
-            description: 'Failed to save sensor data to database',
-            meta: metadata,
+            title: 'Session Start Failed',
+            description: 'Failed to create data processing session',
+            meta: { port: this.port },
             cause: err,
-            area: 'Database',
+            area: 'DataProcessor',
           });
         }
       },
-      { port, recordId },
+      { port: this.port },
     );
   }
 
   /**
-   * Получение данных за период
+   * Обработать данные
    */
-  async getDataByTimeRange(
-    port: string,
-    startTime: number,
-    endTime: number,
-    limit = 1000,
-  ): Promise<SensorDataRecord[]> {
-    return logger.withLogging(
-      'Database',
-      'Get data by time range',
-      async () => {
-        const db = getDatabase();
+  async processData(dataString: string): Promise<void> {
+    try {
+      // 1. Парсим данные
+      const rawData = parseSerialData<RawSensorData>(dataString);
+      if (rawData === null) {
+        logger.warn('DataProcessor', 'Failed to parse data', {
+          port: this.port,
+          dataString: dataString.substring(0, 100),
+        });
+        return;
+      }
 
-        try {
-          const result = db.exec(
-            `SELECT * FROM sensor_data 
-             WHERE port = ? AND timestamp >= ? AND timestamp <= ?
-             ORDER BY timestamp DESC
-             LIMIT ?`,
-            [port, startTime, endTime, limit],
-          );
+      // 2. Получаем калибровку и маппинг
+      const calibrationData = this.getCalibrationData();
+      const sensorMappings = this.getSensorMappings();
 
-          if (result.length === 0) {
-            logger.debug('Database', 'No data found in time range', {
-              port,
-              startTime,
-              endTime,
-            });
-            return [];
-          }
+      // 3. Нормализуем данные
+      const normalized = this.normalizeData(rawData, calibrationData);
 
-          const columns = result[0].columns;
-          const values = result[0].values;
+      // 4. Вычисляем wavelengths
+      const wavelengths = this.calculateWavelengths(normalized, calibrationData, sensorMappings);
 
-          const records = values.map((row) => {
-            const obj: Record<string, unknown> = {};
-            columns.forEach((col, idx) => {
-              obj[col] = row[idx];
-            });
-            return obj as unknown as SensorDataRecord;
-          });
+      // 5. Формируем итоговый пакет
+      const processedData: ProcessedSensorData = {
+        ...rawData,
+        normalized,
+        wavelengths,
+      };
 
-          logger.debug('Database', 'Data retrieved successfully', {
-            port,
-            recordCount: records.length,
-            startTime,
-            endTime,
-          });
+      // 6. Отправляем на клиент
+      this.sendToClient(processedData);
 
-          return records;
-        } catch (err) {
-          throw new AppError({
-            code: ErrorCodes.DB_READ_FAILED,
-            title: 'Database Read Failed',
-            description: 'Failed to retrieve sensor data from database',
-            meta: { port, startTime, endTime, limit },
-            cause: err,
-            area: 'Database',
-          });
-        }
-      },
-      { port, startTime, endTime, limit },
-    );
+      // 7. Сохраняем в БД
+      await this.saveToDatabase(processedData);
+
+      this.recordCount++;
+    } catch (err) {
+      logger.error('DataProcessor', 'Data processing error', { port: this.port }, err);
+    }
   }
 
   /**
-   * Создание сессии
+   * Завершить сессию
    */
-  async createSession(port: string): Promise<number> {
+  async endSession(): Promise<void> {
     return logger.withLogging(
-      'Session',
-      'Create session',
-      async () => {
-        const db = getDatabase();
-
-        try {
-          db.run(
-            `INSERT INTO sessions (port, start_time, record_count, status) 
-             VALUES (?, ?, 0, 'active')`,
-            [port, Date.now()],
-          );
-
-          const result = db.exec('SELECT last_insert_rowid() as id');
-          const sessionId = result[0].values[0][0] as number;
-
-          logger.info('Session', 'Session created successfully', {
-            sessionId,
-            port,
-          });
-
-          return sessionId;
-        } catch (err) {
-          throw new AppError({
-            code: ErrorCodes.DB_WRITE_FAILED,
-            title: 'Session Creation Failed',
-            description: 'Failed to create new session',
-            meta: { port },
-            cause: err,
-            area: 'Session',
-          });
-        }
-      },
-      { port },
-    );
-  }
-
-  /**
-   * Завершение сессии
-   */
-  async endSession(sessionId: number): Promise<void> {
-    return logger.withLogging(
-      'Session',
+      'DataProcessor',
       'End session',
       async () => {
-        const db = getDatabase();
+        if (this.sessionId === null) {
+          logger.warn('DataProcessor', 'No active session to end', {
+            port: this.port,
+          });
+          return;
+        }
 
         try {
-          db.run(
-            `UPDATE sessions 
-             SET end_time = ?, status = 'stopped'
-             WHERE id = ?`,
-            [Date.now(), sessionId],
-          );
+          await sensorDataService.endSession(this.sessionId);
 
-          logger.info('Session', 'Session ended successfully', {
-            sessionId,
+          logger.info('DataProcessor', 'Session ended successfully', {
+            port: this.port,
+            sessionId: this.sessionId,
+            recordCount: this.recordCount,
           });
         } catch (err) {
-          throw new AppError({
+          throw createError({
             code: ErrorCodes.DB_WRITE_FAILED,
             title: 'Session End Failed',
-            description: 'Failed to end session',
-            meta: { sessionId },
+            description: 'Failed to end data processing session',
+            meta: { port: this.port, sessionId: this.sessionId },
             cause: err,
-            area: 'Session',
+            area: 'DataProcessor',
           });
         }
       },
-      { sessionId },
+      { port: this.port, sessionId: this.sessionId },
     );
   }
 
   /**
-   * Получение статистики базы данных
+   * Получить количество записей
    */
-  async getDatabaseStats(): Promise<{
-    totalSensorRecords: number;
-    totalChannelRecords: number;
-    totalSessions: number;
-    activeSessions: number;
-    oldestRecord: number | null;
-    newestRecord: number | null;
-  }> {
-    return logger.withLogging('Database', 'Get database stats', async () => {
-      const db = getDatabase();
-
-      try {
-        // Количество записей датчиков
-        const sensorResult = db.exec('SELECT COUNT(*) as count FROM sensor_data');
-        const totalSensorRecords = (sensorResult[0]?.values[0]?.[0] as number) || 0;
-
-        // Количество записей каналов
-        const channelResult = db.exec('SELECT COUNT(*) as count FROM channel_data');
-        const totalChannelRecords = (channelResult[0]?.values[0]?.[0] as number) || 0;
-
-        // Количество сессий
-        const sessionsResult = db.exec('SELECT COUNT(*) as count FROM sessions');
-        const totalSessions = (sessionsResult[0]?.values[0]?.[0] as number) || 0;
-
-        // Активные сессии
-        const activeResult = db.exec(
-          `SELECT COUNT(*) as count FROM sessions WHERE status = 'active'`,
-        );
-        const activeSessions = (activeResult[0]?.values[0]?.[0] as number) || 0;
-
-        // Самая старая и новая запись
-        const oldestResult = db.exec('SELECT MIN(timestamp) as oldest FROM sensor_data');
-        const oldestRecord = (oldestResult[0]?.values[0]?.[0] as number) || null;
-
-        const newestResult = db.exec('SELECT MAX(timestamp) as newest FROM sensor_data');
-        const newestRecord = (newestResult[0]?.values[0]?.[0] as number) || null;
-
-        return {
-          totalSensorRecords,
-          totalChannelRecords,
-          totalSessions,
-          activeSessions,
-          oldestRecord,
-          newestRecord,
-        };
-      } catch (err) {
-        throw new AppError({
-          code: ErrorCodes.DB_QUERY_FAILED,
-          title: 'Stats Query Failed',
-          description: 'Failed to retrieve database statistics',
-          cause: err,
-          area: 'Database',
-        });
-      }
-    });
+  getRecordCount(): number {
+    return this.recordCount;
   }
 
-  async incrementSessionRecords(sessionId: number): Promise<void> {
-    return logger.withLogging(
-      'Session',
-      'Increment session records',
-      async () => {
-        const db = getDatabase();
+  /**
+   * Получить калибровочные данные
+   */
+  private getCalibrationData(): CalibrationData {
+    const data = appDataStorage.get<CalibrationData>(STORAGE_KEYS.CALIBRATION_DATA);
 
-        try {
-          db.run(
-            `UPDATE sessions 
-             SET record_count = record_count + 1
-             WHERE id = ?`,
-            [sessionId],
-          );
-
-          logger.debug('Session', 'Record count incremented', { sessionId });
-        } catch (err) {
-          throw new AppError({
-            code: ErrorCodes.DB_WRITE_FAILED,
-            title: 'Session Update Failed',
-            description: 'Failed to increment session record count',
-            meta: { sessionId },
-            cause: err,
-            area: 'Session',
-          });
-        }
-      },
-      { sessionId },
+    return (
+      data ?? {
+        normalization: {},
+        wavelengths: {},
+      }
     );
   }
 
   /**
-   * Получить все сессии
+   * Получить маппинг датчиков
    */
-  async getAllSessions(): Promise<SessionRecord[]> {
-    return logger.withLogging('Session', 'Get all sessions', async () => {
-      const db = getDatabase();
+  private getSensorMappings(): SensorMapping[] {
+    const sensorConfig = appDataStorage.get<Record<number, Partial<SensorMapping>>>(
+      STORAGE_KEYS.SENSOR_CONFIG,
+    );
+    const sensorCount = appDataStorage.get<number>(STORAGE_KEYS.SENSOR_COUNT);
 
-      try {
-        const result = db.exec(`SELECT * FROM sessions ORDER BY start_time DESC LIMIT 100`);
+    if (sensorConfig === undefined || sensorCount === undefined || sensorCount === 0) {
+      return [];
+    }
 
-        if (result.length === 0) {
-          return [];
-        }
+    const mappings: SensorMapping[] = [];
 
-        const columns = result[0].columns;
-        const values = result[0].values;
-
-        return values.map((row) => {
-          const obj: Record<string, unknown> = {};
-          columns.forEach((col, idx) => {
-            obj[col] = row[idx];
-          });
-          return obj as unknown as SessionRecord;
-        });
-      } catch (err) {
-        throw new AppError({
-          code: ErrorCodes.DB_READ_FAILED,
-          title: 'Sessions Read Failed',
-          description: 'Failed to retrieve sessions from database',
-          cause: err,
-          area: 'Session',
+    for (let i = 0; i < sensorCount; i++) {
+      const config = sensorConfig[i];
+      if (config !== undefined) {
+        mappings.push({
+          index: i,
+          type: config.type ?? '',
+          channels: config.channels ?? [],
+          alias: config.alias ?? `Sensor ${i}`,
         });
       }
+    }
+
+    return mappings;
+  }
+
+  /**
+   * Нормализация данных
+   */
+  private normalizeData(
+    rawData: RawSensorData,
+    calibration: CalibrationData,
+  ): Record<string, number> {
+    const normalized: Record<string, number> = {};
+
+    for (let i = 0; i < DATA_PROCESSING.CHANNELS_COUNT; i++) {
+      const key = `P${i}`;
+      const rawValue = safeParseFloat(rawData[key], 0);
+      const normValue = safeParseFloat(calibration.normalization[`field${i}`], 0);
+
+      normalized[key] = Math.max(0, rawValue - normValue);
+    }
+
+    return normalized;
+  }
+
+  /**
+   * Вычисление wavelengths
+   */
+  private calculateWavelengths(
+    normalized: Record<string, number>,
+    calibration: CalibrationData,
+    sensors: SensorMapping[],
+  ): Record<string, number> {
+    const wavelengths: Record<string, number> = {};
+
+    for (const sensor of sensors) {
+      const { index, channels } = sensor;
+
+      // Минимум 2 канала для расчета
+      if (channels.length < DATA_PROCESSING.MIN_CHANNELS_FOR_WAVELENGTH) {
+        wavelengths[`wavelength${index}`] = NaN;
+        continue;
+      }
+
+      // Получаем веса и центральные длины волн
+      const weights = channels.map((ch) => normalized[ch] ?? 0);
+      const lambdas = channels.map((ch) => {
+        const chIndex = parseInt(ch.replace('P', ''), 10);
+        return safeParseFloat(calibration.wavelengths[`lambdas_central${chIndex}`], 0);
+      });
+
+      // Weighted average
+      const sumWeights = weights.reduce((sum, w) => sum + w, 0);
+
+      if (sumWeights > 0) {
+        const weightedSum = weights.reduce((sum, w, i) => sum + w * lambdas[i], 0);
+        wavelengths[`wavelength${index}`] = weightedSum / sumWeights;
+      } else {
+        wavelengths[`wavelength${index}`] = NaN;
+      }
+    }
+
+    return wavelengths;
+  }
+
+  /**
+   * Отправить данные на клиент
+   */
+  private sendToClient(data: ProcessedSensorData): void {
+    this.win.webContents.send('serial:data', {
+      port: this.port,
+      data: JSON.stringify(data),
     });
   }
 
   /**
-   * Получить последние N записей
+   * Сохранить в БД
    */
-  async getLastRecords(port: string, limit = 100): Promise<SensorDataRecord[]> {
-    return logger.withLogging(
-      'Database',
-      'Get last records',
-      async () => {
-        const db = getDatabase();
+  private async saveToDatabase(data: ProcessedSensorData): Promise<void> {
+    try {
+      // Извлекаем данные по каналам
+      const channels: ChannelRecord[] = [];
 
-        try {
-          const result = db.exec(
-            `SELECT * FROM sensor_data 
-             WHERE port = ?
-             ORDER BY timestamp DESC
-             LIMIT ?`,
-            [port, limit],
-          );
+      for (let i = 0; i < DATA_PROCESSING.CHANNELS_COUNT; i++) {
+        const pKey = `P${i}`;
+        const stdDevKey = `stdDev${i}`;
 
-          if (result.length === 0) {
-            return [];
-          }
+        channels.push({
+          channel: i,
+          value: safeParseFloat(data[pKey], 0),
+          normalized: data.normalized[pKey] ?? 0,
+          stdDev: safeParseFloat(data[stdDevKey], 0),
+        });
+      }
 
-          const columns = result[0].columns;
-          const values = result[0].values;
+      // Добавляем wavelengths к основным данным
+      const fullData = {
+        ...data,
+        ...data.wavelengths,
+      };
 
-          return values.map((row) => {
-            const obj: Record<string, unknown> = {};
-            columns.forEach((col, idx) => {
-              obj[col] = row[idx];
-            });
-            return obj as unknown as SensorDataRecord;
-          });
-        } catch (err) {
-          throw new AppError({
-            code: ErrorCodes.DB_READ_FAILED,
-            title: 'Last Records Read Failed',
-            description: 'Failed to retrieve last records from database',
-            meta: { port, limit },
-            cause: err,
-            area: 'Database',
-          });
-        }
-      },
-      { port, limit },
-    );
-  }
+      await sensorDataService.saveSensorData(this.port, data.id, data.time, fullData, channels);
 
-  /**
-   * Получить статистику канала
-   */
-  async getChannelStats(
-    port: string,
-    channel: number,
-    startTime: number,
-    endTime: number,
-  ): Promise<ChannelStats> {
-    return logger.withLogging(
-      'Database',
-      'Get channel stats',
-      async () => {
-        const db = getDatabase();
-
-        try {
-          const result = db.exec(
-            `SELECT 
-               COUNT(*) as count,
-               MIN(value) as min,
-               MAX(value) as max,
-               AVG(value) as avg
-             FROM channel_data cd
-             INNER JOIN sensor_data sd ON cd.sensor_data_id = sd.id
-             WHERE sd.port = ? 
-               AND cd.channel = ?
-               AND sd.timestamp >= ?
-               AND sd.timestamp <= ?`,
-            [port, channel, startTime, endTime],
-          );
-
-          if (result.length === 0 || result[0].values.length === 0) {
-            return { count: 0, min: 0, max: 0, avg: 0 };
-          }
-
-          const row = result[0].values[0];
-          return {
-            count: (row[0] as number) ?? 0,
-            min: (row[1] as number) ?? 0,
-            max: (row[2] as number) ?? 0,
-            avg: (row[3] as number) ?? 0,
-          };
-        } catch (err) {
-          throw new AppError({
-            code: ErrorCodes.DB_QUERY_FAILED,
-            title: 'Channel Stats Failed',
-            description: 'Failed to retrieve channel statistics',
-            meta: { port, channel, startTime, endTime },
-            cause: err,
-            area: 'Database',
-          });
-        }
-      },
-      { port, channel, startTime, endTime },
-    );
+      // Обновляем счетчик в сессии
+      const now = Date.now();
+      if (now - this.lastSaveTime > DATA_PROCESSING.SAVE_INTERVAL && this.sessionId !== null) {
+        await sensorDataService.incrementSessionRecords(this.sessionId);
+        this.lastSaveTime = now;
+      }
+    } catch (err) {
+      logger.error('DataProcessor', 'Database save error', { port: this.port }, err);
+      throw err;
+    }
   }
 }
 
-export const sensorDataService = new SensorDataService();
+/**
+ * Создать процессор данных
+ */
+export function createDataProcessor(port: string, win: BrowserWindow): IDataProcessor {
+  return new DataProcessorService(port, win);
+}
+
+
+============================================================
+FILE: src/electron/features/serial/services/mock-port.service.ts
+============================================================
+
+// src/electron/features/serial/services/mock-port.service.ts
+
+import { EventEmitter } from 'node:events';
+
+import type { ISerialPort, SerialPortInfo } from '../serial.types';
+import { MOCK_PORTS, TIMEOUTS, DATA_PROCESSING } from '../serial.constants';
+import { extractPortIndex } from '../serial.utils';
+import { logger } from '../../logger';
+
+export class MockSerialPort extends EventEmitter implements ISerialPort {
+  public path: string;
+  public baudRate: number;
+  public isOpen: boolean;
+
+  private interval?: NodeJS.Timeout;
+  private recordId: number;
+  private portIndex: number;
+
+  constructor(path: string, baudRate: number) {
+    super();
+
+    this.path = path;
+    this.baudRate = baudRate;
+    this.isOpen = true;
+    this.recordId = 0;
+    this.portIndex = extractPortIndex(path);
+
+    logger.info('Serial', 'Mock port created', {
+      path,
+      baudRate,
+      portIndex: this.portIndex,
+    });
+
+    // Задержка перед началом отправки данных
+    setTimeout(() => {
+      if (this.isOpen) {
+        this.startSendingData();
+      }
+    }, TIMEOUTS.MOCK_INIT_DELAY);
+  }
+
+  /**
+   * Генерация mock данных
+   */
+  private generateMockData(): Record<string, unknown> {
+    const data: Record<string, unknown> = {
+      id: `record_${this.recordId}`,
+      time: new Date().toISOString().substring(11, 23),
+    };
+
+    // Генерируем данные для каналов
+    for (let i = 0; i < DATA_PROCESSING.CHANNELS_COUNT; i++) {
+      const baseValue = 1.8 + this.portIndex * 0.2 + i * 0.02 + (Math.random() * 0.4 - 0.2);
+      data[`P${i}`] = parseFloat(baseValue.toFixed(6));
+      data[`stdDev${i}`] = parseFloat((0.01 + Math.random() * 0.01).toFixed(6));
+    }
+
+    return data;
+  }
+
+  /**
+   * Начать отправку данных
+   */
+  private startSendingData(): void {
+    if (!this.isOpen) {
+      logger.debug('Serial', 'Port is closed, not starting data transmission', {
+        path: this.path,
+      });
+      return;
+    }
+
+    logger.info('Serial', 'Starting mock data transmission', {
+      path: this.path,
+      interval: TIMEOUTS.MOCK_DATA_INTERVAL,
+    });
+
+    // Отправляем первый пакет сразу
+    this.sendDataPacket();
+
+    // Настраиваем интервал
+    this.interval = setInterval(() => {
+      if (this.isOpen) {
+        this.sendDataPacket();
+      } else {
+        this.stopSendingData();
+      }
+    }, TIMEOUTS.MOCK_DATA_INTERVAL);
+  }
+
+  /**
+   * Остановить отправку данных
+   */
+  private stopSendingData(): void {
+    if (this.interval !== undefined) {
+      clearInterval(this.interval);
+      this.interval = undefined;
+
+      logger.debug('Serial', 'Mock data transmission stopped', {
+        path: this.path,
+      });
+    }
+  }
+
+  /**
+   * Отправить пакет данных
+   */
+  private sendDataPacket(): void {
+    if (!this.isOpen) return;
+
+    this.recordId++;
+    const mockData = this.generateMockData();
+    const dataString = JSON.stringify(mockData) + '\n';
+
+    logger.debug('Serial', 'Sending mock data packet', {
+      path: this.path,
+      recordId: this.recordId,
+    });
+
+    // Используем setImmediate для эмуляции асинхронности
+    setImmediate(() => {
+      if (this.isOpen) {
+        this.emit('data', Buffer.from(dataString));
+      }
+    });
+  }
+
+  /**
+   * Закрыть порт
+   */
+  public close(callback?: (error?: Error | null) => void): void {
+    logger.info('Serial', 'Closing mock port', {
+      path: this.path,
+      isOpen: this.isOpen,
+    });
+
+    if (!this.isOpen) {
+      logger.debug('Serial', 'Mock port already closed', { path: this.path });
+      if (callback !== undefined) {
+        callback(null);
+      }
+      return;
+    }
+
+    this.isOpen = false;
+    this.stopSendingData();
+
+    // Эмулируем задержку закрытия порта
+    setTimeout(() => {
+      logger.info('Serial', 'Mock port closed successfully', { path: this.path });
+
+      this.emit('close');
+
+      if (callback !== undefined) {
+        callback(null);
+      }
+
+      // Удаляем все слушатели
+      this.removeAllListeners();
+    }, 50);
+  }
+}
+
+/**
+ * Создать mock Serial порт
+ */
+export function createMockSerialPort(path: string, baudRate: number): ISerialPort {
+  return new MockSerialPort(path, baudRate);
+}
+
+/**
+ * Получить список mock портов
+ */
+export async function getMockSerialPorts(): Promise<SerialPortInfo[]> {
+  return MOCK_PORTS.map((port) => ({
+    ...port,
+    busy: false,
+  }));
+}
+
+
+============================================================
+FILE: src/electron/features/serial/services/port-manager.service.ts
+============================================================
+
+// src/electron/features/serial/services/port-manager.service.ts
+
+import type { BrowserWindow } from 'electron';
+
+import type {
+  ISerialPort,
+  PortConnection,
+  ISerialPortManager,
+  IDataProcessor,
+} from '../serial.types';
+import { SerialIPC } from '../serial.types';
+import { TIMEOUTS } from '../serial.constants';
+import { createDataProcessor } from './data-processor.service';
+import { createPortError, createTimeoutError } from '../serial.utils';
+import { logger } from '../../logger';
+
+export class PortManagerService implements ISerialPortManager {
+  private connections = new Map<string, PortConnection>();
+  private closingPorts = new Set<string>();
+
+  constructor(private readonly win: BrowserWindow) {}
+
+  /**
+   * Проверить открыт ли порт
+   */
+  isPortOpen(path: string): boolean {
+    return this.connections.has(path) && !this.closingPorts.has(path);
+  }
+
+  /**
+   * Получить подключение
+   */
+  getConnection(path: string): PortConnection | undefined {
+    return this.connections.get(path);
+  }
+
+  /**
+   * Открыть порт
+   */
+  async openPort(path: string, port: ISerialPort): Promise<void> {
+    return logger.withLogging(
+      'PortManager',
+      'Open port',
+      async () => {
+        // Проверяем, не закрывается ли порт сейчас
+        if (this.closingPorts.has(path)) {
+          throw createPortError('Port Busy', `Port ${path} is currently being closed`, path);
+        }
+
+        // Проверяем, не открыт ли уже
+        if (this.connections.has(path)) {
+          throw createPortError('Port Already Open', `Port ${path} is already open`, path);
+        }
+
+        // Создаём процессор данных
+        const processor = createDataProcessor(path, this.win);
+        await processor.startSession();
+
+        // Сохраняем подключение
+        this.connections.set(path, { port, processor });
+
+        // Настраиваем обработчики событий
+        this.setupPortHandlers(path, port, processor);
+
+        logger.info('PortManager', 'Port opened successfully', { path });
+      },
+      { path },
+    );
+  }
+
+  /**
+   * Закрыть порт
+   */
+  async closePort(path: string): Promise<void> {
+    return logger.withLogging(
+      'PortManager',
+      'Close port',
+      async () => {
+        const connection = this.connections.get(path);
+        if (connection === undefined) {
+          logger.warn('PortManager', 'Port not found in active connections', { path });
+          return;
+        }
+
+        // Помечаем порт как закрывающийся
+        this.closingPorts.add(path);
+
+        const { port, processor } = connection;
+
+        try {
+          await this.closePortWithTimeout(path, port, processor);
+        } finally {
+          this.closingPorts.delete(path);
+        }
+      },
+      { path },
+    );
+  }
+
+  /**
+   * Закрыть порт с таймаутом
+   */
+  private async closePortWithTimeout(
+    path: string,
+    port: ISerialPort,
+    processor: IDataProcessor,
+  ): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (!port.isOpen) {
+        logger.debug('PortManager', 'Port already closed', { path });
+        this.connections.delete(path);
+        resolve();
+        return;
+      }
+
+      // Таймаут на случай зависания
+      const timeout = setTimeout(() => {
+        logger.error('PortManager', 'Close timeout', { path, timeout: TIMEOUTS.CLOSE_PORT });
+        this.connections.delete(path);
+        reject(createTimeoutError('close', path, TIMEOUTS.CLOSE_PORT));
+      }, TIMEOUTS.CLOSE_PORT);
+
+      port.close(async (err) => {
+        clearTimeout(timeout);
+
+        if (err !== null && err !== undefined) {
+          logger.error('PortManager', 'Error closing port', { path }, err);
+        }
+
+        // Завершаем сессию в БД
+        try {
+          await processor.endSession();
+        } catch (dbErr) {
+          logger.error('PortManager', 'Error ending session', { path }, dbErr);
+        }
+
+        // Удаляем из активных подключений
+        this.connections.delete(path);
+
+        logger.info('PortManager', 'Port closed successfully', { path });
+        resolve();
+      });
+    });
+  }
+
+  /**
+   * Закрыть все порты
+   */
+  async closeAllPorts(): Promise<void> {
+    return logger.withLogging('PortManager', 'Close all ports', async () => {
+      const activePorts = Array.from(this.connections.keys());
+
+      logger.info('PortManager', 'Closing all ports', {
+        count: activePorts.length,
+        ports: activePorts,
+      });
+
+      const closeTasks = activePorts.map((path) =>
+        this.closePort(path).catch((err) => {
+          logger.error('PortManager', 'Error closing port in batch', { path }, err);
+        }),
+      );
+
+      await Promise.all(closeTasks);
+
+      logger.info('PortManager', 'All ports closed successfully');
+    });
+  }
+
+  /**
+   * Переключить порт
+   */
+  async switchPort(fromPath: string | null, toPath: string, newPort: ISerialPort): Promise<void> {
+    return logger.withLogging(
+      'PortManager',
+      'Switch port',
+      async () => {
+        // Если уже подключены к целевому порту
+        if (fromPath === toPath && this.connections.has(toPath)) {
+          logger.debug('PortManager', 'Already connected to target port', { toPath });
+          return;
+        }
+
+        // Закрываем старый порт если есть
+        if (fromPath !== null && this.connections.has(fromPath)) {
+          await this.closePort(fromPath);
+          // Даём время на очистку
+          await new Promise((resolve) => setTimeout(resolve, TIMEOUTS.SWITCH_DELAY));
+        }
+
+        // Открываем новый порт
+        await this.openPort(toPath, newPort);
+
+        logger.info('PortManager', 'Port switched successfully', {
+          from: fromPath,
+          to: toPath,
+        });
+      },
+      { from: fromPath, to: toPath },
+    );
+  }
+
+  /**
+   * Получить список активных портов
+   */
+  getActivePorts(): string[] {
+    return Array.from(this.connections.keys()).filter((path) => !this.closingPorts.has(path));
+  }
+
+  /**
+   * Настроить обработчики событий порта
+   */
+  private setupPortHandlers(path: string, port: ISerialPort, processor: IDataProcessor): void {
+    // Обработка данных
+    port.on('data', async (data: Buffer) => {
+      const dataString = data.toString().trim();
+      if (dataString.length === 0) return;
+
+      try {
+        await processor.processData(dataString);
+      } catch (err) {
+        logger.error('PortManager', 'Data processing error', { path }, err);
+      }
+    });
+
+    // Закрытие порта
+    port.on('close', async () => {
+      logger.info('PortManager', 'Port closed event received', { path });
+
+      if (this.closingPorts.has(path)) {
+        // Закрытие инициировано нами, не уведомляем клиент
+        return;
+      }
+
+      // Неожиданное закрытие
+      await processor.endSession();
+      this.connections.delete(path);
+      this.win.webContents.send(SerialIPC.Closed, path);
+    });
+
+    // Ошибка порта
+    port.on('error', async (err: Error) => {
+      logger.error('PortManager', 'Port error event received', { path }, err);
+
+      await processor.endSession();
+      this.connections.delete(path);
+      this.closingPorts.delete(path);
+
+      this.win.webContents.send(SerialIPC.Error, {
+        port: path,
+        error: err.message,
+      });
+    });
+  }
+}
+
+/**
+ * Создать менеджер портов
+ */
+export function createPortManager(win: BrowserWindow): ISerialPortManager {
+  return new PortManagerService(win);
+}
 
 
