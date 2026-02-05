@@ -23,12 +23,12 @@ importers:
       '@rsbuild/plugin-node-polyfill':
         specifier: ^1.4.2
         version: 1.4.3(@rsbuild/core@1.5.12)
+      '@serialport/parser-readline':
+        specifier: ^13.0.0
+        version: 13.0.0
       '@tanstack/react-virtual':
         specifier: ^3.13.18
         version: 3.13.18(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      dotenv:
-        specifier: ^17.2.3
-        version: 17.2.3
       drizzle-orm:
         specifier: 0.44.7
         version: 0.44.7(@types/better-sqlite3@7.6.13)(@types/sql.js@1.4.9)(better-sqlite3@12.6.2)(sql.js@1.13.0)
@@ -65,9 +65,6 @@ importers:
       sql.js:
         specifier: ^1.13.0
         version: 1.13.0
-      tailwindcss:
-        specifier: ^4.1.17
-        version: 4.1.18
       use-debounce:
         specifier: ^10.1.0
         version: 10.1.0(react@19.1.1)
@@ -117,6 +114,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
       electron:
         specifier: 39.2.4
         version: 39.2.4
@@ -165,6 +165,9 @@ importers:
       rimraf:
         specifier: ^6.1.2
         version: 6.1.2
+      tailwindcss:
+        specifier: ^4.1.17
+        version: 4.1.18
       typescript:
         specifier: 5.9.2
         version: 5.9.2
@@ -3328,7 +3331,7 @@ packages:
   glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
     engines: {node: '>=12'}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   global-agent@3.0.0:
     resolution: {integrity: sha512-PT6XReJ+D07JvGoxQMkT6qji/jVNfX/h364XHZOWeRzy64sSFr+xJ5OX7LI3b4MPQzdL4H8Y8M0xzPpsVMwA8Q==}

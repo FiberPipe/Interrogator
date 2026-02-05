@@ -1,6 +1,7 @@
 // src/electron/features/serial/services/port-manager.service.ts
 
 import type { BrowserWindow } from 'electron';
+import { ReadlineParser } from '@serialport/parser-readline';
 
 import type {
   ISerialPort,
@@ -211,13 +212,17 @@ export class PortManagerService implements ISerialPortManager {
    * Настроить обработчики событий порта
    */
   private setupPortHandlers(path: string, port: ISerialPort, processor: IDataProcessor): void {
-    // Обработка данных
-    port.on('data', async (data: Buffer) => {
-      const dataString = data.toString().trim();
-      if (dataString.length === 0) return;
+    // ==================== READLINE PARSER ====================
+    // Создаём парсер для построчного чтения данных
+    const parser = (port as any).pipe(new ReadlineParser({ delimiter: '\n' }));
+
+    // Обработка данных построчно
+    parser.on('data', async (line: string) => {
+      const trimmedLine = line.trim();
+      if (trimmedLine.length === 0) return;
 
       try {
-        await processor.processData(dataString);
+        await processor.processData(trimmedLine);
       } catch (err) {
         logger.error('PortManager', 'Data processing error', { path }, err);
       }
