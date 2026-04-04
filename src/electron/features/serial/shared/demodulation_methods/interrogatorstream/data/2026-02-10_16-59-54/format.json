@@ -1,0 +1,13 @@
+{
+  "protocol": "OI_STREAM v1",
+  "sync_hex": "55aa",
+  "frame_len": 44,
+  "payload_len": 40,
+  "payload_struct": "<II16H",
+  "fields": [
+    "rec_id:uint32",
+    "t_us:uint32(micros)",
+    "adc[16]:uint16"
+  ],
+  "crc": "CRC16-CCITT poly=0x1021 init=0xFFFF over payload(40 bytes)"
+}
