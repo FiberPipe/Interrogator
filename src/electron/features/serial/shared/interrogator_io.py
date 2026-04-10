@@ -30,6 +30,44 @@ FRAME_LEN = 2 + PAYLOAD_LEN + 2  # sync + payload + crc
 UNPACK = struct.Struct("<II16H")  # rec_id, t_us, 16 adc codes
 NCH = 16
 
+from collections import deque
+
+class RollingWindow:
+    def __init__(self, avg_sec=None, avg_n=None):
+        self.avg_sec = avg_sec
+        self.avg_n = avg_n
+        self.q = deque()
+        self.sum = np.zeros(NCH, dtype=np.float64)
+        self.sumsq = np.zeros(NCH, dtype=np.float64)
+
+    def push(self, t_s, x):
+        x = x.astype(np.float64)
+        self.q.append((t_s, x))
+        self.sum += x
+        self.sumsq += x * x
+
+        if self.avg_n is not None:
+            while len(self.q) > self.avg_n:
+                _, old = self.q.popleft()
+                self.sum -= old
+                self.sumsq -= old * old
+
+        if self.avg_sec is not None:
+            t_min = t_s - self.avg_sec
+            while self.q and self.q[0][0] < t_min:
+                _, old = self.q.popleft()
+                self.sum -= old
+                self.sumsq -= old * old
+
+    def mean_std(self):
+        n = len(self.q)
+        if n == 0:
+            return None, None, 0
+        mean = self.sum / n
+        var = np.maximum(self.sumsq / n - mean * mean, 0.0)
+        std = np.sqrt(var)
+        return mean, std, n
+    
 # -------------------- CRC16-CCITT --------------------
 def _crc16_table():
     poly = 0x1021
@@ -174,6 +212,41 @@ class Interrogator:
     - read_block(seconds): record a fixed-duration block
     - stop(): release COM port
     """
+    def read_avg_block(self, seconds: float, avg_sec: float = 1.0, avg_n: int = None):
+        roll = RollingWindow(avg_sec=avg_sec, avg_n=avg_n)
+
+        t_dead = time.time() + seconds
+        last_rx = time.time()
+
+        t_out = []
+        mean_out = []
+        std_out = []
+
+        while time.time() < t_dead:
+            try:
+                item = self._q.get(timeout=0.2)
+            except Empty:
+                if time.time() - last_rx > 2.0:
+                    raise TimeoutError("No frames")
+                continue
+
+            last_rx = time.time()
+            t_s = self._uw.push(item["t_us"])
+
+            roll.push(t_s, item["adc"])
+            mean, std, n = roll.mean_std()
+
+            if mean is not None:
+                t_out.append(t_s)
+                mean_out.append(mean.copy())
+                std_out.append(std.copy())
+
+        return {
+            "t_s": np.array(t_out),
+            "mean": np.array(mean_out),
+            "std": np.array(std_out),
+        }
+    
     def __init__(self, port: str, baud: int = 500000):
         self.port = port
         self.baud = baud

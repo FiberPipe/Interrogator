@@ -20,8 +20,6 @@ export class PythonBridgeService {
 
     const pythonCmd = this.findPythonCommand();
 
-    console.log(1234567, pythonCmd)
-
     this.process = spawn(pythonCmd, [script, this.port, String(this.baud)], {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -36,6 +34,8 @@ export class PythonBridgeService {
 
       for (const line of lines) {
         const trimmed = line.trim();
+
+        console.log(2222222, trimmed);
         if (trimmed) {
           // Передаём как обычную JSON-строку — processData не меняется
           void this.processor.processData(trimmed);

@@ -25,17 +25,16 @@ def main():
     try:
         while True:
             try:
-                block = inq.read_block(seconds=1.0, max_wait_s=5.0)
+                data = inq.read_avg_block(seconds=1.0, avg_sec=1.0)
 
-                print(f"[DEBUG] Got block: {len(block.rec_id)} frames, stats: {inq.stats}", file=sys.stderr, flush=True)
+                # print(f"[DEBUG] Got b/lock: {len(data.rec_id)} frames, stats: {inq.stats}", file=sys.stderr, flush=True)
 
-                for i in range(len(block.rec_id)):
+                for i in range(len(data["t_s"])):
                     row = {
-                        "id":   int(block.rec_id[i]),
-                        "time": float(block.t_s[i]),
+                        "time": float(data["t_s"][i]),
                     }
-                    for ch in range(NCH):
-                        row[f"P{ch}"] = int(block.adc[i, ch])
+                for ch in range(NCH):
+                    row[f"P{ch}"] = float(data["mean"][i][ch])
 
                     print(json.dumps(row), flush=True)
 
