@@ -18,7 +18,6 @@ def main():
     inq = Interrogator(port=port, baud=baud)
     inq.start()
 
-    # Даём время на старт потока и накопление данных
     print(f"[DEBUG] Waiting for data...", file=sys.stderr, flush=True)
     time.sleep(2.0)
 
@@ -27,21 +26,29 @@ def main():
             try:
                 data = inq.read_avg_block(seconds=1.0, avg_sec=1.0)
 
-                # print(f"[DEBUG] Got b/lock: {len(data.rec_id)} frames, stats: {inq.stats}", file=sys.stderr, flush=True)
+                t_arr = data["t_s"]
+                mean_arr = data["mean"]   # (N, 16)
+                std_arr = data["std"]     # (N, 16)
 
-                for i in range(len(data["t_s"])):
-                    row = {
-                        "time": float(data["t_s"][i]),
-                    }
+                if len(t_arr) == 0:
+                    continue
+
+                # Берём последнюю точку — она содержит среднее за avg_sec окно
+                i = len(t_arr) - 1
+
+                row = {
+                    "time": float(t_arr[i]),
+                }
+
                 for ch in range(NCH):
-                    row[f"P{ch}"] = float(data["mean"][i][ch])
+                    row[f"P{ch}"]      = float(mean_arr[i][ch])
+                    row[f"stdDev{ch}"] = float(std_arr[i][ch])
 
-                    print(json.dumps(row), flush=True)
+                print(json.dumps(row), flush=True)
 
             except TimeoutError as e:
                 print(f"[DEBUG] Timeout: {e}", file=sys.stderr, flush=True)
                 print(f"[DEBUG] Stats: {inq.stats}", file=sys.stderr, flush=True)
-                # Не падаем, ждём дальше
                 continue
 
     except KeyboardInterrupt:
