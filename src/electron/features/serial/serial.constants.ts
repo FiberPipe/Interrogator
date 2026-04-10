@@ -8,7 +8,7 @@ export const FEATURE_NAME = 'SERIAL';
  * Настройки Serial по умолчанию
  */
 export const DEFAULT_SERIAL_CONFIG: SerialConfig = {
-  defaultBaudRate: 115200,
+  defaultBaudRate: 500000,
   autoConnect: false,
   useMockPorts: false,
 };
@@ -17,7 +17,7 @@ export const DEFAULT_SERIAL_CONFIG: SerialConfig = {
  * Поддерживаемые скорости передачи
  */
 export const SUPPORTED_BAUD_RATES = [
-  9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600,
+  9600, 19200, 38400, 57600, 500000, 230400, 460800, 921600,
 ] as const;
 
 /**

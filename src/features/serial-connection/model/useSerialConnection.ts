@@ -111,7 +111,7 @@ export const useSerialConnection = () => {
 
   // Подключение к порту
   const connectToPort = useCallback(
-    async (port: string, baudRate = 115200): Promise<boolean> => {
+    async (port: string, baudRate = 500000): Promise<boolean> => {
       addSuccessToaster('[useSerialConnection] Connecting to:', port);
 
       // Предотвращаем подключение во время отключения

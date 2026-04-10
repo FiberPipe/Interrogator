@@ -8,7 +8,7 @@ export const FEATURE_NAME = 'APP_DATA_STORAGE';
  * Дефолтные настройки приложения
  */
 export const DEFAULT_SETTINGS: Partial<AppSettings> = {
-  baudRate: 115200,
+  baudRate: 500000,
   autoConnect: false,
   theme: 'system',
   language: 'en',
