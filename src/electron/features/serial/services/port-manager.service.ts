@@ -85,7 +85,7 @@ export class PortManagerService implements ISerialPortManager {
       // Python bridge сам откроет COM-порт.
       // port объект нужен только для baudRate и событий close/error.
 
-      const scriptDir = path.join(__dirname, '..', 'shared');
+      const scriptDir = path.join(__dirname, 'shared');
       const bridge = new PythonBridgeService(
         portPath,
         port.baudRate,

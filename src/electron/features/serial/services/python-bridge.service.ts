@@ -16,7 +16,7 @@ export class PythonBridgeService {
   ) { }
 
   start(): void {
-    const script = path.join(this.scriptDir, 'interrogator_stdout.py');
+    const script = path.join('./src/electron/features/serial/shared/interrogator_stdout.py');
 
     const pythonCmd = this.findPythonCommand();
 
