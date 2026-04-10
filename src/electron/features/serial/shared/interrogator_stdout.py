@@ -1,19 +1,8 @@
 # interrogator_stdout.py
-"""
-Запускается Electron'ом как дочерний процесс.
-Читает бинарный поток с Arduino, конвертирует фреймы в JSON,
-печатает по одной строке на stdout.
-
-Формат строки (совместим с RawSensorData):
-{"id": 123, "time": 1.234567, "P0": 512, "P1": 300, ..., "P15": 800}
-
-Аргументы:
-  argv[1] = COM-порт  (например COM3 или /dev/ttyUSB0)
-  argv[2] = baud      (опционально, по умолчанию 500000)
-"""
 
 import sys
 import json
+import time
 from interrogator_io import Interrogator, NCH
 
 def main():
@@ -24,24 +13,37 @@ def main():
     port = sys.argv[1]
     baud = int(sys.argv[2]) if len(sys.argv) > 2 else 500000
 
+    print(f"[DEBUG] Connecting to {port} at {baud} baud...", file=sys.stderr, flush=True)
+
     inq = Interrogator(port=port, baud=baud)
     inq.start()
 
+    # Даём время на старт потока и накопление данных
+    print(f"[DEBUG] Waiting for data...", file=sys.stderr, flush=True)
+    time.sleep(2.0)
+
     try:
         while True:
-            # Блок по 1 секунде — размер не важен, главное непрерывность
-            block = inq.read_block(seconds=1.0)
+            try:
+                block = inq.read_block(seconds=1.0, max_wait_s=5.0)
 
-            for i in range(len(block.rec_id)):
-                row = {
-                    "id":   int(block.rec_id[i]),
-                    "time": float(block.t_s[i]),
-                }
-                for ch in range(NCH):
-                    row[f"P{ch}"] = int(block.adc[i, ch])
+                print(f"[DEBUG] Got block: {len(block.rec_id)} frames, stats: {inq.stats}", file=sys.stderr, flush=True)
 
-                # Одна строка = один фрейм, flush обязателен
-                print(json.dumps(row), flush=True)
+                for i in range(len(block.rec_id)):
+                    row = {
+                        "id":   int(block.rec_id[i]),
+                        "time": float(block.t_s[i]),
+                    }
+                    for ch in range(NCH):
+                        row[f"P{ch}"] = int(block.adc[i, ch])
+
+                    print(json.dumps(row), flush=True)
+
+            except TimeoutError as e:
+                print(f"[DEBUG] Timeout: {e}", file=sys.stderr, flush=True)
+                print(f"[DEBUG] Stats: {inq.stats}", file=sys.stderr, flush=True)
+                # Не падаем, ждём дальше
+                continue
 
     except KeyboardInterrupt:
         pass
