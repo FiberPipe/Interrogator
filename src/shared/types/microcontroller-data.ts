@@ -1,7 +1,6 @@
 export interface RowData extends Power, Deviation {
   id: string;
   time: string;
-  normalized: NormalizedPower;
   wavelengths: Wavelength;
 }
 
@@ -16,5 +15,3 @@ export interface Deviation {
 export interface Wavelength {
   [key: `wavelength${number}`]: number;
 }
-
-export interface NormalizedPower extends Power {}
