@@ -213,10 +213,7 @@ export class DataProcessorService implements IDataProcessor {
       }
 
       // Добавляем wavelengths к основным данным
-      const fullData = {
-        ...data,
-        ...data.wavelengths,
-      };
+      const fullData = data;
 
       await sensorDataService.saveSensorData(this.port, String(data.id), String(data.time), fullData, channels);
 

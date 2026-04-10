@@ -286,7 +286,6 @@ export interface ChannelStats {
 export interface ChannelRecord {
   channel: number;
   value: number;
-  normalized: number;
   //@ts-ignore
   stdDev: number;
 }
