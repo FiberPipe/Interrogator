@@ -13,12 +13,16 @@ export class PythonBridgeService {
     private readonly baud: number,
     private readonly processor: IDataProcessor,
     private readonly scriptDir: string, // путь к папке со скриптами
-  ) {}
+  ) { }
 
   start(): void {
     const script = path.join(this.scriptDir, 'interrogator_stdout.py');
 
-    this.process = spawn('python', [script, this.port, String(this.baud)], {
+    const pythonCmd = this.findPythonCommand();
+
+    console.log(1234567, pythonCmd)
+
+    this.process = spawn(pythonCmd, [script, this.port, String(this.baud)], {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 
@@ -52,5 +56,24 @@ export class PythonBridgeService {
   stop(): void {
     this.process?.kill();
     this.process = null;
+  }
+
+  private findPythonCommand(): string {
+    // На Windows может быть python, python3, или py
+    const candidates = ['python', 'python3', 'py'];
+
+    for (const cmd of candidates) {
+      try {
+        const result = require('child_process').spawnSync(cmd, ['--version']);
+        if (result.status === 0) {
+          return cmd;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    // fallback
+    return 'python';
   }
 }

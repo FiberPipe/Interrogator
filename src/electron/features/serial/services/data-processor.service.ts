@@ -26,7 +26,7 @@ export class DataProcessorService implements IDataProcessor {
   constructor(
     private readonly port: string,
     private readonly win: BrowserWindow,
-  ) {}
+  ) { }
 
   /**
    * Начать сессию
@@ -287,7 +287,7 @@ export class DataProcessorService implements IDataProcessor {
         ...data.wavelengths,
       };
 
-      await sensorDataService.saveSensorData(this.port, data.id, data.time, fullData, channels);
+      await sensorDataService.saveSensorData(this.port, String(data.id), String(data.time), fullData, channels);
 
       // Обновляем счетчик в сессии
       const now = Date.now();
