@@ -37,7 +37,7 @@ export const transformToPowerTableRows = (dataBuffer: RowData[]): PowerTableRow[
 
     // Текущее значение из normalized
     const normalizedKey = `P${channelId}` as keyof typeof latestRecord.normalized;
-    const currentValue = latestRecord.normalized[normalizedKey] ?? 0;
+    const currentValue = latestRecord[normalizedKey] ?? 0;
 
     rows.push({
       id: channelId,

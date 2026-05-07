@@ -12,7 +12,7 @@ export function initAppStorage(): void {
         isFirstLaunch: true,
         theme: 'system',
         language: 'ru',
-        baudRate: 115200,
+        baudRate: 500000,
         autoConnect: false,
       });
     }

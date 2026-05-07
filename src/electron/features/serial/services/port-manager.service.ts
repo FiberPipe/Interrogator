@@ -1,7 +1,4 @@
-// src/electron/features/serial/services/port-manager.service.ts
-
 import type { BrowserWindow } from 'electron';
-import { ReadlineParser } from '@serialport/parser-readline';
 
 import type {
   ISerialPort,
@@ -12,8 +9,12 @@ import type {
 import { SerialIPC } from '../serial.types';
 import { TIMEOUTS } from '../serial.constants';
 import { createDataProcessor } from './data-processor.service';
+import { PythonBridgeService } from './python-bridge.service';
 import { createPortError, createTimeoutError } from '../serial.utils';
 import { logger } from '../../logger';
+import * as path from 'path';
+
+const bridges = new Map<string, PythonBridgeService>();
 
 export class PortManagerService implements ISerialPortManager {
   private connections = new Map<string, PortConnection>();
@@ -21,80 +22,141 @@ export class PortManagerService implements ISerialPortManager {
 
   constructor(private readonly win: BrowserWindow) {}
 
-  /**
-   * Проверить открыт ли порт
-   */
   isPortOpen(path: string): boolean {
     return this.connections.has(path) && !this.closingPorts.has(path);
   }
 
-  /**
-   * Получить подключение
-   */
   getConnection(path: string): PortConnection | undefined {
     return this.connections.get(path);
   }
 
-  /**
-   * Открыть порт
-   */
-  async openPort(path: string, port: ISerialPort): Promise<void> {
+  async openPort(portPath: string, port: ISerialPort): Promise<void> {
     return logger.withLogging(
       'PortManager',
       'Open port',
       async () => {
-        // Проверяем, не закрывается ли порт сейчас
-        if (this.closingPorts.has(path)) {
-          throw createPortError('Port Busy', `Port ${path} is currently being closed`, path);
+        if (this.closingPorts.has(portPath)) {
+          throw createPortError('Port Busy', `Port ${portPath} is currently being closed`, portPath);
         }
 
-        // Проверяем, не открыт ли уже
-        if (this.connections.has(path)) {
-          throw createPortError('Port Already Open', `Port ${path} is already open`, path);
+        if (this.connections.has(portPath)) {
+          throw createPortError('Port Already Open', `Port ${portPath} is already open`, portPath);
         }
 
-        // Создаём процессор данных
-        const processor = createDataProcessor(path, this.win);
+        const processor = createDataProcessor(portPath, this.win);
         await processor.startSession();
 
-        // Сохраняем подключение
-        this.connections.set(path, { port, processor });
+        this.connections.set(portPath, { port, processor });
 
-        // Настраиваем обработчики событий
-        this.setupPortHandlers(path, port, processor);
+        // Вместо setupPortHandlers с ReadlineParser — запускаем Python bridge
+        this.setupPortHandlers(portPath, port, processor);
 
-        logger.info('PortManager', 'Port opened successfully', { path });
+        logger.info('PortManager', 'Port opened successfully', { path: portPath });
       },
-      { path },
+      { path: portPath },
     );
   }
 
   /**
-   * Закрыть порт
+   * Настроить обработчики — для mock порта оставляем старую логику,
+   * для реального запускаем Python bridge
    */
-  async closePort(path: string): Promise<void> {
+  private setupPortHandlers(portPath: string, port: ISerialPort, processor: IDataProcessor): void {
+    const isMock = portPath.includes('Mock') || portPath === port.path && (port as any).interval !== undefined;
+
+    if (isMock) {
+      // ---- Mock порт: JSON строки как раньше ----
+      const { ReadlineParser } = require('@serialport/parser-readline');
+      const parser = (port as any).pipe(new ReadlineParser({ delimiter: '\n' }));
+
+      parser.on('data', async (line: string) => {
+        const trimmedLine = line.trim();
+        if (trimmedLine.length === 0) return;
+        try {
+          await processor.processData(trimmedLine);
+        } catch (err) {
+          logger.error('PortManager', 'Data processing error', { path: portPath }, err);
+        }
+      });
+    } else {
+      // ---- Реальный порт: Python читает COM, пишет JSON в stdout ----
+      //
+      // ВАЖНО: реальный SerialPort здесь НЕ открываем для чтения данных.
+      // Python bridge сам откроет COM-порт.
+      // port объект нужен только для baudRate и событий close/error.
+
+      const scriptDir = path.join(__dirname, 'shared');
+      const bridge = new PythonBridgeService(
+        portPath,
+        port.baudRate,
+        processor,
+        scriptDir,
+      );
+
+      bridges.set(portPath, bridge);
+      bridge.start();
+
+      logger.info('PortManager', 'Python bridge started', { path: portPath });
+    }
+
+    // Обработчики close/error одинаковы для обоих случаев
+    port.on('close', async () => {
+      logger.info('PortManager', 'Port closed event received', { path: portPath });
+
+      if (this.closingPorts.has(portPath)) return;
+
+      // Неожиданное закрытие
+      bridges.get(portPath)?.stop();
+      bridges.delete(portPath);
+
+      await processor.endSession();
+      this.connections.delete(portPath);
+      this.win.webContents.send(SerialIPC.Closed, portPath);
+    });
+
+    port.on('error', async (err: Error) => {
+      logger.error('PortManager', 'Port error event received', { path: portPath }, err);
+
+      bridges.get(portPath)?.stop();
+      bridges.delete(portPath);
+
+      await processor.endSession();
+      this.connections.delete(portPath);
+      this.closingPorts.delete(portPath);
+
+      this.win.webContents.send(SerialIPC.Error, {
+        port: portPath,
+        error: err.message,
+      });
+    });
+  }
+
+  async closePort(portPath: string): Promise<void> {
     return logger.withLogging(
       'PortManager',
       'Close port',
       async () => {
-        const connection = this.connections.get(path);
+        const connection = this.connections.get(portPath);
         if (connection === undefined) {
-          logger.warn('PortManager', 'Port not found in active connections', { path });
+          logger.warn('PortManager', 'Port not found in active connections', { path: portPath });
           return;
         }
 
-        // Помечаем порт как закрывающийся
-        this.closingPorts.add(path);
+        this.closingPorts.add(portPath);
+
+        // Останавливаем Python bridge до закрытия порта
+        bridges.get(portPath)?.stop();
+        bridges.delete(portPath);
 
         const { port, processor } = connection;
 
         try {
-          await this.closePortWithTimeout(path, port, processor);
+          await this.closePortWithTimeout(portPath, port, processor);
         } finally {
-          this.closingPorts.delete(path);
+          this.closingPorts.delete(portPath);
         }
       },
-      { path },
+      { path: portPath },
     );
   }
 
@@ -206,56 +268,6 @@ export class PortManagerService implements ISerialPortManager {
    */
   getActivePorts(): string[] {
     return Array.from(this.connections.keys()).filter((path) => !this.closingPorts.has(path));
-  }
-
-  /**
-   * Настроить обработчики событий порта
-   */
-  private setupPortHandlers(path: string, port: ISerialPort, processor: IDataProcessor): void {
-    // ==================== READLINE PARSER ====================
-    // Создаём парсер для построчного чтения данных
-    const parser = (port as any).pipe(new ReadlineParser({ delimiter: '\n' }));
-
-    // Обработка данных построчно
-    parser.on('data', async (line: string) => {
-      const trimmedLine = line.trim();
-      if (trimmedLine.length === 0) return;
-
-      try {
-        await processor.processData(trimmedLine);
-      } catch (err) {
-        logger.error('PortManager', 'Data processing error', { path }, err);
-      }
-    });
-
-    // Закрытие порта
-    port.on('close', async () => {
-      logger.info('PortManager', 'Port closed event received', { path });
-
-      if (this.closingPorts.has(path)) {
-        // Закрытие инициировано нами, не уведомляем клиент
-        return;
-      }
-
-      // Неожиданное закрытие
-      await processor.endSession();
-      this.connections.delete(path);
-      this.win.webContents.send(SerialIPC.Closed, path);
-    });
-
-    // Ошибка порта
-    port.on('error', async (err: Error) => {
-      logger.error('PortManager', 'Port error event received', { path }, err);
-
-      await processor.endSession();
-      this.connections.delete(path);
-      this.closingPorts.delete(path);
-
-      this.win.webContents.send(SerialIPC.Error, {
-        port: path,
-        error: err.message,
-      });
-    });
   }
 }
 

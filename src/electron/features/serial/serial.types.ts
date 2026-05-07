@@ -124,8 +124,7 @@ export interface RawSensorData {
  * Обработанные данные
  */
 export interface ProcessedSensorData extends RawSensorData {
-  normalized: Record<string, number>;
-  wavelengths: Record<string, number>;
+  // wavelengths: Record<string, number>;
 }
 
 /**
@@ -152,7 +151,6 @@ export interface SensorMapping {
 export interface ChannelRecord {
   channel: number;
   value: number;
-  normalized: number;
   stdDev: number;
 }
 

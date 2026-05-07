@@ -16,7 +16,7 @@ export class ConnectionService {
   constructor(
     private readonly win: BrowserWindow,
     private readonly manager: ISerialPortManager,
-  ) {}
+  ) { }
 
   /**
    * Автоподключение к последнему порту
@@ -186,34 +186,24 @@ export class ConnectionService {
     const configManager = getSerialConfigManager();
     const useMock = configManager.shouldUseMockPorts();
 
-    logger.debug('Connection', 'Creating port', {
-      path,
-      baudRate,
-      type: useMock ? 'MOCK' : 'REAL',
-    });
-
     if (useMock) {
       return createMockSerialPort(path, baudRate);
     }
 
+    // Реальный порт — НЕ открываем физически,
+    // Python bridge сам откроет COM-порт
     return this.createRealPort(path, baudRate);
   }
 
   /**
-   * Создать реальный Serial порт
+   * Создать реальный Serial порт БЕЗ открытия
+   * (открытием занимается Python bridge)
    */
-  private async createRealPort(path: string, baudRate: number): Promise<ISerialPort> {
-    return new Promise((resolve, reject) => {
-      const port = new SerialPort({ path, baudRate, autoOpen: false });
-
-      port.open((err) => {
-        if (err !== null && err !== undefined) {
-          reject(createPortError('Failed to Open Port', `Unable to open port ${path}`, path, err));
-        } else {
-          resolve(port as unknown as ISerialPort);
-        }
-      });
-    });
+  private createRealPort(path: string, baudRate: number): ISerialPort {
+    // autoOpen: false — не открываем порт
+    // Объект нужен только как носитель path/baudRate и эмиттер close/error
+    const port = new SerialPort({ path, baudRate, autoOpen: false });
+    return port as unknown as ISerialPort;
   }
 }
 

@@ -1,0 +1,27 @@
+--- interrogator_stream.py
++++ interrogator_stream.py
+@@ -256,8 +256,13 @@
+     plt.ion()
+     fig, axs = plt.subplots(4, 1, figsize=(12, 9), sharex=True)
+     fig.canvas.manager.set_window_title("Interrogator live (mean/std)")
+-    status_text = fig.text(0.01, 0.99, "", ha="left", va="top", fontsize=10)
+-
++
++    # Status line in a reserved top margin (won't overlap axes/legends)
++    status_text = fig.text(
++        0.01, 0.995, "",
++        ha="left", va="top", fontsize=9,
++        bbox=dict(facecolor="white", alpha=0.85, edgecolor="none", pad=2.0),
++    )
+ 
+     lines = []
+     bands = []
+@@ -278,7 +283,7 @@
+         bands.append(group_bands)
+ 
+     axs[-1].set_xlabel("t, s")
+-    plt.tight_layout()
++    fig.tight_layout(rect=[0, 0, 1, 0.95])
+     return fig, axs, lines, bands, status_text
+ 
+ def _band_verts(x, ylo, yhi):

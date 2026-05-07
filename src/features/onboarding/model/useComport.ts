@@ -152,7 +152,7 @@ export const useComPort = (): UseComPortReturn => {
 
   // Подключение к порту
   const connectToPort = useCallback(
-    async (port: string, baudRate = 115200): Promise<boolean> => {
+    async (port: string, baudRate = 500000): Promise<boolean> => {
       addSuccessToaster('[useComPort] 🔌 Connecting to:', port);
 
       setConnecting(true);

@@ -26,7 +26,7 @@ export class DataProcessorService implements IDataProcessor {
   constructor(
     private readonly port: string,
     private readonly win: BrowserWindow,
-  ) {}
+  ) { }
 
   /**
    * Начать сессию
@@ -77,18 +77,9 @@ export class DataProcessorService implements IDataProcessor {
       const calibrationData = this.getCalibrationData();
       const sensorMappings = this.getSensorMappings();
 
-      // 3. Нормализуем данные
-      const normalized = this.normalizeData(rawData, calibrationData);
-
-      // 4. Вычисляем wavelengths
-      const wavelengths = this.calculateWavelengths(normalized, calibrationData, sensorMappings);
 
       // 5. Формируем итоговый пакет
-      const processedData: ProcessedSensorData = {
-        ...rawData,
-        normalized,
-        wavelengths,
-      };
+      const processedData: ProcessedSensorData = rawData
 
       // 6. Отправляем на клиент
       this.sendToClient(processedData);
@@ -191,65 +182,6 @@ export class DataProcessorService implements IDataProcessor {
     return mappings;
   }
 
-  /**
-   * Нормализация данных
-   */
-  private normalizeData(
-    rawData: RawSensorData,
-    calibration: CalibrationData,
-  ): Record<string, number> {
-    const normalized: Record<string, number> = {};
-
-    for (let i = 0; i < DATA_PROCESSING.CHANNELS_COUNT; i++) {
-      const key = `P${i}`;
-      const rawValue = safeParseFloat(rawData[key], 0);
-      const normValue = safeParseFloat(calibration.normalization[`field${i}`], 0);
-
-      normalized[key] = Math.max(0, rawValue - normValue);
-    }
-
-    return normalized;
-  }
-
-  /**
-   * Вычисление wavelengths
-   */
-  private calculateWavelengths(
-    normalized: Record<string, number>,
-    calibration: CalibrationData,
-    sensors: SensorMapping[],
-  ): Record<string, number> {
-    const wavelengths: Record<string, number> = {};
-
-    for (const sensor of sensors) {
-      const { index, channels } = sensor;
-
-      // Минимум 2 канала для расчета
-      if (channels.length < DATA_PROCESSING.MIN_CHANNELS_FOR_WAVELENGTH) {
-        wavelengths[`wavelength${index}`] = NaN;
-        continue;
-      }
-
-      // Получаем веса и центральные длины волн
-      const weights = channels.map((ch) => normalized[ch] ?? 0);
-      const lambdas = channels.map((ch) => {
-        const chIndex = parseInt(ch.replace('P', ''), 10);
-        return safeParseFloat(calibration.wavelengths[`lambdas_central${chIndex}`], 0);
-      });
-
-      // Weighted average
-      const sumWeights = weights.reduce((sum, w) => sum + w, 0);
-
-      if (sumWeights > 0) {
-        const weightedSum = weights.reduce((sum, w, i) => sum + w * lambdas[i], 0);
-        wavelengths[`wavelength${index}`] = weightedSum / sumWeights;
-      } else {
-        wavelengths[`wavelength${index}`] = NaN;
-      }
-    }
-
-    return wavelengths;
-  }
 
   /**
    * Отправить данные на клиент
@@ -276,18 +208,14 @@ export class DataProcessorService implements IDataProcessor {
         channels.push({
           channel: i,
           value: safeParseFloat(data[pKey], 0),
-          normalized: data.normalized[pKey] ?? 0,
           stdDev: safeParseFloat(data[stdDevKey], 0),
         });
       }
 
       // Добавляем wavelengths к основным данным
-      const fullData = {
-        ...data,
-        ...data.wavelengths,
-      };
+      const fullData = data;
 
-      await sensorDataService.saveSensorData(this.port, data.id, data.time, fullData, channels);
+      await sensorDataService.saveSensorData(this.port, String(data.id), String(data.time), fullData, channels);
 
       // Обновляем счетчик в сессии
       const now = Date.now();
