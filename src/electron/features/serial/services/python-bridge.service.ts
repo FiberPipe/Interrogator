@@ -45,7 +45,7 @@ export class PythonBridgeService {
 
     this.process.stderr!.setEncoding('utf8');
     this.process.stderr!.on('data', (msg: string) => {
-      console.error('[PythonBridge]', msg.trim());
+      process.stdout.write('[PythonBridge] ' + msg);
     });
 
     this.process.on('exit', (code) => {
