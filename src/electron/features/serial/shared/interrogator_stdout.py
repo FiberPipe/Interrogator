@@ -56,7 +56,7 @@ def _debug_demod(P: list, model_dir: str) -> None:
         print(f"[DEBUG] _debug_demod failed: {ex}", file=sys.stderr, flush=True)
 
 
-def _lam_to_json_val(v) -> float | None:
+def _wavelength_val(v) -> float | None:
     """nan/None → None (JSON null), иначе float."""
     if v is None:
         return None
@@ -129,14 +129,12 @@ def main():
                     lam = [None, None, None, None]
 
                 # --- формируем JSON ---
-                row: dict = {"time": float(t_arr[i])}
-
-                for ch in range(NCH):
-                    row[f"P{ch}"]      = float(mean_arr[i][ch])
-                    row[f"stdDev{ch}"] = float(std_arr[i][ch])
-
-                for fi in range(4):
-                    row[f"lam{fi + 1}"] = _lam_to_json_val(lam[fi])
+                row: dict = {
+                    "time": float(t_arr[i]),
+                    "power":       {f"P{ch}":       float(mean_arr[i][ch]) for ch in range(NCH)},
+                    "deviation":   {f"stdDev{ch}":  float(std_arr[i][ch])  for ch in range(NCH)},
+                    "wavelengths": {f"wavelength{fi + 1}": _wavelength_val(lam[fi]) for fi in range(4)},
+                }
 
                 print(json.dumps(row), flush=True)
 
