@@ -7,6 +7,7 @@ import { SerialPort } from 'serialport';
 
 import { ASE_RESPONSE_TIMEOUT, ASE_SERIAL } from './ase.constants';
 import { expectedResponseLength, RESPONSE_OVERHEAD } from './ase.protocol';
+import type { AsePortClosedHandler, AsePortErrorHandler, IAsePort } from './ase.types';
 import { logger } from '../logger';
 
 interface PendingRequest {
@@ -19,15 +20,15 @@ interface PendingRequest {
  * Низкоуровневая обёртка над физическим портом ASE.
  * Команды сериализуются: одновременно обрабатывается один запрос.
  */
-export class AsePort {
+export class AsePort implements IAsePort {
   private port: SerialPort | null = null;
   private rxBuffer = Buffer.alloc(0);
   private pending: PendingRequest | null = null;
 
   constructor(
     readonly path: string,
-    private readonly onClosed: (path: string) => void,
-    private readonly onError: (path: string, error: string) => void,
+    private readonly onClosed: AsePortClosedHandler,
+    private readonly onError: AsePortErrorHandler,
   ) {}
 
   get isOpen(): boolean {

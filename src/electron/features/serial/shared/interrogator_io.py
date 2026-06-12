@@ -212,8 +212,15 @@ class Interrogator:
     - read_block(seconds): record a fixed-duration block
     - stop(): release COM port
     """
-    def read_avg_block(self, seconds: float, avg_sec: float = 1.0, avg_n: int = None):
-        roll = RollingWindow(avg_sec=avg_sec, avg_n=avg_n)
+    def read_avg_block(self, seconds: float, avg_sec: float = 1.0, avg_n: int = None, roll=None):
+        # roll можно передать снаружи, чтобы окно усреднения сохранялось
+        # между блоками (avg_sec тогда не ограничен длительностью блока).
+        if roll is None:
+            roll = RollingWindow(avg_sec=avg_sec, avg_n=avg_n)
+        else:
+            # живое обновление окна усреднения
+            roll.avg_sec = avg_sec
+            roll.avg_n = avg_n
 
         t_dead = time.time() + seconds
         last_rx = time.time()

@@ -7,10 +7,11 @@ import type {
   IDataProcessor,
 } from '../serial.types';
 import { SerialIPC } from '../serial.types';
-import { TIMEOUTS } from '../serial.constants';
+import { TIMEOUTS, STORAGE_KEYS, AVERAGING } from '../serial.constants';
 import { createDataProcessor } from './data-processor.service';
 import { PythonBridgeService } from './python-bridge.service';
 import { createPortError, createTimeoutError } from '../serial.utils';
+import { appDataStorage } from '../../app-data';
 import { logger } from '../../logger';
 import * as path from 'path';
 
@@ -86,11 +87,14 @@ export class PortManagerService implements ISerialPortManager {
       // port объект нужен только для baudRate и событий close/error.
 
       const scriptDir = path.join(__dirname, 'shared');
+      const avgSec =
+        appDataStorage.get<number>(STORAGE_KEYS.AVG_SEC) ?? AVERAGING.DEFAULT_AVG_SEC;
       const bridge = new PythonBridgeService(
         portPath,
         port.baudRate,
         processor,
         scriptDir,
+        avgSec,
       );
 
       bridges.set(portPath, bridge);
@@ -268,6 +272,25 @@ export class PortManagerService implements ISerialPortManager {
    */
   getActivePorts(): string[] {
     return Array.from(this.connections.keys()).filter((path) => !this.closingPorts.has(path));
+  }
+
+  /**
+   * Изменить окно усреднения по времени (сек) на лету для всех активных
+   * python-мостов и сохранить значение для последующих подключений.
+   */
+  setAveraging(avgSec: number): void {
+    const clamped = Math.max(
+      AVERAGING.MIN_AVG_SEC,
+      Math.min(avgSec, AVERAGING.MAX_AVG_SEC),
+    );
+
+    appDataStorage.set(STORAGE_KEYS.AVG_SEC, clamped);
+
+    for (const bridge of bridges.values()) {
+      bridge.setAvgSec(clamped);
+    }
+
+    logger.info('PortManager', 'Averaging window updated', { avgSec: clamped });
   }
 }
 

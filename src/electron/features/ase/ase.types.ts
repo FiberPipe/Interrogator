@@ -55,3 +55,20 @@ export interface AseErrorEvent {
   port: string;
   error: string;
 }
+
+/**
+ * Абстракция транспорта ASE (реальный порт или in-process эмулятор).
+ */
+export interface IAsePort {
+  readonly path: string;
+  readonly isOpen: boolean;
+  open: () => Promise<void>;
+  sendCommand: (frame: Buffer) => Promise<Buffer>;
+  close: () => Promise<void>;
+}
+
+/**
+ * Колбэки жизненного цикла порта ASE.
+ */
+export type AsePortClosedHandler = (path: string) => void;
+export type AsePortErrorHandler = (path: string, error: string) => void;

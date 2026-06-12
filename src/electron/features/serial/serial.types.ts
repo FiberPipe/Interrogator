@@ -16,6 +16,8 @@ export enum SerialIPC {
   AutoConnectFailed = 'serial:auto-connect-failed',
   AutoConnected = 'serial:auto-connected',
   AutoConnectError = 'serial:auto-connect-error',
+  SetAveraging = 'serial:set-averaging',
+  GetAveraging = 'serial:get-averaging',
 }
 
 /**
@@ -165,4 +167,5 @@ export interface ISerialPortManager {
   closeAllPorts(): Promise<void>;
   switchPort(fromPath: string | null, toPath: string, newPort: ISerialPort): Promise<void>;
   getActivePorts(): string[];
+  setAveraging(avgSec: number): void;
 }

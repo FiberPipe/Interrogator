@@ -5,7 +5,9 @@ import type { BrowserWindow } from 'electron';
 
 import type { SerialOpenResult, ISerialPortManager } from './serial.types';
 import { SerialIPC } from './serial.types';
+import { STORAGE_KEYS, AVERAGING } from './serial.constants';
 import { createConnectionService } from './services/connection.service';
+import { appDataStorage } from '../app-data';
 import { logger } from '../logger';
 import { createError } from '../../../shared/errors';
 import { ErrorCodes } from '../../../shared/errors/error-codes';
@@ -71,6 +73,23 @@ export function registerSerialIpc(win: BrowserWindow, manager: ISerialPortManage
       },
       { path },
     );
+  });
+
+  // ==================== AVERAGING ====================
+  ipcMain.handle(SerialIPC.SetAveraging, (_, avgSec: number): { ok: boolean } => {
+    return logger.withLoggingSync(
+      'IPC',
+      'Set averaging',
+      () => {
+        manager.setAveraging(avgSec);
+        return { ok: true };
+      },
+      { avgSec },
+    );
+  });
+
+  ipcMain.handle(SerialIPC.GetAveraging, (): number => {
+    return appDataStorage.get<number>(STORAGE_KEYS.AVG_SEC) ?? AVERAGING.DEFAULT_AVG_SEC;
   });
 
   logger.info('IPC', 'Serial IPC handlers registered successfully');

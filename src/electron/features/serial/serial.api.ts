@@ -35,6 +35,20 @@ export const serialAPI: SerialAPI = {
   },
 
   /**
+   * Установить окно усреднения по времени (сек)
+   */
+  setAveraging(avgSec: number): Promise<{ ok: boolean }> {
+    return ipcRenderer.invoke(SerialIPC.SetAveraging, avgSec);
+  },
+
+  /**
+   * Получить текущее окно усреднения (сек)
+   */
+  getAveraging(): Promise<number> {
+    return ipcRenderer.invoke(SerialIPC.GetAveraging);
+  },
+
+  /**
    * Подписаться на данные
    */
   onData(callback: (event: SerialDataEvent) => void): () => void {

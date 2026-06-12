@@ -75,4 +75,14 @@ export const STORAGE_KEYS = {
   CALIBRATION_DATA: 'calibrationData',
   SENSOR_CONFIG: 'sensorConfig',
   SENSOR_COUNT: 'sensorCount',
+  AVG_SEC: 'avgSec',
+} as const;
+
+/**
+ * Параметры усреднения по времени.
+ */
+export const AVERAGING = {
+  DEFAULT_AVG_SEC: 1.0,
+  MIN_AVG_SEC: 0.1,
+  MAX_AVG_SEC: 30.0,
 } as const;

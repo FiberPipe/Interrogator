@@ -5,9 +5,9 @@
 
 import type { BrowserWindow } from 'electron';
 
-import { AsePort } from './ase.port';
+import { createAsePort } from './ase.port.factory';
 import { AseIPC } from './ase.types';
-import type { AseInfo } from './ase.types';
+import type { AseInfo, IAsePort } from './ase.types';
 import {
   buildEnableRequest,
   buildInfoRequest,
@@ -20,7 +20,7 @@ import { ASE_CMD } from './ase.constants';
 import { logger } from '../logger';
 
 export class AseService {
-  private port: AsePort | null = null;
+  private port: IAsePort | null = null;
   private info: AseInfo | null = null;
 
   constructor(private readonly win: BrowserWindow) {}
@@ -42,7 +42,7 @@ export class AseService {
           await this.disconnect();
         }
 
-        const port = new AsePort(
+        const port = createAsePort(
           path,
           (closedPath) => this.handleClosed(closedPath),
           (errPath, error) => this.handleError(errPath, error),
@@ -112,7 +112,7 @@ export class AseService {
     logger.info('ASE', 'Emission toggled', { enabled });
   }
 
-  private requirePort(): AsePort {
+  private requirePort(): IAsePort {
     if (this.port === null || !this.port.isOpen) {
       throw new Error('ASE port is not connected');
     }

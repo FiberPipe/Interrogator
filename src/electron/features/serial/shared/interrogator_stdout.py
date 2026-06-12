@@ -3,9 +3,49 @@
 import sys
 import json
 import time
+import threading
 import numpy as np
 from pathlib import Path
-from interrogator_io import Interrogator, NCH
+from interrogator_io import Interrogator, NCH, RollingWindow
+
+# Длительность одного блока вывода (кадра JSON), сек.
+OUTPUT_INTERVAL = 1.0
+
+# Разделяемые параметры обработки, управляемые из stdin на лету.
+_control = {"avg_sec": 1.0}
+_control_lock = threading.Lock()
+
+
+def _get_avg_sec() -> float:
+    with _control_lock:
+        return _control["avg_sec"]
+
+
+def _stdin_control_loop() -> None:
+    """Фоновый поток: читает из stdin JSON-команды управления.
+
+    Формат: одна JSON-строка на сообщение, например {"avg_sec": 2.5}.
+    Позволяет менять усреднение по времени без перезапуска.
+    """
+    for line in sys.stdin:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            msg = json.loads(line)
+        except Exception as ex:
+            print(f"[WARN] bad control message: {ex}", file=sys.stderr, flush=True)
+            continue
+
+        if "avg_sec" in msg:
+            try:
+                value = float(msg["avg_sec"])
+                if value > 0:
+                    with _control_lock:
+                        _control["avg_sec"] = value
+                    print(f"[DEBUG] avg_sec set to {value}", file=sys.stderr, flush=True)
+            except Exception as ex:
+                print(f"[WARN] bad avg_sec: {ex}", file=sys.stderr, flush=True)
 
 # --- демодуляция ---
 _SHARED_DIR = Path(__file__).resolve().parent
@@ -74,6 +114,14 @@ def main():
 
     port = sys.argv[1]
     baud = int(sys.argv[2]) if len(sys.argv) > 2 else 500000
+    # Начальное окно усреднения (сек) можно задать 3-м аргументом.
+    if len(sys.argv) > 3:
+        try:
+            initial_avg = float(sys.argv[3])
+            if initial_avg > 0:
+                _control["avg_sec"] = initial_avg
+        except Exception:
+            pass
 
     print(f"[DEBUG] Connecting to {port} at {baud} baud...", file=sys.stderr, flush=True)
     print(f"[DEBUG] Model dir: {_MODEL_DIR}", file=sys.stderr, flush=True)
@@ -93,16 +141,25 @@ def main():
     inq = Interrogator(port=port, baud=baud)
     inq.start()
 
+    # Поток чтения управляющих команд из stdin (демон — завершится с процессом).
+    threading.Thread(target=_stdin_control_loop, daemon=True).start()
+
     print("[DEBUG] Waiting for data...", file=sys.stderr, flush=True)
     time.sleep(2.0)
 
     # флаг: один раз выводим диагностику после первых реальных данных
     _debug_done = False
 
+    # Persistent окно усреднения: сохраняется между блоками, поэтому avg_sec
+    # может превышать длительность блока и меняться на лету.
+    roll = RollingWindow(avg_sec=_get_avg_sec())
+
     try:
         while True:
             try:
-                data = inq.read_avg_block(seconds=1.0, avg_sec=1.0)
+                data = inq.read_avg_block(
+                    seconds=OUTPUT_INTERVAL, avg_sec=_get_avg_sec(), roll=roll
+                )
 
                 t_arr    = data["t_s"]
                 mean_arr = data["mean"]   # (N, 16)

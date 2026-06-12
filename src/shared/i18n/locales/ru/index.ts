@@ -11,6 +11,7 @@ import monitoring from './monitoring.json';
 import lightManagement from './light-management.json';
 import logs from './logs.json'
 import dashboard from './dashboard.json';
+import averaging from './averaging.json';
 
 export default {
   charts,
@@ -25,5 +26,6 @@ export default {
   monitoring,
   lightManagement,
   logs,
-  dashboard
+  dashboard,
+  averaging
 };

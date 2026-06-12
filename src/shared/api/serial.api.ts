@@ -50,6 +50,28 @@ export const serialApi = {
   },
 
   /**
+   * Установить окно усреднения по времени (сек)
+   */
+  async setAveraging(avgSec: number): Promise<{ ok: boolean }> {
+    if (!isSerialAvailable()) {
+      console.error('Serial API is not available');
+      return { ok: false };
+    }
+    return window.electron.serial.setAveraging(avgSec);
+  },
+
+  /**
+   * Получить текущее окно усреднения (сек)
+   */
+  async getAveraging(): Promise<number> {
+    if (!isSerialAvailable()) {
+      console.error('Serial API is not available');
+      return 1.0;
+    }
+    return window.electron.serial.getAveraging();
+  },
+
+  /**
    * Подписаться на данные
    */
   onData(callback: (event: SerialDataEvent) => void): () => void {

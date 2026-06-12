@@ -13,6 +13,7 @@ export class PythonBridgeService {
     private readonly baud: number,
     private readonly processor: IDataProcessor,
     private readonly scriptDir: string, // путь к папке со скриптами
+    private readonly avgSec: number = 1.0, // начальное окно усреднения, сек
   ) { }
 
   start(): void {
@@ -20,9 +21,14 @@ export class PythonBridgeService {
 
     const pythonCmd = this.findPythonCommand();
 
-    this.process = spawn(pythonCmd, [script, this.port, String(this.baud)], {
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+    this.process = spawn(
+      pythonCmd,
+      [script, this.port, String(this.baud), String(this.avgSec)],
+      {
+        // stdin теперь pipe — через него шлём команды управления (avg_sec и т.п.)
+        stdio: ['pipe', 'pipe', 'pipe'],
+      },
+    );
 
     // stdout → processData
     this.process.stdout!.setEncoding('utf8');
@@ -56,6 +62,25 @@ export class PythonBridgeService {
   stop(): void {
     this.process?.kill();
     this.process = null;
+  }
+
+  /**
+   * Отправить управляющую команду в python-процесс (одна JSON-строка).
+   */
+  sendControl(message: Record<string, unknown>): void {
+    const stdin = this.process?.stdin;
+    if (stdin === null || stdin === undefined || stdin.destroyed) {
+      console.warn('[PythonBridge] cannot send control: stdin unavailable');
+      return;
+    }
+    stdin.write(JSON.stringify(message) + '\n');
+  }
+
+  /**
+   * Изменить окно усреднения по времени (сек) на лету.
+   */
+  setAvgSec(avgSec: number): void {
+    this.sendControl({ avg_sec: avgSec });
   }
 
   private findPythonCommand(): string {

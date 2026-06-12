@@ -18,18 +18,57 @@ export function crc(data: readonly number[]): number {
 }
 
 /**
- * Собрать кадр команды ПК → ASE.
+ * Собрать кадр с указанным заголовком.
  */
-export function buildFrame(cmd: number, data: readonly number[] = []): Buffer {
+function frameWith(
+  header: readonly number[],
+  cmd: number,
+  data: readonly number[],
+): Buffer {
   const checksum = crc(data);
   return Buffer.from([
-    ...TX_HEADER,
+    ...header,
     cmd,
     data.length,
     ...data,
     checksum & 0xff,
     (checksum >> 8) & 0xff,
   ]);
+}
+
+/**
+ * Собрать кадр команды ПК → ASE (заголовок AA 55).
+ */
+export function buildFrame(cmd: number, data: readonly number[] = []): Buffer {
+  return frameWith(TX_HEADER, cmd, data);
+}
+
+/**
+ * Собрать кадр ответа ASE → ПК (заголовок 55 AA) — используется эмулятором.
+ */
+export function buildResponseFrame(cmd: number, data: readonly number[] = []): Buffer {
+  return frameWith(RX_HEADER, cmd, data);
+}
+
+/**
+ * Разобрать кадр запроса ПК → ASE (заголовок AA 55) — используется эмулятором.
+ */
+export function parseRequest(buffer: Buffer): ParsedResponse {
+  if (buffer.length < RESPONSE_OVERHEAD) {
+    throw new Error(`Request too short: ${buffer.length} bytes`);
+  }
+
+  if (buffer[0] !== TX_HEADER[0] || buffer[1] !== TX_HEADER[1]) {
+    throw new Error(
+      `Invalid request header: ${buffer[0].toString(16)} ${buffer[1].toString(16)}`,
+    );
+  }
+
+  const cmd = buffer[2];
+  const len = buffer[3];
+  const data = buffer.subarray(4, 4 + len);
+
+  return { cmd, data };
 }
 
 /**

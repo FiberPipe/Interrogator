@@ -6,6 +6,7 @@ import { Activity, Zap, Thermometer, Move } from 'lucide-react';
 
 import type { SensorType } from '../entities/sensor-data/model/types';
 import { MonitoringDashboard } from '../widgets/monitoring-dashboard';
+import { AveragingControl } from '../features/averaging-control';
 
 export const ChartsPage = () => {
   const { t } = useTranslation();
@@ -21,13 +22,15 @@ export const ChartsPage = () => {
   return (
     <div className="flex flex-col h-full w-full">
       {/* Заголовок */}
-      <div className="px-6 pt-6 pb-4">
+      <div className="px-6 pt-6 pb-4 flex items-start justify-between gap-4">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             {t('charts.title')}
           </h1>
           <p className="text-default-500 mt-1">{t('charts.subtitle')}</p>
         </motion.div>
+
+        <AveragingControl />
       </div>
 
       {/* Табы */}

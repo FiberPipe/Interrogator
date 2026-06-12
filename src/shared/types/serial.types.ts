@@ -51,6 +51,8 @@ export interface SerialAPI {
   getPorts: () => Promise<SerialPortInfo[]>;
   open: (path: string, baudRate?: number) => Promise<SerialOpenResult>;
   close: (path: string) => Promise<SerialOpenResult>;
+  setAveraging: (avgSec: number) => Promise<{ ok: boolean }>;
+  getAveraging: () => Promise<number>;
   onData: (callback: (event: SerialDataEvent) => void) => () => void;
   onClosed: (callback: (port: string) => void) => () => void;
   onError: (callback: (event: SerialErrorEvent) => void) => () => void;

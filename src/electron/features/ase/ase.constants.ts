@@ -39,3 +39,17 @@ export const ASE_SERIAL = {
  * Таймаут ожидания ответа на команду, мс.
  */
 export const ASE_RESPONSE_TIMEOUT = 1000;
+
+/**
+ * Параметры эмулируемого устройства по умолчанию.
+ * coeff = 100, max_setting = 20 → raw_max = 2000 (соответствует примеру из ТЗ).
+ */
+export const ASE_MOCK_DEVICE = {
+  unit: 0,
+  maxSetting: 20,
+  coeff: 100,
+  /** Длина DATA в ответе на 0xD1: нужно покрыть смещение coeff (23). */
+  infoPayloadLength: 24,
+  /** Имитация задержки ответа устройства, мс. */
+  responseDelay: 15,
+} as const;
