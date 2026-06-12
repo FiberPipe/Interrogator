@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import {
   Table,
   TableHeader,
@@ -123,7 +123,7 @@ export const TemperatureTable = ({ data }: TemperatureTableProps) => {
 
 // ==================== Вспомогательные компоненты ====================
 
-const TemperatureCellId = ({ id, hasCoefficients }: { id: number; hasCoefficients: boolean }) => {
+const TemperatureCellId = memo(({ id, hasCoefficients }: { id: number; hasCoefficients: boolean }) => {
   const { t } = useTranslation();
 
   return (
@@ -138,9 +138,9 @@ const TemperatureCellId = ({ id, hasCoefficients }: { id: number; hasCoefficient
       )}
     </div>
   );
-};
+});
 
-const TemperatureCellCoefficient = ({
+const TemperatureCellCoefficient = memo(({
   sensorId,
   coeffKey,
 }: {
@@ -212,7 +212,7 @@ const TemperatureCellCoefficient = ({
       )}
     </div>
   );
-};
+});
 
 const TemperatureCellResult = ({
   sensorId,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import {
   Table,
   TableHeader,
@@ -195,7 +195,7 @@ export const WavelengthTable = ({ data }: WavelengthTableProps) => {
 
 // ==================== Компонент ввода алармов ====================
 
-const WavelengthAlarmInput = ({ sensorId, type }: { sensorId: number; type: 'min' | 'max' }) => {
+const WavelengthAlarmInput = memo(({ sensorId, type }: { sensorId: number; type: 'min' | 'max' }) => {
   const { t } = useTranslation();
   const [value, setValue] = useState<string>('');
   const [isDirty, setIsDirty] = useState(false);
@@ -252,4 +252,4 @@ const WavelengthAlarmInput = ({ sensorId, type }: { sensorId: number; type: 'min
       )}
     </div>
   );
-};
+});

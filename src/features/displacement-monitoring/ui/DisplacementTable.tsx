@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import {
   Table,
   TableHeader,
@@ -129,24 +129,26 @@ export const DisplacementTable = ({ data }: DisplacementTableProps) => {
 
 // ==================== Вспомогательные компоненты ====================
 
-const DisplacementCellId = ({ id, hasCoefficients }: { id: number; hasCoefficients: boolean }) => {
-  const { t } = useTranslation();
+const DisplacementCellId = memo(
+  ({ id, hasCoefficients }: { id: number; hasCoefficients: boolean }) => {
+    const { t } = useTranslation();
 
-  return (
-    <div className="flex items-center justify-center gap-2">
-      <Chip variant="flat" color="secondary" size="sm" className="font-bold">
-        D{id}
-      </Chip>
-      {!hasCoefficients && (
-        <Tooltip content={t('monitoring.displacement.noCoefficientsHint')}>
-          <AlertCircle className="w-4 h-4 text-warning" />
-        </Tooltip>
-      )}
-    </div>
-  );
-};
+    return (
+      <div className="flex items-center justify-center gap-2">
+        <Chip variant="flat" color="secondary" size="sm" className="font-bold">
+          D{id}
+        </Chip>
+        {!hasCoefficients && (
+          <Tooltip content={t('monitoring.displacement.noCoefficientsHint')}>
+            <AlertCircle className="w-4 h-4 text-warning" />
+          </Tooltip>
+        )}
+      </div>
+    );
+  },
+);
 
-const DisplacementCellCoefficient = ({
+const DisplacementCellCoefficient = memo(({
   sensorId,
   coeffKey,
 }: {
@@ -219,7 +221,7 @@ const DisplacementCellCoefficient = ({
       )}
     </div>
   );
-};
+});
 
 const DisplacementCellResult = ({
   displacement,

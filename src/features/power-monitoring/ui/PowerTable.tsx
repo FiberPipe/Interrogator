@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import {
   Table,
   TableHeader,
@@ -193,7 +193,7 @@ export const PowerTable = ({ data }: PowerTableProps) => {
 };
 
 // Компонент ввода алармов
-const PowerAlarmInput = ({ channelId, type }: { channelId: number; type: 'min' | 'max' }) => {
+const PowerAlarmInput = memo(({ channelId, type }: { channelId: number; type: 'min' | 'max' }) => {
   const { t } = useTranslation();
   const [value, setValue] = useState<string>('');
   const [isDirty, setIsDirty] = useState(false);
@@ -250,4 +250,4 @@ const PowerAlarmInput = ({ channelId, type }: { channelId: number; type: 'min' |
       )}
     </div>
   );
-};
+});
