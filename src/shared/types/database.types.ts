@@ -71,6 +71,13 @@ export interface ChannelStats {
 }
 
 /**
+ * Статистика канала с его номером (агрегация по всем каналам)
+ */
+export interface ChannelStatsWithId extends ChannelStats {
+  channel: number;
+}
+
+/**
  * Запись данных сенсора
  */
 export interface SensorDataRecord {
@@ -131,6 +138,11 @@ export interface DatabaseAPI {
     startTime: number,
     endTime: number,
   ) => Promise<ChannelStats>;
+  getChannelStatsAll: (
+    port: string,
+    startTime: number,
+    endTime: number,
+  ) => Promise<ChannelStatsWithId[]>;
   getDataByTimeRange: (
     port: string,
     startTime: number,

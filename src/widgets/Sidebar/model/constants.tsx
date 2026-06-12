@@ -20,7 +20,6 @@ export const menuItems = [
     labelKey: 'navigation.dashboard',
     icon: LayoutDashboard,
     path: AppRoutes.DASHBOARD,
-    badge: 'beta',
   },
   {
     id: 'logs',

@@ -6,6 +6,7 @@ import type {
   DatabaseChangeLocationResult,
   DatabaseStats,
   ChannelStats,
+  ChannelStatsWithId,
   SensorDataRecord,
   DatabaseBackupResult,
   DatabaseExportOptions,
@@ -92,6 +93,21 @@ export const databaseApi = {
       return null;
     }
     return window.electron.database.getChannelStats(port, channel, startTime, endTime);
+  },
+
+  /**
+   * Получить статистику по всем каналам за период
+   */
+  async getChannelStatsAll(
+    port: string,
+    startTime: number,
+    endTime: number,
+  ): Promise<ChannelStatsWithId[]> {
+    if (!isDatabaseAvailable()) {
+      console.error('Database API is not available');
+      return [];
+    }
+    return window.electron.database.getChannelStatsAll(port, startTime, endTime);
   },
 
   /**

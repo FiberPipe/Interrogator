@@ -7,6 +7,7 @@ import { getDatabase } from '../database';
 import type {
   ChannelRecord,
   ChannelStats,
+  ChannelStatsWithId,
   SensorDataRecord,
   SessionRecord,
 } from '../database.types';
@@ -456,6 +457,64 @@ export class SensorDataService {
         }
       },
       { port, channel, startTime, endTime },
+    );
+  }
+
+  /**
+   * Получить статистику по всем каналам за период одним запросом
+   */
+  async getAllChannelStats(
+    port: string,
+    startTime: number,
+    endTime: number,
+  ): Promise<ChannelStatsWithId[]> {
+    return logger.withLogging(
+      'Database',
+      'Get all channel stats',
+      async () => {
+        const db = getDatabase();
+
+        try {
+          const result = db.exec(
+            `SELECT
+               cd.channel as channel,
+               COUNT(*) as count,
+               MIN(cd.value) as min,
+               MAX(cd.value) as max,
+               AVG(cd.value) as avg
+             FROM channel_data cd
+             INNER JOIN sensor_data sd ON cd.sensor_data_id = sd.id
+             WHERE sd.port = ?
+               AND sd.timestamp >= ?
+               AND sd.timestamp <= ?
+             GROUP BY cd.channel
+             ORDER BY cd.channel`,
+            [port, startTime, endTime],
+          );
+
+          if (result.length === 0 || result[0].values.length === 0) {
+            return [];
+          }
+
+          return result[0].values.map((row) => ({
+            channel: (row[0] as number) ?? 0,
+            count: (row[1] as number) ?? 0,
+            min: (row[2] as number) ?? 0,
+            max: (row[3] as number) ?? 0,
+            avg: (row[4] as number) ?? 0,
+          }));
+        } catch (err) {
+          throw new AppError({
+            code: ErrorCodes.DB_QUERY_FAILED,
+            title: 'All Channel Stats Failed',
+            description: 'Failed to retrieve statistics for all channels',
+            meta: { port, startTime, endTime },
+            cause: err,
+            area: 'Database',
+          });
+        }
+      },
+      { port, startTime, endTime },
     );
   }
 }

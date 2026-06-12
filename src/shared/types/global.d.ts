@@ -4,6 +4,7 @@ import type { AppDataAPI } from './app-data.types';
 import type { DatabaseAPI } from './database.types';
 import type { LogsAPI } from './logs.types';
 import type { SerialAPI } from './serial.types';
+import type { AseAPI } from './ase.types';
 
 declare global {
   interface Window {
@@ -12,6 +13,7 @@ declare global {
       logs: LogsAPI;
       database: DatabaseAPI;
       serial: SerialAPI;
+      ase: AseAPI;
     };
   }
 }

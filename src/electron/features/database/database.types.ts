@@ -104,6 +104,13 @@ export interface DatabaseExportResult {
   error?: string;
 }
 
+/**
+ * Статистика канала с его номером (для агрегации по всем каналам).
+ */
+export interface ChannelStatsWithId extends ChannelStats {
+  channel: number;
+}
+
 export enum DatabaseIPC {
   // Path & Config
   GetPath = 'db:getPath',
@@ -114,6 +121,7 @@ export enum DatabaseIPC {
   // Statistics
   GetStats = 'db:getStats',
   GetChannelStats = 'db:getChannelStats',
+  GetChannelStatsAll = 'db:getChannelStatsAll',
 
   // Data Queries
   GetDataByTimeRange = 'db:getDataByTimeRange',

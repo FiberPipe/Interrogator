@@ -10,6 +10,7 @@ import calibration from './calibration.json';
 import monitoring from './monitoring.json';
 import lightManagement from './light-management.json';
 import logs from './logs.json'
+import dashboard from './dashboard.json';
 
 export default {
   charts,
@@ -23,5 +24,6 @@ export default {
   calibration,
   monitoring,
   lightManagement,
-  logs
+  logs,
+  dashboard
 };

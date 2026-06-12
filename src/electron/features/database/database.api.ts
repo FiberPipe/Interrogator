@@ -8,6 +8,7 @@ import type {
   DatabaseChangeLocationResult,
   DatabaseStats,
   ChannelStats,
+  ChannelStatsWithId,
   SensorDataRecord,
   DatabaseBackupResult,
   DatabaseExportOptions,
@@ -66,6 +67,17 @@ export const databaseAPI: DatabaseAPI = {
     endTime: number,
   ): Promise<ChannelStats> {
     return ipcRenderer.invoke(DatabaseIPC.GetChannelStats, port, channel, startTime, endTime);
+  },
+
+  /**
+   * Получить статистику по всем каналам за период
+   */
+  getChannelStatsAll(
+    port: string,
+    startTime: number,
+    endTime: number,
+  ): Promise<ChannelStatsWithId[]> {
+    return ipcRenderer.invoke(DatabaseIPC.GetChannelStatsAll, port, startTime, endTime);
   },
 
   /**

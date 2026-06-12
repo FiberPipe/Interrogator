@@ -129,6 +129,20 @@ export function registerDatabaseIpc(): void {
     },
   );
 
+  ipcMain.handle(
+    DatabaseIPC.GetChannelStatsAll,
+    async (_, port: string, startTime: number, endTime: number) => {
+      return logger.withLogging(
+        'IPC',
+        'Get all channel stats',
+        async () => {
+          return await sensorDataService.getAllChannelStats(port, startTime, endTime);
+        },
+        { port, startTime, endTime },
+      );
+    },
+  );
+
   // ==================== DATA QUERIES ====================
 
   ipcMain.handle(

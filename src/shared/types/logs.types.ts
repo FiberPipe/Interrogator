@@ -12,6 +12,7 @@ export type LogArea =
   | 'App'
   | 'Database'
   | 'Serial'
+  | 'ASE'
   | 'Updater'
   | 'Logger'
   | 'IPC'

@@ -7,6 +7,7 @@ import { registerLoggerIpc } from '../features/logger';
 import { registerAppDataIpc } from '../features/app-data';
 import { logger } from '../features/logger';
 import { createSerialManager } from '../features/serial/serial';
+import { registerAseIpc } from '../features/ase';
 import { setPortManager } from './state';
 
 export function registerIpcHandlers(win: BrowserWindow): void {
@@ -25,6 +26,9 @@ export function registerIpcHandlers(win: BrowserWindow): void {
   const serialManager = createSerialManager(win);
   serialManager.initialize();
   setPortManager(serialManager.getPortManager());
+
+  // ASE source control
+  registerAseIpc(win);
 
   logger.info('IPC', 'All IPC handlers registered successfully');
 }

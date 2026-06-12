@@ -1,0 +1,57 @@
+// src/electron/features/ase/ase.types.ts
+
+/**
+ * IPC каналы для управления ASE-источником.
+ */
+export enum AseIPC {
+  Connect = 'ase:connect',
+  Disconnect = 'ase:disconnect',
+  GetInfo = 'ase:getInfo',
+  SetPower = 'ase:setPower',
+  SetEnabled = 'ase:setEnabled',
+  IsConnected = 'ase:isConnected',
+  Closed = 'ase:closed',
+  Error = 'ase:error',
+}
+
+/**
+ * Параметры устройства, прочитанные командой 0xD1.
+ */
+export interface AseInfo {
+  /** Код единицы измерения мощности (payload[17]). */
+  unit: number;
+  /** Максимально допустимая мощность в тех же единицах (payload[18] + 256*payload[19]). */
+  maxSetting: number;
+  /** Коэффициент перевода мощности в сырое значение (payload[23], 0 → 1). */
+  coeff: number;
+}
+
+/**
+ * Базовый результат операции.
+ */
+export interface AseResult {
+  ok?: boolean;
+  error?: string;
+}
+
+/**
+ * Результат чтения параметров источника.
+ */
+export interface AseInfoResult extends AseResult {
+  info?: AseInfo;
+}
+
+/**
+ * Результат установки мощности (с фактически отправленным сырым значением).
+ */
+export interface AsePowerResult extends AseResult {
+  raw?: number;
+}
+
+/**
+ * Событие ошибки порта ASE.
+ */
+export interface AseErrorEvent {
+  port: string;
+  error: string;
+}
