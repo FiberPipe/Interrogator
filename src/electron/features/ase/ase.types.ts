@@ -12,6 +12,31 @@ export enum AseIPC {
   IsConnected = 'ase:isConnected',
   Closed = 'ase:closed',
   Error = 'ase:error',
+  Data = 'ase:data',
+  State = 'ase:state',
+}
+
+/**
+ * Актуальное состояние лазера, транслируемое в renderer (на каждое изменение
+ * и периодически по heartbeat, пока порт подключён).
+ */
+export interface AseStateEvent {
+  /** Излучение включено. */
+  enabled: boolean;
+  /** Текущее сырое значение мощности (подтверждённое устройством). */
+  rawPower: number;
+  /** Оптическая мощность в mW (rawPower / coeff). */
+  powerMw: number;
+}
+
+/**
+ * Событие обмена байтами с источником (для отображения «сырого» потока).
+ * dir: 'tx' — отправлено в источник, 'rx' — получено от источника.
+ */
+export interface AseTrafficEvent {
+  dir: 'tx' | 'rx';
+  hex: string;
+  ts: number;
 }
 
 /**

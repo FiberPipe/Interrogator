@@ -11,6 +11,15 @@
     "disconnect": "Disconnect"
   },
 
+  "status": {
+    "title": "Laser status",
+    "live": "Live",
+    "laser": "Emission",
+    "on": "ON",
+    "off": "OFF",
+    "power": "Optical power"
+  },
+
   "control": {
     "title": "Emission control",
     "emission": "Emission",
@@ -29,6 +38,14 @@
     "coeff": "Coefficient",
     "unit": "Unit",
     "lastRaw": "Last raw"
+  },
+
+  "traffic": {
+    "title": "Raw traffic (hex)",
+    "empty": "No data yet. Connect to the source and send a command.",
+    "clear": "Clear",
+    "tx": "→ TX",
+    "rx": "← RX"
   },
 
   "info": {

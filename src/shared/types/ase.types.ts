@@ -40,6 +40,24 @@ export interface AseErrorEvent {
 }
 
 /**
+ * Событие обмена байтами с источником (сырой поток tx/rx).
+ */
+export interface AseTrafficEvent {
+  dir: 'tx' | 'rx';
+  hex: string;
+  ts: number;
+}
+
+/**
+ * Актуальное состояние лазера (подтверждённое устройством).
+ */
+export interface AseStateEvent {
+  enabled: boolean;
+  rawPower: number;
+  powerMw: number;
+}
+
+/**
  * API управления ASE-источником (Renderer Process).
  */
 export interface AseAPI {
@@ -51,4 +69,6 @@ export interface AseAPI {
   isConnected: () => Promise<boolean>;
   onClosed: (callback: (port: string) => void) => () => void;
   onError: (callback: (event: AseErrorEvent) => void) => () => void;
+  onData: (callback: (event: AseTrafficEvent) => void) => () => void;
+  onState: (callback: (event: AseStateEvent) => void) => () => void;
 }

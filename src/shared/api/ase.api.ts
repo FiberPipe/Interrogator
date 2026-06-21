@@ -5,6 +5,8 @@ import type {
   AseInfoResult,
   AsePowerResult,
   AseResult,
+  AseStateEvent,
+  AseTrafficEvent,
 } from '../types/ase.types';
 
 /**
@@ -76,5 +78,21 @@ export const aseApi = {
       return () => {};
     }
     return window.electron.ase.onError(callback);
+  },
+
+  onData(callback: (event: AseTrafficEvent) => void): () => void {
+    if (!isAseAvailable()) {
+      console.error('ASE API is not available');
+      return () => {};
+    }
+    return window.electron.ase.onData(callback);
+  },
+
+  onState(callback: (event: AseStateEvent) => void): () => void {
+    if (!isAseAvailable()) {
+      console.error('ASE API is not available');
+      return () => {};
+    }
+    return window.electron.ase.onState(callback);
   },
 };

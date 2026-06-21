@@ -25,6 +25,8 @@ export const LightManagement = () => {
     powerMw,
     enabled,
     lastRaw,
+    actualPowerMw,
+    traffic,
     loading,
     busy,
     isConnected,
@@ -35,6 +37,7 @@ export const LightManagement = () => {
     setPowerMw,
     applyPower,
     toggleEmission,
+    clearTraffic,
   } = useAseControl();
 
   const maxPower = info?.maxSetting ?? 0;
@@ -94,6 +97,52 @@ export const LightManagement = () => {
                 {t('lightManagement.connection.connect')}
               </Button>
             )}
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* Laser status */}
+      <Card>
+        <CardHeader className="flex justify-between items-center">
+          <h3 className="text-xl font-semibold">{t('lightManagement.status.title')}</h3>
+          {isConnected && (
+            <Chip color="success" variant="dot" size="sm">
+              {t('lightManagement.status.live')}
+            </Chip>
+          )}
+        </CardHeader>
+
+        <CardBody>
+          <div className="grid grid-cols-2 gap-4">
+            <Card shadow="sm">
+              <CardBody className="text-center space-y-2 items-center">
+                <p className="text-sm text-gray-500">{t('lightManagement.status.laser')}</p>
+                <Chip
+                  color={isConnected && enabled ? 'success' : 'default'}
+                  variant="flat"
+                  size="lg"
+                >
+                  {!isConnected
+                    ? '—'
+                    : enabled
+                      ? t('lightManagement.status.on')
+                      : t('lightManagement.status.off')}
+                </Chip>
+              </CardBody>
+            </Card>
+
+            <Card shadow="sm">
+              <CardBody className="text-center space-y-1">
+                <p className="text-sm text-gray-500">{t('lightManagement.status.power')}</p>
+                <p className="text-2xl font-bold text-primary">
+                  {isConnected && actualPowerMw !== null ? actualPowerMw.toFixed(1) : '—'}
+                  <span className="text-base font-normal text-default-400">
+                    {' '}
+                    {t('lightManagement.control.unit')}
+                  </span>
+                </p>
+              </CardBody>
+            </Card>
           </div>
         </CardBody>
       </Card>
@@ -207,6 +256,47 @@ export const LightManagement = () => {
               </CardBody>
             </Card>
           </div>
+        </CardBody>
+      </Card>
+
+      {/* Raw traffic stream */}
+      <Card>
+        <CardHeader className="flex justify-between items-center">
+          <h3 className="text-xl font-semibold">{t('lightManagement.traffic.title')}</h3>
+          <Button
+            size="sm"
+            variant="flat"
+            onClick={clearTraffic}
+            isDisabled={traffic.length === 0}
+          >
+            {t('lightManagement.traffic.clear')}
+          </Button>
+        </CardHeader>
+
+        <CardBody>
+          {traffic.length === 0 ? (
+            <p className="text-sm text-default-400">{t('lightManagement.traffic.empty')}</p>
+          ) : (
+            <div className="max-h-64 overflow-auto rounded-md bg-default-100 dark:bg-default-50 p-3 font-mono text-xs space-y-0.5">
+              {traffic.map((entry, idx) => (
+                <div key={`${entry.ts}-${idx}`} className="flex gap-2 items-baseline">
+                  <span className="text-default-400 shrink-0">
+                    {new Date(entry.ts).toLocaleTimeString()}
+                  </span>
+                  <span
+                    className={`shrink-0 font-semibold ${
+                      entry.dir === 'tx' ? 'text-primary' : 'text-success'
+                    }`}
+                  >
+                    {entry.dir === 'tx'
+                      ? t('lightManagement.traffic.tx')
+                      : t('lightManagement.traffic.rx')}
+                  </span>
+                  <span className="break-all">{entry.hex}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </CardBody>
       </Card>
 

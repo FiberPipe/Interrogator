@@ -11,6 +11,15 @@
     "disconnect": "断开"
   },
 
+  "status": {
+    "title": "激光状态",
+    "live": "实时",
+    "laser": "发射",
+    "on": "开",
+    "off": "关",
+    "power": "光功率"
+  },
+
   "control": {
     "title": "发射控制",
     "emission": "发射",
@@ -29,6 +38,14 @@
     "coeff": "系数",
     "unit": "单位",
     "lastRaw": "最近原始值"
+  },
+
+  "traffic": {
+    "title": "原始数据流 (hex)",
+    "empty": "暂无数据。请连接光源并发送命令。",
+    "clear": "清除",
+    "tx": "→ TX",
+    "rx": "← RX"
   },
 
   "info": {
