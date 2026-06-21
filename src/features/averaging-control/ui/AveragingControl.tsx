@@ -37,16 +37,19 @@ export const AveragingControl = () => {
           className="w-full"
         />
 
-        <Input
-          type="number"
-          size="sm"
-          value={avgSec.toFixed(1)}
-          onChange={(e) => setAvgSec(Number(e.target.value))}
-          step={0.1}
-          min={min}
-          max={max}
-          endContent={<span className="text-default-400 text-small">{t('averaging.unit')}</span>}
-        />
+        <div className="w-full space-y-1">
+          <span className="text-xs font-medium text-default-500">{t('averaging.manual')}</span>
+          <Input
+            type="number"
+            size="sm"
+            value={avgSec.toFixed(1)}
+            onChange={(e) => setAvgSec(Number(e.target.value))}
+            step={0.1}
+            min={min}
+            max={max}
+            endContent={<span className="text-default-400 text-small">{t('averaging.unit')}</span>}
+          />
+        </div>
       </PopoverContent>
     </Popover>
   );

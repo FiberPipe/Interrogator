@@ -212,7 +212,8 @@ class Interrogator:
     - read_block(seconds): record a fixed-duration block
     - stop(): release COM port
     """
-    def read_avg_block(self, seconds: float, avg_sec: float = 1.0, avg_n: int = None, roll=None):
+    def read_avg_block(self, seconds: float, avg_sec: float = 1.0, avg_n: int = None,
+                       roll=None, get_avg_sec=None):
         # roll можно передать снаружи, чтобы окно усреднения сохранялось
         # между блоками (avg_sec тогда не ограничен длительностью блока).
         if roll is None:
@@ -230,6 +231,10 @@ class Interrogator:
         std_out = []
 
         while time.time() < t_dead:
+            # Окно/темп поменяли на лету — прерываем блок досрочно, чтобы новый
+            # темп начался сразу, не дожидаясь конца старого (длинного) блока.
+            if get_avg_sec is not None and get_avg_sec() != avg_sec:
+                break
             try:
                 item = self._q.get(timeout=0.2)
             except Empty:

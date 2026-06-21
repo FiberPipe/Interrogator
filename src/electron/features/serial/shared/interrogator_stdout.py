@@ -8,8 +8,9 @@ import numpy as np
 from pathlib import Path
 from interrogator_io import Interrogator, NCH, RollingWindow
 
-# Длительность одного блока вывода (кадра JSON), сек.
-OUTPUT_INTERVAL = 1.0
+# Минимальная длительность блока вывода, сек (защита от слишком частой выдачи).
+# Темп вывода теперь равен окну усреднения avg_sec, но не короче этого порога.
+MIN_OUTPUT_INTERVAL = 0.1
 
 # Разделяемые параметры обработки, управляемые из stdin на лету.
 _control = {"avg_sec": 1.0}
@@ -150,15 +151,25 @@ def main():
     # флаг: один раз выводим диагностику после первых реальных данных
     _debug_done = False
 
-    # Persistent окно усреднения: сохраняется между блоками, поэтому avg_sec
-    # может превышать длительность блока и меняться на лету.
-    roll = RollingWindow(avg_sec=_get_avg_sec())
+    # Темп вывода = окну усреднения: одна усреднённая точка на окно avg_sec.
+    # Окно сохраняется между блоками; при смене avg_sec сбрасывается, чтобы
+    # старое (длинное) окно не «тянуло» данные в новый темп.
+    cur_avg = _get_avg_sec()
+    roll = RollingWindow(avg_sec=cur_avg)
 
     try:
         while True:
             try:
+                avg = _get_avg_sec()
+                if avg != cur_avg:
+                    cur_avg = avg
+                    roll = RollingWindow(avg_sec=cur_avg)
+
+                # Длительность блока = окно усреднения (но не короче порога).
+                block_sec = max(cur_avg, MIN_OUTPUT_INTERVAL)
                 data = inq.read_avg_block(
-                    seconds=OUTPUT_INTERVAL, avg_sec=_get_avg_sec(), roll=roll
+                    seconds=block_sec, avg_sec=cur_avg, roll=roll,
+                    get_avg_sec=_get_avg_sec,
                 )
 
                 t_arr    = data["t_s"]

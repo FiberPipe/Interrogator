@@ -8,7 +8,9 @@ export const AVG_MIN = 0.1;
 export const AVG_MAX = 30.0;
 export const AVG_DEFAULT = 1.0;
 
-const APPLY_DEBOUNCE_MS = 300;
+// Короткий дебаунс: только чтобы не заваливать stdin при перетаскивании
+// слайдера. Сам python применяет новый темп сразу (сбрасывает окно).
+const APPLY_DEBOUNCE_MS = 100;
 
 const clamp = (value: number): number => Math.max(AVG_MIN, Math.min(value, AVG_MAX));
 

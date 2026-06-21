@@ -1,6 +1,7 @@
 {
   "label": "Averaging",
   "unit": "s",
-  "title": "Time averaging window",
-  "description": "The result is averaged over the last N seconds. Changes live, no restart needed."
+  "title": "Averaging window & chart speed",
+  "description": "The window sets both smoothing and chart speed: one point per window. Larger window — slower and smoother. Changes live.",
+  "manual": "Manual interval"
 }
