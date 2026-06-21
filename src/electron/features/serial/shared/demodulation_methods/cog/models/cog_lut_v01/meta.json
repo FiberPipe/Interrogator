@@ -1,0 +1,85 @@
+{
+  "model_id": "cog_lut_v01",
+  "created_utc": "2026-03-05T12:02:50Z",
+  "dataset": {
+    "csv_path": "C:\\Users\\ivan.kazakov\\Yandex.Disk\\interrpgator_data_for_PhD\\selected_data\\features_post_only__clean_time_windows_v1__osa_drift_corrected_tls1544p5.csv",
+    "n_rows": 18761
+  },
+  "metrics": {
+    "FBG1": {
+      "cog_only": {
+        "rmse_pm": 53.598803516270934,
+        "mae_pm": 37.54132983040436,
+        "p95_abs_pm": 133.19511514191618,
+        "max_abs_pm": 183.55191508589996,
+        "n": 18761
+      },
+      "cog_lut": {
+        "rmse_pm": 15.108680589600532,
+        "mae_pm": 6.988965274490526,
+        "p95_abs_pm": 29.814169262146955,
+        "max_abs_pm": 155.57613380519797,
+        "n": 18184
+      },
+      "n_valid_cog": 18761,
+      "n_valid_demod": 18184
+    },
+    "FBG2": {
+      "cog_only": {
+        "rmse_pm": 131.55861391292075,
+        "mae_pm": 115.4249235440924,
+        "p95_abs_pm": 149.68683056667942,
+        "max_abs_pm": 638.4286858187807,
+        "n": 18761
+      },
+      "cog_lut": {
+        "rmse_pm": 1.6838675201266167,
+        "mae_pm": 1.5038109301629994,
+        "p95_abs_pm": 2.8415640812454512,
+        "max_abs_pm": 5.0796901975900255,
+        "n": 18173
+      },
+      "n_valid_cog": 18761,
+      "n_valid_demod": 18173
+    },
+    "FBG3": {
+      "cog_only": {
+        "rmse_pm": 71.3319114405036,
+        "mae_pm": 31.74552307410792,
+        "p95_abs_pm": 210.4637869808812,
+        "max_abs_pm": 297.7040254888834,
+        "n": 18761
+      },
+      "cog_lut": {
+        "rmse_pm": 3.8261991144449725,
+        "mae_pm": 2.84414597246941,
+        "p95_abs_pm": 7.77728809706559,
+        "max_abs_pm": 20.24764153452452,
+        "n": 18468
+      },
+      "n_valid_cog": 18761,
+      "n_valid_demod": 18468
+    },
+    "FBG4": {
+      "cog_only": {
+        "rmse_pm": 38.348354196544776,
+        "mae_pm": 37.07146981280924,
+        "p95_abs_pm": 52.90997718998369,
+        "max_abs_pm": 62.40731545540257,
+        "n": 18761
+      },
+      "cog_lut": {
+        "rmse_pm": 1.7545772948682659,
+        "mae_pm": 1.4082221113846425,
+        "p95_abs_pm": 3.5069742404402864,
+        "max_abs_pm": 6.099519912595497,
+        "n": 18552
+      },
+      "n_valid_cog": 18761,
+      "n_valid_demod": 18552
+    }
+  },
+  "notes": {
+    "lambda_imbalance": "Dataset points may be imbalanced over λ_ref(corr) due to static segments (while other FBG moved). This can bias LUT and parameter identification, especially for small-span FBG."
+  }
+}

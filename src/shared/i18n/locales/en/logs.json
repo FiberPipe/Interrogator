@@ -1,0 +1,77 @@
+{
+    "title": "Application Logs",
+    "subtitle": "Monitor and analyze application events",
+    "retention": "Retention: {{days}} days",
+    "showingCount": "Showing {{count}} log",
+    "showingCount_plural": "Showing {{count}} logs",
+    
+    "filter": {
+      "title": "Filters",
+      "activeCount": "{{count}} active",
+      "resetAll": "Reset all",
+      "search": "Search logs...",
+      "advancedFilters": "Advanced Filters",
+      "level": "Log Level",
+      "allLevels": "All levels",
+      "area": "Area",
+      "allAreas": "All areas",
+      "limit": "Results limit",
+      "timeRange": "Time Range",
+      "clear": "Clear",
+      "timePresets": {
+        "15m": "15 minutes",
+        "1h": "1 hour",
+        "6h": "6 hours",
+        "24h": "24 hours",
+        "3d": "3 days"
+      },
+      "customRange": "Custom range",
+      "from": "From",
+      "to": "To"
+    },
+
+    "stats": {
+      "total": "Total",
+      "errors": "Errors",
+      "warnings": "Warnings",
+      "info": "Info",
+      "debug": "Debug"
+    },
+
+    "levels": {
+      "DEBUG": "Debug",
+      "INFO": "Info",
+      "WARN": "Warning",
+      "ERROR": "Error"
+    },
+
+    "export": {
+      "title": "Export",
+      "actions": "Actions",
+      "cleanup": "Cleanup old logs (3+ days)",
+      "clear": "Clear all logs",
+      "refresh": "Refresh",
+      "success": "Logs exported to: {{path}}",
+      "cancelled": "Export cancelled",
+      "error": "Failed to export logs",
+      "cleanupSuccess": "Cleaned up {{count}} old log",
+      "cleanupSuccess_plural": "Cleaned up {{count}} old logs",
+      "clearConfirm": "Are you sure you want to delete ALL logs? This action cannot be undone.",
+      "clearSuccess": "All logs cleared"
+    },
+
+    "list": {
+      "loading": "Loading logs...",
+      "noLogs": "No logs found",
+      "noLogsHint": "Try adjusting your filters",
+      "error": "Failed to load logs",
+      "retry": "Retry",
+      "metadata": "Metadata",
+      "hideDetails": "Hide details",
+      "showDetails": "Show details",
+      "context": "Context",
+      "stackTrace": "Stack Trace",
+      "id": "ID",
+      "createdAt": "Created"
+    }
+  }

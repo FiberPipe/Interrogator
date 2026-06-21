@@ -1,4 +1,6 @@
 import { Card, CardBody, Button, Chip } from '@heroui/react';
+import { useTranslation } from 'react-i18next';
+
 import { useSerialData } from '../model/useSerialData';
 
 interface DataPreviewProps {
@@ -6,6 +8,7 @@ interface DataPreviewProps {
 }
 
 export const DataPreview = ({ port }: DataPreviewProps) => {
+  const { t } = useTranslation();
   const { latestData, rawData, recordCount, clear } = useSerialData(port);
 
   if (!port) {
@@ -13,7 +16,7 @@ export const DataPreview = ({ port }: DataPreviewProps) => {
       <Card className="bg-default-50 dark:bg-default-100/5">
         <CardBody>
           <p className="text-center text-default-500 text-sm py-4">
-            Подключитесь к порту для просмотра данных
+            {t('dataPreview.connectHint')}
           </p>
         </CardBody>
       </Card>
@@ -25,15 +28,15 @@ export const DataPreview = ({ port }: DataPreviewProps) => {
       <CardBody className="gap-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <h4 className="font-semibold text-sm">Данные с порта</h4>
+            <h4 className="font-semibold text-sm">{t('dataPreview.title')}</h4>
             <Chip size="sm" variant="dot" color={recordCount > 0 ? 'success' : 'default'}>
-              {recordCount} записей
+              {t('dataPreview.records', { count: recordCount })}
             </Chip>
           </div>
 
           {recordCount > 0 && (
             <Button size="sm" variant="flat" onPress={clear}>
-              Очистить
+              {t('dataPreview.clear')}
             </Button>
           )}
         </div>
@@ -46,7 +49,7 @@ export const DataPreview = ({ port }: DataPreviewProps) => {
           </div>
         ) : (
           <div className="text-center text-default-400 text-sm py-8 border-2 border-dashed border-default-200 rounded-lg">
-            Ожидание данных...
+            {t('dataPreview.waiting')}
           </div>
         )}
       </CardBody>

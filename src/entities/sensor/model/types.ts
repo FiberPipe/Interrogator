@@ -1,10 +1,4 @@
-export type SensorType = 
-  | 'displacement' 
-  | 'temperature' 
-  | 'pressure' 
-  | 'strain' 
-  | 'vibration' 
-  | '';
+export type SensorType = 'displacement' | 'temperature' | 'pressure' | 'strain' | 'vibration' | '';
 
 export interface SensorConfig {
   index: number;

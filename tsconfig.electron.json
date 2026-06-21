@@ -1,11 +1,12 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "module": "commonjs",
     "target": "ES2022",
     "lib": ["ES2022"],
     "moduleResolution": "node",
-    "outDir": "./build/electron",
-    "rootDir": "./src/electron",
+    "outDir": "./build",
+    "rootDir": "./src",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": true,
@@ -13,8 +14,29 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": false,
-    "sourceMap": false
+    "sourceMap": false,
+    "noEmit": false,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["src/shared/*"]
+    }
   },
-  "include": ["src/electron/**/*"],
-  "exclude": ["node_modules", "build", "dist"]
+  "include": [
+    "src/electron/**/*",
+    "src/shared/types/**/*",
+    "src/shared/errors/**/*",
+    "src/shared/constants/**/*",
+    "src/shared/utils/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist",
+    "src/app/**/*",
+    "src/features/**/*",
+    "src/entities/**/*",
+    "src/widgets/**/*",
+    "src/shared/ui/**/*",
+    "src/shared/api/**/*"
+  ]
 }

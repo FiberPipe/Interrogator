@@ -1,0 +1,1 @@
+export { LogsStatsCompact } from './ui/LogsStatsCompact';

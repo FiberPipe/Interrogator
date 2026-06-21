@@ -1,0 +1,220 @@
+# interrogator_stdout.py
+
+import sys
+import json
+import time
+import threading
+import numpy as np
+from pathlib import Path
+from interrogator_io import Interrogator, NCH, RollingWindow
+
+# Минимальная длительность блока вывода, сек (защита от слишком частой выдачи).
+# Темп вывода теперь равен окну усреднения avg_sec, но не короче этого порога.
+MIN_OUTPUT_INTERVAL = 0.1
+
+# Разделяемые параметры обработки, управляемые из stdin на лету.
+_control = {"avg_sec": 1.0}
+_control_lock = threading.Lock()
+
+
+def _get_avg_sec() -> float:
+    with _control_lock:
+        return _control["avg_sec"]
+
+
+def _stdin_control_loop() -> None:
+    """Фоновый поток: читает из stdin JSON-команды управления.
+
+    Формат: одна JSON-строка на сообщение, например {"avg_sec": 2.5}.
+    Позволяет менять усреднение по времени без перезапуска.
+    """
+    for line in sys.stdin:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            msg = json.loads(line)
+        except Exception as ex:
+            print(f"[WARN] bad control message: {ex}", file=sys.stderr, flush=True)
+            continue
+
+        if "avg_sec" in msg:
+            try:
+                value = float(msg["avg_sec"])
+                if value > 0:
+                    with _control_lock:
+                        _control["avg_sec"] = value
+                    print(f"[DEBUG] avg_sec set to {value}", file=sys.stderr, flush=True)
+            except Exception as ex:
+                print(f"[WARN] bad avg_sec: {ex}", file=sys.stderr, flush=True)
+
+# --- демодуляция ---
+_SHARED_DIR = Path(__file__).resolve().parent
+_DEMOD_SRC  = _SHARED_DIR / "demodulation_methods" / "cog" / "src"
+_MODEL_DIR  = _SHARED_DIR / "demodulation_methods" / "cog" / "models" / "cog_lut_v01"
+
+sys.path.insert(0, str(_DEMOD_SRC))
+from cog_lut_demod import demodulate, _load_model  # noqa: E402
+
+
+def _debug_demod(P: list, model_dir: str) -> None:
+    """Диагностика: печатает в stderr причину nan для каждого FBG."""
+    try:
+        P_arr = np.array(P, dtype=float)
+        order, models = _load_model(model_dir)
+
+        for fbg in order:
+            m = models[fbg]
+            pv = P_arr[m.ch_idx]
+            w_raw = pv - m.baseline
+            w = np.where(np.isfinite(w_raw) & (w_raw > 0.0), w_raw, 0.0)
+            sumw = float(np.sum(w))
+
+            print(f"[DEBUG] {fbg}:", file=sys.stderr, flush=True)
+            print(f"  ch_idx   = {m.ch_idx}", file=sys.stderr, flush=True)
+            print(f"  pv       = {np.round(pv, 2)}", file=sys.stderr, flush=True)
+            print(f"  baseline = {np.round(m.baseline, 2)}", file=sys.stderr, flush=True)
+            print(f"  w_raw    = {np.round(w_raw, 2)}", file=sys.stderr, flush=True)
+            print(f"  w_clip   = {np.round(w, 2)}", file=sys.stderr, flush=True)
+            print(f"  sumw     = {sumw:.4f}", file=sys.stderr, flush=True)
+
+            if sumw <= 0:
+                print(f"  → FAIL: все веса <= 0 (P ниже baseline?)", file=sys.stderr, flush=True)
+                continue
+
+            lam_cog = float(np.dot(w, m.lam_ch) / sumw)
+            print(f"  lam_cog  = {lam_cog:.6f}", file=sys.stderr, flush=True)
+            print(f"  lut_x    = [{m.lut_x[0]:.6f}, {m.lut_x[-1]:.6f}]", file=sys.stderr, flush=True)
+
+            if not np.isfinite(lam_cog):
+                print(f"  → FAIL: lam_cog не finite", file=sys.stderr, flush=True)
+            elif lam_cog < m.lut_x[0] or lam_cog > m.lut_x[-1]:
+                print(f"  → FAIL: lam_cog вне диапазона LUT", file=sys.stderr, flush=True)
+            else:
+                print(f"  → OK", file=sys.stderr, flush=True)
+
+    except Exception as ex:
+        print(f"[DEBUG] _debug_demod failed: {ex}", file=sys.stderr, flush=True)
+
+
+def _wavelength_val(v) -> float | None:
+    """nan/None → None (JSON null), иначе float."""
+    if v is None:
+        return None
+    try:
+        f = float(v)
+        return None if not np.isfinite(f) else f
+    except Exception:
+        return None
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: interrogator_stdout.py <port> [baud]", file=sys.stderr)
+        sys.exit(1)
+
+    port = sys.argv[1]
+    baud = int(sys.argv[2]) if len(sys.argv) > 2 else 500000
+    # Начальное окно усреднения (сек) можно задать 3-м аргументом.
+    if len(sys.argv) > 3:
+        try:
+            initial_avg = float(sys.argv[3])
+            if initial_avg > 0:
+                _control["avg_sec"] = initial_avg
+        except Exception:
+            pass
+
+    print(f"[DEBUG] Connecting to {port} at {baud} baud...", file=sys.stderr, flush=True)
+    print(f"[DEBUG] Model dir: {_MODEL_DIR}", file=sys.stderr, flush=True)
+
+    if not _MODEL_DIR.exists():
+        print(f"[ERROR] Model dir not found: {_MODEL_DIR}", file=sys.stderr, flush=True)
+        sys.exit(1)
+
+    # warm-up: загружаем модель один раз до основного цикла (lru_cache)
+    try:
+        _dummy = demodulate([0.0] * 16, model_dir=str(_MODEL_DIR))
+        print("[DEBUG] Model loaded OK", file=sys.stderr, flush=True)
+    except Exception as e:
+        print(f"[ERROR] Model load failed: {e}", file=sys.stderr, flush=True)
+        sys.exit(1)
+
+    inq = Interrogator(port=port, baud=baud)
+    inq.start()
+
+    # Поток чтения управляющих команд из stdin (демон — завершится с процессом).
+    threading.Thread(target=_stdin_control_loop, daemon=True).start()
+
+    print("[DEBUG] Waiting for data...", file=sys.stderr, flush=True)
+    time.sleep(2.0)
+
+    # флаг: один раз выводим диагностику после первых реальных данных
+    _debug_done = False
+
+    # Темп вывода = окну усреднения: одна усреднённая точка на окно avg_sec.
+    # Окно сохраняется между блоками; при смене avg_sec сбрасывается, чтобы
+    # старое (длинное) окно не «тянуло» данные в новый темп.
+    cur_avg = _get_avg_sec()
+    roll = RollingWindow(avg_sec=cur_avg)
+
+    try:
+        while True:
+            try:
+                avg = _get_avg_sec()
+                if avg != cur_avg:
+                    cur_avg = avg
+                    roll = RollingWindow(avg_sec=cur_avg)
+
+                # Длительность блока = окно усреднения (но не короче порога).
+                block_sec = max(cur_avg, MIN_OUTPUT_INTERVAL)
+                data = inq.read_avg_block(
+                    seconds=block_sec, avg_sec=cur_avg, roll=roll,
+                    get_avg_sec=_get_avg_sec,
+                )
+
+                t_arr    = data["t_s"]
+                mean_arr = data["mean"]   # (N, 16)
+                std_arr  = data["std"]    # (N, 16)
+
+                if len(t_arr) == 0:
+                    continue
+
+                i = len(t_arr) - 1
+                P = [float(mean_arr[i][ch]) for ch in range(NCH)]
+
+                # --- диагностика один раз по первым реальным данным ---
+                if not _debug_done:
+                    print("[DEBUG] First real P values:", file=sys.stderr, flush=True)
+                    print(f"  P = {[round(x, 2) for x in P]}", file=sys.stderr, flush=True)
+                    _debug_demod(P, str(_MODEL_DIR))
+                    _debug_done = True
+
+                # --- демодуляция ---
+                try:
+                    lam = demodulate(P, model_dir=str(_MODEL_DIR))
+                except Exception as e:
+                    print(f"[WARN] demodulate failed: {e}", file=sys.stderr, flush=True)
+                    lam = [None, None, None, None]
+
+                # --- формируем JSON ---
+                row: dict = {
+                    "time": float(t_arr[i]),
+                    "power":       {f"P{ch}":       float(mean_arr[i][ch]) for ch in range(NCH)},
+                    "deviation":   {f"stdDev{ch}":  float(std_arr[i][ch])  for ch in range(NCH)},
+                    "wavelengths": {f"wavelength{fi + 1}": _wavelength_val(lam[fi]) for fi in range(4)},
+                }
+
+                print(json.dumps(row), flush=True)
+
+            except TimeoutError as e:
+                print(f"[DEBUG] Timeout: {e}", file=sys.stderr, flush=True)
+                continue
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        inq.stop()
+
+
+if __name__ == "__main__":
+    main()

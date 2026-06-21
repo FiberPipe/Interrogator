@@ -1,6 +1,8 @@
 {
   "settings": "设置",
   "charts": "图表",
+  "dashboard": "仪表板",
+  "logs": "日志",
   "collapse": "折叠",
   "expand": "展开"
 }

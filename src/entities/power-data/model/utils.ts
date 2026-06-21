@@ -21,7 +21,7 @@ export const groupDataByPowerId = (data: PowerDataPoint[]): GroupedPowerItem[] =
     .map((key) => {
       const id = Number(key);
       const values = groupedData[id];
-      
+
       return {
         id,
         currentValue: values[values.length - 1] || 0,
@@ -36,7 +36,7 @@ export const groupDataByPowerId = (data: PowerDataPoint[]): GroupedPowerItem[] =
 export const isAlarmTriggered = (
   value: number,
   alarmMin?: number,
-  alarmMax?: number
+  alarmMax?: number,
 ): 'min' | 'max' | null => {
   if (alarmMin !== undefined && value < alarmMin) return 'min';
   if (alarmMax !== undefined && value > alarmMax) return 'max';

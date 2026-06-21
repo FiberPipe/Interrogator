@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+
 import { addSuccessToaster, addDangerToaster } from '../../../shared/ui';
 import type { CalibrationData, CalibrationMethod } from './types';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
 export const useSensorCalibration = () => {
   const { t } = useTranslation();
@@ -18,12 +20,12 @@ export const useSensorCalibration = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const saved = await window.appData.getAll();
-        
+        const saved = await appDataApi.getAll();
+
         if (saved?.calibrationData) {
           setData(saved.calibrationData as CalibrationData);
         }
-        
+
         if (saved?.calibrationMethod) {
           setMethod(saved.calibrationMethod as CalibrationMethod);
         }
@@ -32,7 +34,7 @@ export const useSensorCalibration = () => {
           setFilePath(saved.sensorDataFilePath as string);
         }
       } catch (err) {
-        console.error('[useSensorCalibration] Load error:', err);
+        addDangerToaster('[useSensorCalibration] Load error:', err);
       } finally {
         setIsLoading(false);
       }
@@ -77,73 +79,76 @@ export const useSensorCalibration = () => {
         setFilePath(selectedPath);
       }
     } catch (err) {
-      console.error('[useSensorCalibration] File selection error:', err);
       addDangerToaster(
         t('calibration.errors.fileSelection'),
-        t('calibration.errors.fileSelectionDescription')
+        t('calibration.errors.fileSelectionDescription'),
       );
     }
   }, [t]);
 
   // Загрузка из CSV
-  const loadFromCSV = useCallback(async (file: File) => {
-    try {
-      const text = await file.text();
-      const lines = text.split('\n').filter((line) => line.trim());
-      
-      const newData: CalibrationData = {
-        normalization: {},
-        wavelengths: {},
-      };
+  const loadFromCSV = useCallback(
+    async (file: File) => {
+      try {
+        const text = await file.text();
+        const lines = text.split('\n').filter((line) => line.trim());
 
-      lines.forEach((line, index) => {
-        if (index === 0) return; // Skip header
-        const [, norm, wave] = line.split(',');
-        
-        if (norm) newData.normalization[`field${index - 1}`] = parseFloat(norm);
-        if (wave) newData.wavelengths[`lambdas_central${index - 1}`] = parseFloat(wave);
-      });
+        const newData: CalibrationData = {
+          normalization: {},
+          wavelengths: {},
+        };
 
-      bulkUpdateData(newData);
-      addSuccessToaster(
-        t('calibration.messages.csvLoaded'),
-        t('calibration.messages.csvLoadedDescription')
-      );
-    } catch (err) {
-      console.error('[useSensorCalibration] CSV parse error:', err);
-      addDangerToaster(
-        t('calibration.errors.csvParse'),
-        t('calibration.errors.csvParseDescription')
-      );
-    }
-  }, [bulkUpdateData, t]);
+        lines.forEach((line, index) => {
+          if (index === 0) return; // Skip header
+          const [, norm, wave] = line.split(',');
+
+          if (norm) newData.normalization[`field${index - 1}`] = parseFloat(norm);
+          if (wave) newData.wavelengths[`lambdas_central${index - 1}`] = parseFloat(wave);
+        });
+
+        bulkUpdateData(newData);
+        addSuccessToaster(
+          t('calibration.messages.csvLoaded'),
+          t('calibration.messages.csvLoadedDescription'),
+        );
+      } catch (err) {
+        addDangerToaster(
+          t('calibration.errors.csvParse'),
+          t('calibration.errors.csvParseDescription'),
+        );
+      }
+    },
+    [bulkUpdateData, t],
+  );
 
   // Загрузка из JSON
-  const loadFromJSON = useCallback(async (file: File) => {
-    try {
-      const text = await file.text();
-      const parsed = JSON.parse(text) as CalibrationData;
-      
-      bulkUpdateData(parsed);
-      addSuccessToaster(
-        t('calibration.messages.jsonLoaded'),
-        t('calibration.messages.jsonLoadedDescription')
-      );
-    } catch (err) {
-      console.error('[useSensorCalibration] JSON parse error:', err);
-      addDangerToaster(
-        t('calibration.errors.jsonParse'),
-        t('calibration.errors.jsonParseDescription')
-      );
-    }
-  }, [bulkUpdateData, t]);
+  const loadFromJSON = useCallback(
+    async (file: File) => {
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text) as CalibrationData;
+
+        bulkUpdateData(parsed);
+        addSuccessToaster(
+          t('calibration.messages.jsonLoaded'),
+          t('calibration.messages.jsonLoadedDescription'),
+        );
+      } catch (err) {
+        addDangerToaster(
+          t('calibration.errors.jsonParse'),
+          t('calibration.errors.jsonParseDescription'),
+        );
+      }
+    },
+    [bulkUpdateData, t],
+  );
 
   // Сохранение конфигурации
   const saveConfiguration = useCallback(async () => {
     setIsSaving(true);
-    
+
     try {
-      await window.appData.patch({
+      await appDataApi.patch({
         calibrationData: data,
         calibrationMethod: method,
         sensorDataFilePath: filePath,
@@ -151,14 +156,10 @@ export const useSensorCalibration = () => {
 
       addSuccessToaster(
         t('calibration.messages.saved'),
-        t('calibration.messages.savedDescription')
+        t('calibration.messages.savedDescription'),
       );
     } catch (err) {
-      console.error('[useSensorCalibration] Save error:', err);
-      addDangerToaster(
-        t('calibration.errors.save'),
-        t('calibration.errors.saveDescription')
-      );
+      addDangerToaster(t('calibration.errors.save'), t('calibration.errors.saveDescription'));
     } finally {
       setIsSaving(false);
     }
@@ -188,7 +189,7 @@ export const useSensorCalibration = () => {
   // Экспорт в CSV
   const exportToCSV = useCallback(() => {
     const lines = ['Channel,Normalization,Wavelength'];
-    
+
     for (let i = 0; i < 16; i++) {
       const norm = data.normalization[`field${i}`] || 0;
       const wave = data.wavelengths[`lambdas_central${i}`] || 0;

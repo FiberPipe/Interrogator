@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import { Check, X } from 'lucide-react';
+
 import type { CalibrationData } from '../model/types';
 
 interface CodeEditorProps {

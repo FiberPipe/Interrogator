@@ -1,0 +1,63 @@
+{
+  "title": "Dashboard",
+  "subtitle": "Real-time overview of all channels and summary statistics",
+
+  "notConnected": "Port not connected",
+  "selectPort": "Connect a port on the settings page to see data",
+
+  "mode": {
+    "live": "Live",
+    "history": "History"
+  },
+
+  "channel": {
+    "label": "Channel {{index}}",
+    "power": "Power",
+    "wavelength": "Wavelength"
+  },
+
+  "status": {
+    "ok": "OK",
+    "warning": "Warning",
+    "danger": "Alarm",
+    "idle": "No data"
+  },
+
+  "connection": {
+    "connected": "Connected",
+    "waiting": "Waiting for data",
+    "disconnected": "Disconnected"
+  },
+
+  "stats": {
+    "duration": "Duration",
+    "records": "Buffered records",
+    "alerts": "Channels in alarm",
+    "lastUpdate": "Last update"
+  },
+
+  "history": {
+    "title": "Historical statistics",
+    "range": {
+      "1h": "1 hour",
+      "24h": "24 hours",
+      "7d": "7 days"
+    },
+    "load": "Load",
+    "loading": "Loading...",
+    "noData": "No data for the selected period",
+    "columns": {
+      "channel": "Channel",
+      "count": "Records",
+      "min": "Min",
+      "max": "Max",
+      "avg": "Avg"
+    }
+  },
+
+  "settings": {
+    "title": "Dashboard settings",
+    "columns": "Columns",
+    "channels": "Channels"
+  }
+}

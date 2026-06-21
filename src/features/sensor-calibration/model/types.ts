@@ -16,9 +16,9 @@ export const CHANNEL_COUNT = 16;
 
 export const createEmptyCalibrationData = (): CalibrationData => ({
   normalization: Object.fromEntries(
-    Array.from({ length: CHANNEL_COUNT }, (_, i) => [`field${i}`, 0])
+    Array.from({ length: CHANNEL_COUNT }, (_, i) => [`field${i}`, 0]),
   ),
   wavelengths: Object.fromEntries(
-    Array.from({ length: CHANNEL_COUNT }, (_, i) => [`lambdas_central${i}`, 0])
+    Array.from({ length: CHANNEL_COUNT }, (_, i) => [`lambdas_central${i}`, 0]),
   ),
 });

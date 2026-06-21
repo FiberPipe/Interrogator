@@ -18,9 +18,7 @@ export const AutoConnectSwitch = ({ value, onChange }: AutoConnectSwitchProps) =
     >
       <div className="flex flex-col">
         <span className="text-sm font-medium">{t('serialPort.autoConnect.title')}</span>
-        <span className="text-xs text-default-500">
-          {t('serialPort.autoConnect.description')}
-        </span>
+        <span className="text-xs text-default-500">{t('serialPort.autoConnect.description')}</span>
       </div>
       <Switch isSelected={value} onValueChange={onChange} color="success" size="sm" />
     </motion.div>

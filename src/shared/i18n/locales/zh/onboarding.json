@@ -49,5 +49,12 @@
     "next": "下一步",
     "finish": "完成",
     "skip": "跳过"
+  },
+  "dataPreview": {
+    "connectHint": "请连接端口以查看数据",
+    "title": "端口数据",
+    "records": "{{count}} 条记录",
+    "clear": "清除",
+    "waiting": "等待数据中..."
   }
 }

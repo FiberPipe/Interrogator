@@ -56,7 +56,7 @@ export const PowerSparkline = ({
           strokeWidth={1}
           strokeDasharray="2,2"
           opacity={0.5}
-        />
+        />,
       );
     }
 
@@ -73,7 +73,7 @@ export const PowerSparkline = ({
           strokeWidth={1}
           strokeDasharray="2,2"
           opacity={0.5}
-        />
+        />,
       );
     }
 
@@ -82,7 +82,10 @@ export const PowerSparkline = ({
 
   if (values.length === 0) {
     return (
-      <div className="flex items-center justify-center text-xs text-default-400" style={{ width, height }}>
+      <div
+        className="flex items-center justify-center text-xs text-default-400"
+        style={{ width, height }}
+      >
         No data
       </div>
     );

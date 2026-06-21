@@ -1,86 +1,22 @@
-import { useState, useEffect } from 'react';
 import { Button } from '@heroui/react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+
 import { SensorCountInput } from '../../sensor-configuration/ui/SensorCountInput';
 import { SensorConfigCard } from '../../sensor-configuration/ui/SensorConfigCard';
-import { createEmptySensor, type SensorConfig } from '../../../entities/sensor/model/types';
+import { useSensorConfig } from '../../sensor-configuration/model/useSensorConfig';
 
 export default function SensorConfigStep({ onNext, onBack }: any) {
   const { t } = useTranslation();
-  const [sensorCount, setSensorCount] = useState<number>(0);
-  const [sensors, setSensors] = useState<Record<number, SensorConfig>>({});
-
-  useEffect(() => {
-    if (sensorCount > 0) {
-      setSensors((prev) => {
-        const newSensors: Record<number, SensorConfig> = {};
-
-        for (let i = 0; i < sensorCount; i++) {
-          newSensors[i] = prev[i] || createEmptySensor(i);
-        }
-
-        return newSensors;
-      });
-    } else {
-      setSensors({});
-    }
-  }, [sensorCount]);
-
-  const updateSensorType = (sensorIndex: number, type: any) => {
-    setSensors((prev) => ({
-      ...prev,
-      [sensorIndex]: {
-        ...prev[sensorIndex],
-        type,
-      },
-    }));
-  };
-
-  const toggleChannel = (sensorIndex: number, channel: string) => {
-    setSensors((prev) => {
-      const currentSensor = prev[sensorIndex];
-      const currentChannels = currentSensor?.channels || [];
-
-      // Проверяем, используется ли канал другим датчиком
-      const isUsedByOther = Object.entries(prev).some(
-        ([idx, sensor]) => Number(idx) !== sensorIndex && sensor.channels.includes(channel)
-      );
-
-      if (isUsedByOther) {
-        const newSensors = { ...prev };
-
-        Object.keys(newSensors).forEach((key) => {
-          const idx = Number(key);
-          if (idx !== sensorIndex) {
-            newSensors[idx] = {
-              ...newSensors[idx],
-              channels: newSensors[idx].channels.filter((ch) => ch !== channel),
-            };
-          }
-        });
-
-        newSensors[sensorIndex] = {
-          ...currentSensor,
-          channels: [...currentChannels, channel],
-        };
-
-        return newSensors;
-      }
-
-      const newChannels = currentChannels.includes(channel)
-        ? currentChannels.filter((ch) => ch !== channel)
-        : [...currentChannels, channel].sort();
-
-      return {
-        ...prev,
-        [sensorIndex]: {
-          ...currentSensor,
-          channels: newChannels,
-        },
-      };
-    });
-  };
+  const {
+    sensorCount,
+    sensors,
+    usedChannels,
+    updateSensorCount,
+    updateSensorType,
+    updateSensorAlias,
+    toggleChannel,
+  } = useSensorConfig();
 
   const handleNext = () => {
     onNext({
@@ -88,8 +24,6 @@ export default function SensorConfigStep({ onNext, onBack }: any) {
       sensorConfig: sensors,
     });
   };
-
-  const usedChannels = Object.values(sensors).flatMap((sensor) => sensor.channels);
 
   return (
     <div className="space-y-6">
@@ -103,7 +37,7 @@ export default function SensorConfigStep({ onNext, onBack }: any) {
         animate={{ opacity: 1, y: 0 }}
         className="space-y-6"
       >
-        <SensorCountInput value={sensorCount} onChange={setSensorCount} />
+        <SensorCountInput value={sensorCount} onChange={updateSensorCount} />
 
         {sensorCount > 0 && (
           <motion.div
@@ -118,6 +52,7 @@ export default function SensorConfigStep({ onNext, onBack }: any) {
                 usedChannels={usedChannels}
                 onTypeChange={(type) => updateSensorType(idx, type)}
                 onChannelToggle={(channel) => toggleChannel(idx, channel)}
+                onAliasChange={(alias) => updateSensorAlias(idx, alias)}
               />
             ))}
           </motion.div>

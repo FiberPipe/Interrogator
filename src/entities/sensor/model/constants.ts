@@ -28,4 +28,6 @@ export const SENSOR_TYPE_ICONS: Record<SensorType, string> = {
   temperature: '🌡️',
   pressure: '🔘',
   '': '❓',
+  strain: '',
+  vibration: ''
 };

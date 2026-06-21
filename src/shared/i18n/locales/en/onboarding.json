@@ -49,5 +49,15 @@
         "next": "Next",
         "finish": "Finish",
         "skip": "Skip"
-    }
+    },
+    "dataPreview": {
+    "connectHint": "Connect to a port to view data",
+
+    "title": "Port data",
+    "records": "{{count}} records",
+
+    "clear": "Clear",
+
+    "waiting": "Waiting for data..."
+  }
 }

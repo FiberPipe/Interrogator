@@ -60,7 +60,7 @@ export const groupDataByPowerId = (data: ReceivedData[]): GroupedPowerItem[] => 
 
 export const calculateTemperature = (
   wavelength: number,
-  coeffs: { lambda0: number; E: number; D: number; C: number; B: number; A: number }
+  coeffs: { lambda0: number; E: number; D: number; C: number; B: number; A: number },
 ): number => {
   const delta = wavelength - coeffs.lambda0;
   return (
@@ -74,7 +74,15 @@ export const calculateTemperature = (
 
 export const calculateDisplacement = (
   wavelength: number,
-  coeffs: { lambda0: number; k: number; C: number; B: number; alpha: number; T: number; T0: number }
+  coeffs: {
+    lambda0: number;
+    k: number;
+    C: number;
+    B: number;
+    alpha: number;
+    T: number;
+    T0: number;
+  },
 ): number => {
   return (
     (Math.pow(10, 6) * (wavelength - coeffs.lambda0)) / (coeffs.k * coeffs.lambda0) -

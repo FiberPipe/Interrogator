@@ -2,6 +2,7 @@ import { Button } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Table, FileText, FileJson, Code } from 'lucide-react';
+
 import type { CalibrationMethod } from '../model/types';
 
 interface CalibrationMethodSelectorProps {

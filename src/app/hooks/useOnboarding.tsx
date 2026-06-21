@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 
+import { addDangerToaster } from '../../shared/ui';
+import { appDataApi } from '../../shared/api/app-data.api';
+
 export async function getAppData() {
-  if (!window.appData) throw new Error('appData IPC not available');
-  return await window.appData.getAll();
+  if (!appDataApi) throw new Error('appData IPC not available');
+  return await appDataApi.getAll();
 }
 
 export async function patchAppData(patch: Record<string, unknown>) {
-  if (!window.appData) throw new Error('appData IPC not available');
-  return await window.appData.patch(patch);
+  if (!appDataApi) throw new Error('appData IPC not available');
+  return await appDataApi.patch(patch);
 }
 
 export function useOnboarding() {
@@ -19,7 +22,7 @@ export function useOnboarding() {
         const data = await getAppData();
         setIsFirstLaunch(Boolean(data?.isFirstLaunch ?? true));
       } catch (err) {
-        console.error('[useOnboarding] Error fetching app data:', err);
+        addDangerToaster('[useOnboarding] Error fetching app data:', err);
         setIsFirstLaunch(true); // fallback
       }
     }
@@ -33,7 +36,7 @@ export function useOnboarding() {
 // Завершение онбординга
 export async function finishOnboarding(
   data: Record<string, unknown>,
-  setIsFirstLaunch?: (v: boolean) => void
+  setIsFirstLaunch?: (v: boolean) => void,
 ) {
   await patchAppData({
     ...data,

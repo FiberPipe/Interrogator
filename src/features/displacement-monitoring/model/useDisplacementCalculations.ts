@@ -1,36 +1,46 @@
-// src/features/displacement-monitoring/model/useDisplacementCalculations.ts
 import { useMemo } from 'react';
-import { calculateDisplacement } from '../../../entities/sensor-data/model/calculators';
-import type { DisplacementCoefficients } from '../../../entities/sensor-data/model/types';
 
-interface DataPoint {
-  [key: string]: any;
+import type { DisplacementCoefficients } from '../../../entities/displacement';
+import { calculateDisplacement } from '../../../entities/displacement';
+import type { RowData } from '../../../shared/types/microcontroller-data';
+
+export interface CalculatedDisplacementData extends RowData {
+  displacements: Record<string, number>;
+  timestamp: number;
 }
 
+/**
+ * Хук для вычисления смещения из данных wavelength
+ */
 export const useDisplacementCalculations = (
-  data: DataPoint[],
-  coefficientsMap: Record<number, DisplacementCoefficients>
-) => {
+  data: RowData[],
+  coefficientsMap: Record<number, DisplacementCoefficients>,
+): CalculatedDisplacementData[] => {
   return useMemo(() => {
-    if (!data.length) return [];
+    if (data.length === 0) return [];
 
-    return data.map((point) => {
-      const calculated: any = { ...point, displacements: {} };
+    return data.map((point, index) => {
+      const displacements: Record<string, number> = {};
 
       Object.keys(coefficientsMap).forEach((sensorIndexStr) => {
-        const sensorIndex = parseInt(sensorIndexStr);
+        const sensorIndex = parseInt(sensorIndexStr, 10);
         const coeffs = coefficientsMap[sensorIndex];
-        const wavelength = parseFloat(point[`wavelength${sensorIndex}`]);
+        const wavelengthKey = `wavelength${sensorIndex}` as keyof typeof point.wavelengths;
+        const wavelength = point.wavelengths[wavelengthKey];
 
-        if (isFinite(wavelength) && !isNaN(wavelength)) {
-          calculated.displacements[`D${sensorIndex}`] = calculateDisplacement(
-            wavelength,
-            coeffs
-          );
+        if (wavelength !== undefined && !isNaN(wavelength) && isFinite(wavelength)) {
+          const displacement = calculateDisplacement(wavelength, coeffs);
+          if (isFinite(displacement)) {
+            displacements[`D${sensorIndex}`] = displacement;
+          }
         }
       });
 
-      return calculated;
+      return {
+        ...point,
+        displacements,
+        timestamp: index,
+      };
     });
   }, [data, coefficientsMap]);
 };

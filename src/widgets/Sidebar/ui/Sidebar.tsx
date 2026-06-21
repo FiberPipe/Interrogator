@@ -4,9 +4,11 @@ import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { documentationLinks, menuItems } from '../model/constants';
 
-const Sidebar = () => {
+import { documentationLinks, menuItems } from '../model/constants';
+import { getAppVersion } from '../../../shared/lib';
+
+export const Sidebar = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { t } = useTranslation();
@@ -38,7 +40,7 @@ const Sidebar = () => {
                 transition={{ duration: 0.2 }}
               >
                 <h2 className="font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  SensorMonitor
+                  FiberPipe
                 </h2>
               </motion.div>
             )}
@@ -61,9 +63,10 @@ const Sidebar = () => {
               className={`
                 w-full flex items-center gap-3 px-4 py-3.5 rounded-xl
                 transition-all duration-200 relative overflow-hidden
-                ${isActive
-                  ? 'text-primary font-semibold shadow-lg'
-                  : 'text-default-600 hover:text-default-900 hover:bg-default-100'
+                ${
+                  isActive
+                    ? 'text-primary font-semibold shadow-lg'
+                    : 'text-default-600 hover:text-default-900 hover:bg-default-100'
                 }
               `}
               whileHover={{ scale: 1.02, x: collapsed ? 0 : 4 }}
@@ -175,11 +178,7 @@ const Sidebar = () => {
             className="w-full"
             onPress={() => setCollapsed(!collapsed)}
             startContent={
-              collapsed ? (
-                <ChevronRight className="w-4 h-4" />
-              ) : (
-                <ChevronLeft className="w-4 h-4" />
-              )
+              collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />
             }
           >
             <AnimatePresence>
@@ -205,7 +204,7 @@ const Sidebar = () => {
               exit={{ opacity: 0 }}
               className="text-center text-xs text-default-400"
             >
-              v1.0.0
+              v{getAppVersion()}
             </motion.div>
           )}
         </AnimatePresence>
@@ -213,5 +212,3 @@ const Sidebar = () => {
     </motion.div>
   );
 };
-
-export default Sidebar;

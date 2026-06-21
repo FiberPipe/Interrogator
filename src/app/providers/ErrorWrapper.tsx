@@ -3,6 +3,8 @@ import React, { Component } from 'react';
 import { Card, Button } from '@heroui/react';
 import { AlertCircle } from 'lucide-react';
 
+import { addDangerToaster } from '../../shared/ui';
+
 interface ErrorWrapperProps {
   children: ReactNode;
   fallbackTitle?: string;
@@ -26,7 +28,7 @@ export class ErrorWrapper extends Component<ErrorWrapperProps, ErrorWrapperState
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Caught by ErrorWrapper:', error, errorInfo);
+    addDangerToaster('Caught by ErrorWrapper:', error, errorInfo);
     this.setState({ error, errorInfo });
   }
 

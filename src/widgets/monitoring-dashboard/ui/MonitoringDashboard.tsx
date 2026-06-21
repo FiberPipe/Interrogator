@@ -3,30 +3,46 @@ import { Card, CardBody, CardHeader, Chip, Alert, Divider } from '@heroui/react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, AlertCircle } from 'lucide-react';
+
 import type { SensorType, ViewMode } from '../../../entities/sensor-data/model/types';
+import type { RowData } from '../../../shared/types/microcontroller-data';
 import { useSerialPortContext } from '../../../app/providers/SerialPortProvider';
 import { useSerialData } from '../hooks/useSerialData';
-import { ChartStats } from '../../../entities/chart/ui/ChartStats';
 import { ChartLegend } from '../../../entities/chart/ui/ChartLegend';
-import { PowerChart } from '../../../features/power-monitoring/ui/PowerChart';
-import { PowerTable } from '../../../features/power-monitoring/ui/PowerTable';
-import { WavelengthTable } from '../../../features/wavelength-monitoring/ui/WavelengthTable';
-import { TemperatureTable } from '../../../features/temperature-monitoring/ui/TemperatureTable';
-import { DisplacementTable } from '../../../features/displacement-monitoring/ui/DisplacementTable';
-import { ChartControls } from '../../../features/data-visualization/ChartsControls';
-import { ViewModeSelector } from '../../../features/data-visualization/ViewModeSelector';
-import { WavelengthChart } from '../../../features/wavelength-monitoring';
-import { TemperatureChart } from '../../../features/temperature-monitoring';
-import { DisplacementChart } from '../../../features/displacement-monitoring';
+import {
+  PowerChart,
+  WavelengthChart,
+  TemperatureChart,
+  DisplacementChart,
+  PowerTable,
+  WavelengthTable,
+  TemperatureTable,
+  DisplacementTable,
+  ViewModeSelector,
+  ChartControls,
+} from '../../../features';
 
 interface MonitoringDashboardProps {
   type: SensorType;
 }
 
 const COLORS = [
-  '#4f46e5', '#e11d48', '#059669', '#f97316', '#8b5cf6',
-  '#06b6d4', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1',
-  '#10b981', '#ef4444', '#3b82f6', '#f43f5e', '#a855f7', '#84cc16',
+  '#4f46e5',
+  '#e11d48',
+  '#059669',
+  '#f97316',
+  '#8b5cf6',
+  '#06b6d4',
+  '#ec4899',
+  '#14b8a6',
+  '#f59e0b',
+  '#6366f1',
+  '#10b981',
+  '#ef4444',
+  '#3b82f6',
+  '#f43f5e',
+  '#a855f7',
+  '#84cc16',
 ];
 
 const CHANNELS = Array.from({ length: 16 }, (_, i) => i);
@@ -38,41 +54,42 @@ export const MonitoringDashboard = ({ type }: MonitoringDashboardProps) => {
 
   const [viewMode, setViewMode] = useState<ViewMode>('chart');
   const [selectedChannels, setSelectedChannels] = useState<number[]>(CHANNELS.slice(0, 4));
-  const [inputValues, setInputValues] = useState<Record<string, string>>({});
 
-  // Обработка изменения инпутов для таблиц
-  const handleInputChange = useCallback((key: string, value: string) => {
-    setInputValues((prev) => ({ ...prev, [key]: value }));
-    // TODO: Сохранять в appData
-    window.appData.set(key, value).catch(console.error);
-  }, []);
-
-  // Управление каналами
   const handleToggleChannel = useCallback((channel: number) => {
     setSelectedChannels((prev) =>
       prev.includes(channel)
         ? prev.filter((c) => c !== channel)
-        : [...prev, channel].sort((a, b) => a - b)
+        : [...prev, channel].sort((a, b) => a - b),
     );
   }, []);
 
   const handleSelectAll = useCallback(() => setSelectedChannels(CHANNELS), []);
   const handleDeselectAll = useCallback(() => setSelectedChannels([]), []);
 
-  // Средние значения для статистики
   const averageValue = useMemo(() => {
     if (!latestData || selectedChannels.length === 0) return 0;
 
-    const keyPrefix = type === 'power' ? 'P' : type === 'wavelength' ? 'wavelength' : 'P';
-    const sum = selectedChannels.reduce((acc, idx) => {
-      const key = `${keyPrefix}${idx}`;
-      return acc + (parseFloat(latestData[key] as string) || 0);
-    }, 0);
+    if (type === 'power') {
+      const sum = selectedChannels.reduce((acc, idx) => {
+        const key = `P${idx}` as keyof RowData;
+        const value = latestData[key];
+        return acc + (typeof value === 'number' ? value : 0);
+      }, 0);
+      return sum / selectedChannels.length;
+    }
 
-    return sum / selectedChannels.length;
+    if (type === 'wavelength') {
+      const sum = selectedChannels.reduce((acc, idx) => {
+        const key = `wavelength${idx}` as keyof typeof latestData.wavelengths;
+        const value = latestData.wavelengths[key];
+        return acc + (typeof value === 'number' ? value : 0);
+      }, 0);
+      return sum / selectedChannels.length;
+    }
+
+    return 0;
   }, [latestData, selectedChannels, type]);
 
-  // Определяем какой компонент отображать
   const renderChart = () => {
     const commonProps = {
       data: dataBuffer,
@@ -86,34 +103,30 @@ export const MonitoringDashboard = ({ type }: MonitoringDashboardProps) => {
       case 'wavelength':
         return <WavelengthChart {...commonProps} />;
       case 'temperature':
-        return <TemperatureChart {...commonProps} inputValues={inputValues} />;
+        return <TemperatureChart {...commonProps} />;
       case 'displacement':
-        return <DisplacementChart {...commonProps} inputValues={inputValues} />;
+        return <DisplacementChart {...commonProps} />;
       default:
         return null;
     }
   };
 
   const renderTable = () => {
-    const commonProps = {
-      data: dataBuffer,
-      inputValues,
-      onInputChange: handleInputChange,
-    };
-
     switch (type) {
       case 'power':
-        return <PowerTable {...commonProps} />;
+        return <PowerTable data={dataBuffer} />;
       case 'wavelength':
-        return <WavelengthTable {...commonProps} />;
+        return <WavelengthTable data={dataBuffer} />;
       case 'temperature':
-        return <TemperatureTable {...commonProps} />;
+        return <TemperatureTable data={dataBuffer} />;
       case 'displacement':
-        return <DisplacementTable {...commonProps} />;
+        return <DisplacementTable data={dataBuffer} />;
       default:
         return null;
     }
   };
+
+  const showLegend = viewMode === 'chart' && (type === 'power' || type === 'wavelength');
 
   return (
     <motion.div
@@ -124,13 +137,11 @@ export const MonitoringDashboard = ({ type }: MonitoringDashboardProps) => {
     >
       <Card className="shadow-lg w-full h-full">
         <CardHeader className="flex flex-col gap-4 pb-4">
-          {/* Заголовок и управление */}
           <div className="flex justify-between items-start w-full">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-3">
-                <h3 className="text-2xl font-bold">
-                  {t(`monitoring.${type}.title`)}
-                </h3>
+                <h3 className="text-2xl font-bold">{t(`monitoring.${type}.title`)}</h3>
+
                 {isReceiving && (
                   <Chip
                     color="success"
@@ -147,34 +158,20 @@ export const MonitoringDashboard = ({ type }: MonitoringDashboardProps) => {
                   </Chip>
                 )}
               </div>
-              <p className="text-sm text-default-500">
-                {t(`monitoring.${type}.subtitle`)}
-              </p>
+
+              <p className="text-sm text-default-500">{t(`monitoring.${type}.subtitle`)}</p>
             </div>
 
-            {/* Управление */}
             <div className="flex items-center gap-3">
               <ViewModeSelector activeMode={viewMode} onModeChange={setViewMode} />
               <ChartControls onClear={clearBuffer} />
             </div>
           </div>
-
-          {/* Статистика */}
-          <ChartStats
-            isReceiving={isReceiving}
-            bufferSize={dataBuffer.length}
-            maxBuffer={200}
-            recordId={latestData?.id}
-            time={latestData?.time}
-            average={averageValue}
-            connectedPort={connectedPort}
-          />
         </CardHeader>
 
         <Divider />
 
         <CardBody className="gap-6 overflow-auto">
-          {/* Предупреждение */}
           {!connectedPort && (
             <Alert
               color="warning"
@@ -186,8 +183,8 @@ export const MonitoringDashboard = ({ type }: MonitoringDashboardProps) => {
             </Alert>
           )}
 
-          {/* Легенда каналов (только для графика) */}
-          {viewMode === 'chart' && (type === 'power' || type === 'wavelength') && (
+          {/* Легенда каналов (только для графика power/wavelength) */}
+          {showLegend && (
             <ChartLegend
               channels={CHANNELS}
               selectedChannels={selectedChannels}
@@ -198,35 +195,37 @@ export const MonitoringDashboard = ({ type }: MonitoringDashboardProps) => {
             />
           )}
 
-          {/* Контент */}
+          {/* Контент: График или Таблица */}
           <AnimatePresence mode="wait">
             {viewMode === 'chart' ? (
               <motion.div
-                key="chart"
+                key="chart-view"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
                 className="w-full"
               >
                 {connectedPort && dataBuffer.length > 0 ? (
                   renderChart()
                 ) : (
-                  <div className="h-96 flex flex-col items-center justify-center text-default-400 gap-3 border-2 border-dashed border-default-200 rounded-lg">
-                    <Activity className="w-12 h-12 opacity-50" />
-                    <div className="text-lg font-medium">
-                      {!connectedPort
+                  <EmptyState
+                    isConnected={!!connectedPort}
+                    message={
+                      !connectedPort
                         ? t('charts.messages.portNotConnected')
-                        : t('charts.messages.waitingData')}
-                    </div>
-                  </div>
+                        : t('charts.messages.waitingData')
+                    }
+                  />
                 )}
               </motion.div>
             ) : (
               <motion.div
-                key="table"
+                key="table-view"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
                 className="w-full"
               >
                 {renderTable()}
@@ -244,8 +243,9 @@ export const MonitoringDashboard = ({ type }: MonitoringDashboardProps) => {
                 {t('charts.info.selected')}: <strong>{selectedChannels.length}</strong>
               </div>
               {dataBuffer.length === 200 && (
-                <div className="text-warning">
-                  ⚠️ {t('charts.status.bufferFull')}
+                <div className="text-warning flex items-center gap-1">
+                  <span>⚠️</span>
+                  <span>{t('charts.status.bufferFull')}</span>
                 </div>
               )}
             </div>
@@ -253,5 +253,20 @@ export const MonitoringDashboard = ({ type }: MonitoringDashboardProps) => {
         </CardBody>
       </Card>
     </motion.div>
+  );
+};
+
+// ==================== Компонент пустого состояния ====================
+interface EmptyStateProps {
+  isConnected: boolean;
+  message: string;
+}
+
+const EmptyState = ({ message }: EmptyStateProps) => {
+  return (
+    <div className="h-96 flex flex-col items-center justify-center text-default-400 gap-3 border-2 border-dashed border-default-200 rounded-lg">
+      <Activity className="w-12 h-12 opacity-50" />
+      <div className="text-lg font-medium">{message}</div>
+    </div>
   );
 };

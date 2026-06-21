@@ -1,40 +1,94 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export const useTemperatureCoefficients = (sensorIndex: number) => {
-    const [coefficients, setCoefficients] = useState({
-        lambda0: 0,
-        E: 0,
-        D: 0,
-        C: 0,
-        B: 0,
-        A: 0,
-    });
+import type { TemperatureCoefficients } from '../../../entities/temperature';
+import { addDangerToaster, addSuccessToaster } from '../../../shared/ui';
+import { appDataApi } from '../../../shared/api/app-data.api';
 
-    // Загрузка из appData
-    useEffect(() => {
-        const loadCoefficients = async () => {
-            const data = await window.appData.getAll();
-            const tempCoeffs = data?.[`temperatureCoefficients_${sensorIndex}`];
+const DEFAULT_COEFFICIENTS: TemperatureCoefficients = {
+  lambda0: 0,
+  E: 0,
+  D: 0,
+  C: 0,
+  B: 0,
+  A: 0,
+};
 
-            if (tempCoeffs) {
-                setCoefficients(tempCoeffs);
+/**
+ * Хук для управления коэффициентами температурного датчика
+ */
+export const useTemperatureCoefficients = (sensorId: number) => {
+  const [coefficients, setCoefficients] = useState<TemperatureCoefficients>(DEFAULT_COEFFICIENTS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDirty, setIsDirty] = useState(false);
+
+  // Загрузка из appData при монтировании
+  useEffect(() => {
+    const loadCoefficients = async () => {
+      setIsLoading(true);
+      try {
+        const keys: Array<keyof TemperatureCoefficients> = ['lambda0', 'E', 'D', 'C', 'B', 'A'];
+
+        const loaded: Partial<TemperatureCoefficients> = {};
+
+        await Promise.all(
+          keys.map(async (key) => {
+            const storageKey = `Temp_${key}_${sensorId}`;
+            const value = await appDataApi.get(storageKey);
+            if (value !== undefined && value !== null) {
+              loaded[key] = Number(value);
             }
-        };
+          }),
+        );
 
-        loadCoefficients();
-    }, [sensorIndex]);
-
-    // Сохранение
-    const saveCoefficients = useCallback(
-        async (newCoeffs: typeof coefficients) => {
-            setCoefficients(newCoeffs);
-            await window.appData.set(`temperatureCoefficients_${sensorIndex}`, newCoeffs);
-        },
-        [sensorIndex]
-    );
-
-    return {
-        coefficients,
-        saveCoefficients,
+        setCoefficients((prev) => ({ ...prev, ...loaded }));
+      } catch (error) {
+        addDangerToaster('Ошибка загрузки коэффициентов');
+      } finally {
+        setIsLoading(false);
+      }
     };
+
+    loadCoefficients();
+  }, [sensorId]);
+
+  // Обновление одного коэффициента
+  const updateCoefficient = useCallback((key: keyof TemperatureCoefficients, value: number) => {
+    setCoefficients((prev) => ({ ...prev, [key]: value }));
+    setIsDirty(true);
+  }, []);
+
+  // Сохранение всех коэффициентов
+  const saveCoefficients = useCallback(async () => {
+    try {
+      const keys: Array<keyof TemperatureCoefficients> = ['lambda0', 'E', 'D', 'C', 'B', 'A'];
+
+      await Promise.all(
+        keys.map((key) => {
+          const storageKey = `Temp_${key}_${sensorId}`;
+          return appDataApi.set(storageKey, coefficients[key]);
+        }),
+      );
+
+      setIsDirty(false);
+      addSuccessToaster('Коэффициенты сохранены');
+    } catch (error) {
+      console.error(`Failed to save coefficients for sensor ${sensorId}:`, error);
+      addDangerToaster('Ошибка сохранения коэффициентов');
+    }
+  }, [sensorId, coefficients]);
+
+  // Сброс к значениям по умолчанию
+  const resetCoefficients = useCallback(() => {
+    setCoefficients(DEFAULT_COEFFICIENTS);
+    setIsDirty(true);
+  }, []);
+
+  return {
+    coefficients,
+    updateCoefficient,
+    saveCoefficients,
+    resetCoefficients,
+    isLoading,
+    isDirty,
+  };
 };

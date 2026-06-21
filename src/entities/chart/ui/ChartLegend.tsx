@@ -41,11 +41,7 @@ export const ChartLegend = ({
         {channels.map((channel, idx) => {
           const isSelected = selectedChannels.includes(channel);
           return (
-            <motion.div
-              key={channel}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <motion.div key={channel} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Chip
                 variant={isSelected ? 'solid' : 'bordered'}
                 color={isSelected ? 'primary' : 'default'}

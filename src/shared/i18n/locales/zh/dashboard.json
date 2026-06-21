@@ -1,0 +1,63 @@
+{
+  "title": "仪表盘",
+  "subtitle": "所有通道的实时概览与汇总统计",
+
+  "notConnected": "端口未连接",
+  "selectPort": "请在设置页面连接端口以查看数据",
+
+  "mode": {
+    "live": "实时",
+    "history": "历史"
+  },
+
+  "channel": {
+    "label": "通道 {{index}}",
+    "power": "功率",
+    "wavelength": "波长"
+  },
+
+  "status": {
+    "ok": "正常",
+    "warning": "警告",
+    "danger": "报警",
+    "idle": "无数据"
+  },
+
+  "connection": {
+    "connected": "已连接",
+    "waiting": "等待数据",
+    "disconnected": "未连接"
+  },
+
+  "stats": {
+    "duration": "时长",
+    "records": "缓冲记录数",
+    "alerts": "报警通道数",
+    "lastUpdate": "最近更新"
+  },
+
+  "history": {
+    "title": "历史统计",
+    "range": {
+      "1h": "1 小时",
+      "24h": "24 小时",
+      "7d": "7 天"
+    },
+    "load": "加载",
+    "loading": "加载中...",
+    "noData": "所选时间段无数据",
+    "columns": {
+      "channel": "通道",
+      "count": "记录数",
+      "min": "最小",
+      "max": "最大",
+      "avg": "平均"
+    }
+  },
+
+  "settings": {
+    "title": "仪表盘设置",
+    "columns": "列数",
+    "channels": "通道"
+  }
+}

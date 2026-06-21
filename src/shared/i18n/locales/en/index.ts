@@ -8,6 +8,10 @@ import navigation from './navigation.json';
 import common from './common.json';
 import calibration from './calibration.json';
 import monitoring from './monitoring.json';
+import lightManagement from './light-management.json';
+import logs from './logs.json'
+import dashboard from './dashboard.json';
+import averaging from './averaging.json';
 
 export default {
   charts,
@@ -19,5 +23,9 @@ export default {
   navigation,
   common,
   calibration,
-  monitoring
+  monitoring,
+  lightManagement,
+  logs,
+  dashboard,
+  averaging
 };

@@ -1,0 +1,59 @@
+{
+  "title": "ASE Source Control",
+
+  "connection": {
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "port": "Source port",
+    "selectPort": "Select a port",
+    "refresh": "Refresh",
+    "connect": "Connect",
+    "disconnect": "Disconnect"
+  },
+
+  "status": {
+    "title": "Laser status",
+    "live": "Live",
+    "laser": "Emission",
+    "on": "ON",
+    "off": "OFF",
+    "power": "Optical power"
+  },
+
+  "control": {
+    "title": "Emission control",
+    "emission": "Emission",
+    "power": "Power",
+    "unit": "mW",
+    "max": "Max"
+  },
+
+  "actions": {
+    "apply": "Apply power"
+  },
+
+  "monitoring": {
+    "title": "Device parameters",
+    "maxSetting": "Max power",
+    "coeff": "Coefficient",
+    "unit": "Unit",
+    "lastRaw": "Last raw"
+  },
+
+  "traffic": {
+    "title": "Raw traffic (hex)",
+    "empty": "No data yet. Connect to the source and send a command.",
+    "clear": "Clear",
+    "tx": "→ TX",
+    "rx": "← RX"
+  },
+
+  "info": {
+    "title": "Protocol information",
+    "items": {
+      "interface": "Interface: UART, 9600 baud, 8N1",
+      "power": "Power: raw = round(mW × coeff), limited by max_setting × coeff",
+      "sequence": "Startup: read parameters → set power → enable emission"
+    }
+  }
+}

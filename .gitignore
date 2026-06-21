@@ -12,3 +12,8 @@ build/
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+.env
+logs/
+database/
+.vscode/

@@ -1,6 +1,7 @@
 import { Input } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+
 import type { CalibrationData } from '../model/types';
 
 interface TableInputProps {

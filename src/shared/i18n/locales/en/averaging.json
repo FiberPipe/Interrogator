@@ -1,0 +1,7 @@
+{
+  "label": "Averaging",
+  "unit": "s",
+  "title": "Averaging window & chart speed",
+  "description": "The window sets both smoothing and chart speed: one point per window. Larger window — slower and smoother. Changes live.",
+  "manual": "Manual interval"
+}

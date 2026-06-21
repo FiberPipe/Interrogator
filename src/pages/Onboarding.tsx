@@ -3,6 +3,7 @@ import { Card, CardBody, Progress } from '@heroui/react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+
 import PortStep from '../features/onboarding/ui/PortStep';
 import SensorConfigStep from '../features/onboarding/ui/SensorConfigStep';
 import ThemeStep from '../features/onboarding/ui/ThemeStep';
@@ -10,6 +11,7 @@ import LanguageStep from '../features/onboarding/ui/LanguageStep';
 import FinalStep from '../features/onboarding/ui/FinalStep';
 import { finishOnboarding } from '../app/hooks/useOnboarding';
 import { AppRoutes } from '../shared/types/routes';
+import { addDangerToaster, addSuccessToaster } from '../shared/ui';
 
 type OnboardingProps = {
   setIsFirstLaunch: (v: boolean) => void;
@@ -57,11 +59,11 @@ export default function Onboarding({ setIsFirstLaunch }: OnboardingProps) {
 
     try {
       await finishOnboarding(finalData, setIsFirstLaunch);
-      console.log('[Onboarding] Final data:', finalData);
+      addSuccessToaster('[Onboarding] Final data:', finalData);
 
       navigate(AppRoutes.CHARTS);
     } catch (err) {
-      console.error('[Onboarding] Finish error:', err);
+      addDangerToaster('[Onboarding] Finish error:', err);
     }
   };
 
@@ -135,12 +137,13 @@ export default function Onboarding({ setIsFirstLaunch }: OnboardingProps) {
           {[...Array(TOTAL_STEPS)].map((_, i) => (
             <motion.div
               key={i}
-              className={`h-2 rounded-full transition-all ${i === step
-                ? 'w-8 bg-primary'
-                : i < step
-                  ? 'w-2 bg-primary/50'
-                  : 'w-2 bg-default-300'
-                }`}
+              className={`h-2 rounded-full transition-all ${
+                i === step
+                  ? 'w-8 bg-primary'
+                  : i < step
+                    ? 'w-2 bg-primary/50'
+                    : 'w-2 bg-default-300'
+              }`}
               animate={{
                 scale: i === step ? 1.2 : 1,
               }}

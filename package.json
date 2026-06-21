@@ -1,55 +1,64 @@
 {
   "name": "@interrogator/app",
   "private": true,
-  "version": "1.0.0",
-  "description": "FBG Sensor Interrogator Desktop Application",
-  "author": "Your Name",
+  "version": "1.1.0-beta.1",
+  "description": "Interrogator Desktop Application",
+  "author": "Petr Krotov",
   "main": "build/electron/main.js",
-  
   "scripts": {
     "dev:react": "rsbuild dev --port 3000",
     "dev:web": "npm run dev:react -- --open",
     "dev:electron": "concurrently \"pnpm dev:react\" \"wait-on http://127.0.0.1:3000 && tsc -p tsconfig.electron.json -w\" \"wait-on http://127.0.0.1:3000 && tsc -p tsconfig.electron.json && electron .\"",
-    
-    "prepare:build": "node scripts/prepare-build.js",
+    "prepare:build": "export $(cat .env) > /dev/null && node scripts/prepare-build.js",
     "prebuild": "node scripts/prebuild.js",
-    
-    "build:web": "rsbuild build",
-    "build:electron": "tsc -p tsconfig.electron.json",
-    "build": "npm run prepare:build && npm run prebuild && npm run build:web && npm run build:electron",
-    
-    "dist": "npm run build && electron-builder --config.npmRebuild=false",
-    "dist:win": "npm run build && electron-builder --win --x64 --config.npmRebuild=false",
-    "dist:win:full": "npm run build && electron-builder --win --x64",
-    "dist:dir": "npm run build && electron-builder --dir --config.npmRebuild=false",
-    
-    "build:auto": "node scripts/build.js",
-    "build:auto:clean": "node scripts/build.js --skip-rebuild",
-    "build:auto:dev": "node scripts/build.js --dev",
-    
+    "build:web": "export $(cat .env) > /dev/null && rsbuild build --mode production",
+    "build:electron": "export $(cat .env) > /dev/null && tsc -p tsconfig.electron.json",
+    "build:core": "npm run prepare:build && npm run prebuild && npm run build:web && npm run build:electron",
+    "build": "export $(cat .env) > /dev/null && node scripts/build.js",
+    "build:alpha": "export $(cat .env) > /dev/null &&node scripts/build.js --channel=alpha",
+    "build:beta": "export $(cat .env) > /dev/null && node scripts/build.js --channel=beta",
+    "build:dev": "export $(cat .env) > /dev/null &&node scripts/build.js --dev",
+    "build:quick": "export $(cat .env) > /dev/null && node scripts/build.js --skip-clean --skip-rebuild",
+    "version:info": "node scripts/version-manager.js info",
+    "version:sync": "node scripts/version-manager.js sync",
+    "version:bump": "node scripts/version-manager.js bump",
+    "version:bump:alpha": "node scripts/version-manager.js bump alpha",
+    "version:bump:beta": "node scripts/version-manager.js bump beta",
+    "version:bump:alpha:minor": "node scripts/version-manager.js bump alpha minor",
+    "version:bump:alpha:major": "node scripts/version-manager.js bump alpha major",
+    "version:bump:beta:minor": "node scripts/version-manager.js bump beta minor",
+    "version:bump:beta:major": "node scripts/version-manager.js bump beta major",
+    "version:promote": "node scripts/version-manager.js promote",
+    "assets:create": "node scripts/create-icons.js",
+    "assets:check": "node scripts/check-assets.js",
+    "assets:placeholder": "node scripts/create-placeholder-assets.js",
     "postinstall": "electron-builder install-app-deps",
-    
+    "clean": "rimraf build dist",
     "clean:build": "node scripts/prepare-build.js",
-    "clean:modules": "node -e \"const fs = require('fs'); ['node_modules', 'pnpm-lock.yaml'].forEach(item => { try { fs.rmSync(item, { recursive: true, force: true }); } catch (e) {} })\"",
+    "clean:modules": "rimraf node_modules pnpm-lock.yaml",
     "clean:install": "npm run clean:modules && pnpm install",
-    
+    "clean:all": "npm run clean && npm run clean:modules",
     "lint": "eslint 'src/**/*.{ts,tsx}'",
     "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
     "format:check": "prettier --check 'src/**/*.{ts,tsx,js,jsx,json,css,md}'",
     "format:fix": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json,css,md}'",
+    "check:i18n": "node scripts/check-i18n.js",
     "prepare": "husky"
   },
-  
   "dependencies": {
     "@heroui/react": "2.8.4",
     "@heroui/system": "2.4.22",
     "@heroui/theme": "2.4.22",
     "@monaco-editor/react": "^4.7.0",
     "@rsbuild/plugin-node-polyfill": "^1.4.2",
+    "@serialport/parser-readline": "^13.0.0",
+    "@tanstack/react-virtual": "^3.13.18",
+    "cheerio": "1",
     "drizzle-orm": "0.44.7",
     "electron-store": "8.2.0",
     "i18next": "25.7.1",
     "i18next-browser-languagedetector": "8.2.0",
+    "jsdom": "^29.1.1",
     "lucide-react": "0.554.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",
@@ -58,9 +67,10 @@
     "recharts": "3.5.1",
     "serialport": "13.0.0",
     "sql.js": "^1.13.0",
-    "tailwindcss": "^4.1.17"
+    "uplot": "^1.6.32",
+    "use-debounce": "^10.1.0",
+    "xlsx": "^0.18.5"
   },
-  
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@rsbuild/core": "1.5.12",
@@ -77,6 +87,7 @@
     "better-sqlite3": "^12.5.0",
     "concurrently": "9.2.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.3",
     "electron": "39.2.4",
     "electron-builder": "26.0.12",
     "eslint": "9.39.1",
@@ -92,68 +103,73 @@
     "lint-staged": "^16.2.7",
     "motion": "^12.26.1",
     "prettier": "^3.7.3",
-    "react-calendar-heatmap": "^1.10.0",
     "rimraf": "^6.1.2",
+    "tailwindcss": "^4.1.17",
     "typescript": "5.9.2",
     "typescript-eslint": "^8.48.1",
     "wait-on": "9.0.1"
   },
-  
   "build": {
     "appId": "com.interrogator.app",
     "productName": "Interrogator",
-    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
-    
-    "npmRebuild": false,
-    
+    "artifactName": "${productName}-${channel}-${version}-Setup.${ext}",
+    "compression": "maximum",
+    "asar": true,
+    "npmRebuild": true,
     "files": [
       "build/**/*",
-      "!build/renderer/**/*.map",
-      "node_modules/**/*",
-      "package.json"
+      "!build/**/*.map",
+      "!build/**/*.ts",
+      "!build/**/*.d.ts",
+      "package.json",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,readme.md,*.md}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
     ],
-    
     "extraResources": [
       {
         "from": "node_modules/sql.js/dist/sql-wasm.wasm",
         "to": "sql-wasm.wasm"
       }
     ],
-    
     "directories": {
       "buildResources": "assets",
       "output": "dist"
     },
-    
     "win": {
       "target": [
         {
-          "target": "portable",
-          "arch": ["x64"]
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
         }
       ],
-      "icon": "assets/icon.ico"
+      "requestedExecutionLevel": "asInvoker"
     },
-    
-    "portable": {
-      "artifactName": "${productName}-${version}-portable.exe"
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": true,
+      "differentialPackage": true
     },
-    
     "asarUnpack": [
-      "**/node_modules/serialport/**/*",
-      "**/node_modules/@serialport/**/*",
-      "**/node_modules/better-sqlite3/**/*",
-      "**/node_modules/sql.js/**/*"
-    ]
-  },
-  
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
-      "eslint --fix",
-      "prettier --write"
+      "**/*.node",
+      "node_modules/serialport/**/*"
     ],
-    "*.{json,md,css}": [
-      "prettier --write"
-    ]
+    "publish": null
   }
 }
